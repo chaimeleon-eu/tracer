@@ -1,0 +1,229 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>es.upv.grycap</groupId>
+  <artifactId>tracer</artifactId>
+  <version>0.1.0-ALPHA</version>
+  <packaging>war</packaging>
+  <name>Traceability Service</name>
+  
+  	<!-- Inherit defaults from Spring Boot -->
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.0</version>
+	</parent>
+	
+	<properties>
+		<bundle.version>none</bundle.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<project.build>201215.1</project.build>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyMMdd.HHmm</maven.build.timestamp.format>
+
+
+        <dep.ver.lombok>1.18.16</dep.ver.lombok>
+		<dep.ver.powermock>1.7.4</dep.ver.powermock>
+		<dep.ver.junit>5.3.1</dep.ver.junit>
+		<dep.ver.junit.platform-surefire-provider>1.3.1</dep.ver.junit.platform-surefire-provider>
+		<dep.ver.org.apache.poi.poi-ooxml>3.17</dep.ver.org.apache.poi.poi-ooxml>
+
+		<!-- Plugins versions section -->
+		<dep.ver.plugin.surefire>2.22.1</dep.ver.plugin.surefire>
+		<dep.ver.plugin.jacoco>0.8.2</dep.ver.plugin.jacoco>
+		<dep.ver.plugin.failsafe>2.22.1</dep.ver.plugin.failsafe>
+		<dep.ver.plugin.assembly>2.4.1</dep.ver.plugin.assembly>
+		<dep.ver.plugin.javadoc>2.9</dep.ver.plugin.javadoc>
+		<dep.ver.plugin.build-helper>1.5</dep.ver.plugin.build-helper>
+		<dep.ver.plugin.jar>2.6</dep.ver.plugin.jar>
+		<dep.ver.plugin.checkstyle>3.0.0</dep.ver.plugin.checkstyle>
+		<dep.ver.plugin.com.puppycrawl.tools.checkstyle>8.14</dep.ver.plugin.com.puppycrawl.tools.checkstyle>
+		<v.org.apache.maven.plugins.maven-compiler-plugin>2.3.2</v.org.apache.maven.plugins.maven-compiler-plugin>
+
+	</properties>
+	
+		<dependencies>
+		      <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+        </dependency>
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		
+
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <scope>provided</scope>
+</dependency> 
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+		
+		<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <scope>provided</scope>
+</dependency>
+
+		</dependencies>
+  <!-- Package as an executable jar -->
+	<build>
+		<resources>
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>application.yml</include>
+					<include>${application-props-name}</include>
+					<include>appInfo.yml</include>
+				</includes>
+			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<excludes>
+					<exclude>**/application*.yml</exclude>
+					<exclude>**/appInfo.yml</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>es.upv.grycap.tracer.TracerMain</mainClass>
+				</configuration>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<delimiters>
+						<delimiter>^</delimiter>
+					</delimiters>
+					<useDefaultDelimiters>false</useDefaultDelimiters>
+				</configuration>
+				<executions>
+					<execution>
+						<id>copy-jar</id>
+						<phase>${copy-resource-phase}</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${output-directory}</outputDirectory>
+							<resources>
+								<resource>
+									<!-- Get main artifact -->
+									<directory>target</directory>
+									<includes>
+										<include>${build.finalName}.war</include>
+									</includes>
+									<!-- Don't filter binary files -->
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Xmx2048m -XX:MaxPermSize=1024m</argLine>
+					<forkCount>0</forkCount>
+					<reuseForks>false</reuseForks>
+					<!-- Sets the VM argument line used when unit tests are run. -->
+					<argLine>${surefireArgLine}</argLine>
+					<!-- Skips unit tests if the value of skip.unit.tests property is true -->
+					<skipTests>${skip.unit.tests}</skipTests>
+					<!-- Excludes integration tests when unit tests are run. -->
+					<excludes>
+						<exclude>**/none*.java</exclude>
+					</excludes>
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.platform</groupId>
+						<artifactId>junit-platform-surefire-provider</artifactId>
+						<version>${dep.ver.junit.platform-surefire-provider}</version>
+					</dependency>
+					<dependency>
+						<groupId>org.junit.jupiter</groupId>
+						<artifactId>junit-jupiter-engine</artifactId>
+						<version>${dep.ver.junit}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${dep.ver.lombok}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<excludeDefaultDirectories>true</excludeDefaultDirectories>
+					<filesets>
+						<!-- delete directories that will be generated when you start the develpment 
+							server/client in eclipse -->
+						<fileset>
+							<directory>target</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+		</plugins>
+		<!--directory>${targetDir}</directory -->
+		<finalName>tracer</finalName>
+	</build>
+</project>

@@ -1,0 +1,10 @@
+spring:
+    data:
+        rest:
+            base-path: /rest/default
+
+tracer:
+    yearMin: 2021
+    yearMax: 2024
+    entity: UPV-I3M-GRyCAP
+    version: ^project.version^
