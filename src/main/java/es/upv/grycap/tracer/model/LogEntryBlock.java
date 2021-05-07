@@ -39,12 +39,12 @@ public class LogEntryBlock {
 	// variable
 	protected byte[] hashClinicalImages;
 	
-	public LogEntryBlock(UUID id, long timestamp, DatasetAction action, UUID userId, 
+	public LogEntryBlock(UUID id, long timestamp, UserAction action, UUID userId, 
 			byte[] prevHash,
 			byte[] hashClinicalMetadata, byte[] hashClinicalImages) {
 		this.id = this.getBytesFromUUID(id);
 		this.timestamp = timestamp;
-		this.action = action.id;
+		this.action = (byte)action.id;
 		this.userId = this.getBytesFromUUID(userId);
 		this.prevHash = Arrays.copyOf(prevHash, prevHash.length);
 		this.hashClinicalMetadata = 

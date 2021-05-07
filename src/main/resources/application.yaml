@@ -1,10 +1,11 @@
-spring:
-    data:
-        rest:
-            base-path: /rest/default
+server.servlet.context-path: /api
 
 tracer:
     yearMin: 2021
     yearMax: 2024
     entity: UPV-I3M-GRyCAP
     version: ^project.version^
+ 
+blockchaindb:
+    baseUrl: http://asaserver.i3m.upv.es:9090/api/v1
+    transactionModePost: sync 
