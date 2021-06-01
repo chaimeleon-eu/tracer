@@ -16,7 +16,12 @@ public class EntryReqDTO implements Serializable {
 	@JsonIgnore
 	private static final long serialVersionUID = 7613010919109618521L;
 	protected UserAction userAction;
-	protected String userId;
 	protected String datasetId;
+	/**
+	 * Public Ed25519 key for the user identified by user id 
+	 * Encoded as base64
+	 */
+	//protected String userPublicKey;
+	protected String userId;
 	protected EntryReqResGroupDTO resources;
 }

@@ -32,7 +32,7 @@ public class RController {
 	protected AppInfoDTO appInfo;
 	
 	@Autowired
-	protected BlockchainStorage bcStorage;
+	protected BlockchainManager bcStorage;
 
 
     @RequestMapping(value = "/app/info", method = RequestMethod.GET, produces = {"application/json"})
