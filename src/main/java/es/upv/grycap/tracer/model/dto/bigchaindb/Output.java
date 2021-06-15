@@ -26,6 +26,6 @@ public class Output implements Serializable {
 	protected Condition condition;
 	@JsonProperty("public_keys")
 	protected List<String> publicKeys;
-	protected Integer amount;
+	protected String amount;
 
 }

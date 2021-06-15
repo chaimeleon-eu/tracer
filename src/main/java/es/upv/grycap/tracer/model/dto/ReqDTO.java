@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EntryReqDTO implements Serializable {
+public class ReqDTO implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 7613010919109618521L;
@@ -23,5 +23,5 @@ public class EntryReqDTO implements Serializable {
 	 */
 	//protected String userPublicKey;
 	protected String userId;
-	protected EntryReqResGroupDTO resources;
+	protected List<ReqResDTO> resources;
 }

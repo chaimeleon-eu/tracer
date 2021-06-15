@@ -10,14 +10,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import es.upv.grycap.tracer.model.dto.bigchaindb.Input;
+import es.upv.grycap.tracer.model.dto.bigchaindb.Output;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TransactionConverter implements AttributeConverter<Transaction<?, ?, ?>, String>{
+public class TransactionConverter<I extends Input, O extends Output, M extends Object> implements AttributeConverter< Transaction<I, O, M>, String>{
 
 	@Override
-	public String convertToDatabaseColumn(Transaction<?, ?, ?> attribute) {
+	public String convertToDatabaseColumn(Transaction<I, O, M> attribute) {
 		String tr = null;
         try {
         	tr = new ObjectMapper()
@@ -31,8 +33,8 @@ public class TransactionConverter implements AttributeConverter<Transaction<?, ?
 	}
 
 	@Override
-	public Transaction<?, ?, ?> convertToEntityAttribute(String dbData) {
-		Transaction<?, ?, ?> tr = null;
+	public Transaction<I, O, M> convertToEntityAttribute(String dbData) {
+		Transaction<I, O, M> tr = null;
 		try {
 			tr = new ObjectMapper()
       		      .setSerializationInclusion(Include.NON_NULL)

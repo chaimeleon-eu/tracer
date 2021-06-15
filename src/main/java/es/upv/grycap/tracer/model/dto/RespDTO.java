@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public class EntryRespDTO implements Serializable {
+public class RespDTO implements Serializable {
 
 	private static final long serialVersionUID = -622751773499518948L;
 

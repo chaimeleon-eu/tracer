@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import es.upv.grycap.tracer.model.TransactionCacheRec;
 
-@Repository
+//@Repository
 public interface TransactionCacheRecRepository extends JpaRepository<TransactionCacheRec<?, ?, ?>, Long> {
 	
 	@Query("select p.id from #{#entityName} p")

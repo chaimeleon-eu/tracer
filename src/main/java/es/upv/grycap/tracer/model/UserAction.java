@@ -6,9 +6,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum UserAction {
 	
-	CREATE_NEW_DS(1, "Create new dataset"),
-	CREATE_NEW_VERSION_EXISTING_DS(2, "Create new version of existing dataset"),
-	VISUALIZE_VERSION_DS(3, "Visualize a version of dataset");
+	CREATE_NEW_DATASET(1, "Create new dataset"),
+	CREATE_NEW_VERSION_DATASET(2, "Create new version of existing dataset"),
+	VISUALIZE_VERSION_DATASET(3, "Visualize a version of dataset"),
+	USE_DATASET_POD(4, "Use a dataset in a Kubernetes App"),
+	CREATE_MODEL_POD(5, "Create a new model in a Kubernetes App"),
+	USE_MODEL_POD(6, "Use an existing model in a Kubernetes App");
 	
 	public final int id;
 	public final String name;
