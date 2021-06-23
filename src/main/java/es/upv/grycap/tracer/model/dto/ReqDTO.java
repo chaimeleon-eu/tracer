@@ -22,11 +22,12 @@ import lombok.Setter;
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
 	    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-	    property = "userAction"
+	    property = "userAction",
+	    visible = true
 	)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_NEW_DATASET"),
-        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_NEW_VERSION_DATASET"),
+        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_DATASET"),
+        @JsonSubTypes.Type(value = ReqCreateVersionDatasetDTO.class, name = "CREATE_VERSION_DATASET"),
         @JsonSubTypes.Type(value = ReqDTO.class, name = "VISUALIZE_VERSION_DATASET"),
         @JsonSubTypes.Type(value = ReqDTO.class, name = "USE_DATASET_POD"),
         @JsonSubTypes.Type(value = ReqModelDTO.class, name = "CREATE_MODEL_POD"),
@@ -36,7 +37,6 @@ public class ReqDTO implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 7613010919109618521L;
-	@NotBlank(message="User action field must have a value from the allowed list.")
 	@NotNull(message="User action field must have a value from the allowed list.")
 	protected UserAction userAction;
 	@NotBlank(message="Dataset field ID must have a value.")

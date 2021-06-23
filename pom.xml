@@ -67,16 +67,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.springframework.boot</groupId> -->
+<!--             <artifactId>spring-boot-devtools</artifactId> -->
+<!--         </dependency> -->
 	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>org.hibernate.validator</groupId>
+    <artifactId>hibernate-validator</artifactId>
+</dependency>
 		<dependency>
     <groupId>com.ripple.cryptoconditions</groupId>
     <artifactId>crypto-conditions</artifactId>
@@ -226,7 +230,22 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<excludeDefaultDirectories>true</excludeDefaultDirectories>
+					<filesets>
+						<!-- delete directories that will be generated when you start the develpment 
+							server/client in eclipse -->
+						<fileset>
+							<directory>target</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
 		</plugins>
 		<!--directory>${targetDir}</directory -->
 		<finalName>tracer</finalName>

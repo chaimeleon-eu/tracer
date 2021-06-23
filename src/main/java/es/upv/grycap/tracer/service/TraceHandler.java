@@ -4,6 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Validator;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,9 @@ import es.upv.grycap.tracer.model.exceptions.UserActionNotSupported;
 public class TraceHandler {
 	
 	@Autowired
+    private Validator validator;
+	
+	@Autowired
 	protected HashingService hashingService;
 	
 	protected HashType defaultHashType;
@@ -37,17 +43,23 @@ public class TraceHandler {
 	
 	public Trace fromRequest(final ReqDTO request) {
 		
-		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET 
-				|| request.getUserAction() == UserAction.CREATE_NEW_VERSION_DATASET) {
+		if (request.getUserAction() == UserAction.CREATE_DATASET 
+				|| request.getUserAction() == UserAction.CREATE_VERSION_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = new ArrayList<>();
 			List<ReqResDTO> resReq = req.getResources();
 			resReq.forEach(r -> {
 				DataHash hd = hashingService.getHashReqResource(r, defaultHashType);
 				ltr.add(TraceResource.builder()
-						.contentHash(Hex.encodeHexString(hd.getHash()))
+						.contentHash(Base64.encodeBase64String(hd.getHash()))
 						.contentHashType(hd.getHashType())
-						.nameHash(Hex.encodeHexString(hashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
+						.nameHash(Base64.encodeBase64String(hashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
+						.nameHashType(defaultHashType)
+						.id(r.getId())
+						.pathHash(r.getPath() != null ? 
+								Base64.encodeBase64String(hashingService.getHash(r.getPath().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash())
+								: null)
+						.pathHashType(r.getPath() != null ? defaultHashType :  null)
 						.build());
 				
 			});

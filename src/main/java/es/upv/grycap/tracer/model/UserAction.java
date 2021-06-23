@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+@JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum UserAction {
-	@JsonProperty("CREATE_NEW_DATASET")
-	CREATE_NEW_DATASET(1, "Create new dataset"),
-	@JsonProperty("CREATE_NEW_VERSION_DATASET")
-	CREATE_NEW_VERSION_DATASET(2, "Create new version of existing dataset"),
+	@JsonProperty("CREATE_DATASET")
+	CREATE_DATASET(1, "Create a new dataset"),
+	@JsonProperty("CREATE_VERSION_DATASET")
+	CREATE_VERSION_DATASET(2, "Create new version of existing dataset"),
 	@JsonProperty("VISUALIZE_VERSION_DATASET")
 	VISUALIZE_VERSION_DATASET(3, "Visualize a version of dataset"),
 	@JsonProperty("USE_DATASET_POD")
@@ -25,7 +25,6 @@ public enum UserAction {
 	@JsonIgnore
 	public final String description;
 	
-	@JsonCreator 
 	private UserAction(int id, String description) {
         this.id = id;
         this.description = description;

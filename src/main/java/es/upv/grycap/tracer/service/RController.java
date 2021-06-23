@@ -70,7 +70,7 @@ public class RController {
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/hashtypes", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/traces/hash_types", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getHashTypes() {
         return new ResponseEntity<>(HashType.values(), new HttpHeaders(), HttpStatus.OK);
     }

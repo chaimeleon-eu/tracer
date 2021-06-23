@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import es.upv.grycap.tracer.model.DataHash;
 import es.upv.grycap.tracer.model.HashType;
-import es.upv.grycap.tracer.model.dto.ReqResChecksumDTO;
+import es.upv.grycap.tracer.model.dto.ReqResHashDTO;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqResFileDataDTO;
 import es.upv.grycap.tracer.model.dto.ReqResHttpDTO;
@@ -37,8 +37,8 @@ public class HashingService {
 			return getHashReqResourceImpl((ReqResFileDataDTO)reqResource, hashType);
 		else if (reqResource instanceof ReqResHttpDTO) 
 			return getHashReqResourceImpl((ReqResHttpDTO)reqResource, hashType);
-		else if (reqResource instanceof ReqResChecksumDTO) 
-			return getHashReqResourceImpl((ReqResChecksumDTO)reqResource);
+		else if (reqResource instanceof ReqResHashDTO) 
+			return getHashReqResourceImpl((ReqResHashDTO)reqResource);
 		else
 			throw new UnknownReqResType("Unknown request resource type " + reqResource.getType());
 	}
@@ -67,7 +67,7 @@ public class HashingService {
 		}
 	}
 	
-	protected DataHash getHashReqResourceImpl(final ReqResChecksumDTO reqResource) {
+	protected DataHash getHashReqResourceImpl(final ReqResHashDTO reqResource) {
 		byte[] fData = Base64.decode(reqResource.getHash());
 		return DataHash.builder().hash(fData).originalData(null).hashType(reqResource.getHashType()).build();
 	}
