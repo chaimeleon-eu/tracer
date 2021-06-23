@@ -9,18 +9,29 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-@Getter
-@Setter
+
 @NoArgsConstructor
-public abstract class Asset implements Serializable {
+public class Asset implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = -7910823798763765300L;
+	
+	protected String id;
+	
+	@JsonIgnore
+	public String getId() {
+	    return id;
+	}
+	@JsonProperty
+	public void setPassword(String id) {
+	    this.id = id;
+	}
 
 }

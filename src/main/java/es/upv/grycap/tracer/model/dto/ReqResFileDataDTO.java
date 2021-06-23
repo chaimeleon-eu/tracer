@@ -2,6 +2,7 @@ package es.upv.grycap.tracer.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import es.upv.grycap.tracer.model.HashType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,5 +16,7 @@ public class ReqResFileDataDTO extends ReqResDTO {
 	 * base 64 encoded data
 	 */
 	protected String data;
+	
+	protected HashType dataHashType;
 
 }

@@ -19,6 +19,8 @@ import org.apache.commons.io.FileUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.stereotype.Service;
 
+import es.upv.grycap.tracer.model.DataHash;
+import es.upv.grycap.tracer.model.HashType;
 import es.upv.grycap.tracer.model.dto.ReqResChecksumDTO;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqResFileDataDTO;
@@ -30,27 +32,23 @@ import es.upv.grycap.tracer.model.exceptions.UnknownReqResType;
 @Service
 public class HashingService {
 	
-	public byte[] getHashReqResource(final ReqResDTO reqResource) {
+	public DataHash getHashReqResource(final ReqResDTO reqResource, HashType hashType) {
 		if (reqResource instanceof ReqResFileDataDTO)
-			return getHashReqResourceImpl((ReqResFileDataDTO)reqResource);
+			return getHashReqResourceImpl((ReqResFileDataDTO)reqResource, hashType);
 		else if (reqResource instanceof ReqResHttpDTO) 
-			return getHashReqResourceImpl((ReqResHttpDTO)reqResource);
+			return getHashReqResourceImpl((ReqResHttpDTO)reqResource, hashType);
 		else if (reqResource instanceof ReqResChecksumDTO) 
 			return getHashReqResourceImpl((ReqResChecksumDTO)reqResource);
 		else
 			throw new UnknownReqResType("Unknown request resource type " + reqResource.getType());
 	}
 	
-	protected byte[] getHashReqResourceImpl(final ReqResFileDataDTO reqResource)  {
+	protected DataHash getHashReqResourceImpl(final ReqResFileDataDTO reqResource, HashType hashType)  {
 		byte[] fData = Base64.decode(reqResource.getData());
-		try {
-			return getHash(fData);
-		} catch (NoSuchAlgorithmException ex) {
-			throw new UncheckedNoSuchAlgorithmException(ex);
-		}
+		return getHash(fData, hashType);
 	}
 	
-	protected byte[] getHashReqResourceImpl(final ReqResHttpDTO reqResource) {
+	protected DataHash getHashReqResourceImpl(final ReqResHttpDTO reqResource, HashType hashType) {
 		BufferedInputStream btc;
 		try {
 			btc = new BufferedInputStream(new URL(reqResource.getUrl()).openStream());
@@ -61,28 +59,34 @@ public class HashingService {
 			    while ((numBytesRead = btc.read(bucket, 0, bucket.length)) != -1) {
 			    	btos.write(bucket, 0, numBytesRead);
 			    }
-			return getHash(btos.toByteArray());
+			return getHash(btos.toByteArray(), hashType);
 		} catch (MalformedURLException ex) {
 			throw new UncheckedMalformedURLException(ex);
 		} catch (IOException ex) {
 			throw new UncheckedIOException(ex);
-		} catch (NoSuchAlgorithmException ex) {
-			throw new UncheckedNoSuchAlgorithmException(ex);
 		}
 	}
 	
-	protected byte[] getHashReqResourceImpl(final ReqResChecksumDTO reqResource) {
-		byte[] fData = Base64.decode(reqResource.getChecksum());
-		return fData;
+	protected DataHash getHashReqResourceImpl(final ReqResChecksumDTO reqResource) {
+		byte[] fData = Base64.decode(reqResource.getHash());
+		return DataHash.builder().hash(fData).originalData(null).hashType(reqResource.getHashType()).build();
 	}
 	
-	public byte[] getHashFile(Path file) throws NoSuchAlgorithmException, IOException {
-		return getHash(Files.readAllBytes(file));
+	public DataHash getHashFile(Path file, HashType hashType) {
+		try {
+			return getHash(Files.readAllBytes(file), hashType); 
+		} catch (IOException ex) {
+			throw new UncheckedIOException(ex);
+		}
 	}
 	
-	public byte[] getHash(byte[] content) throws NoSuchAlgorithmException {
-		final MessageDigest digest = MessageDigest.getInstance("SHA3-256");
-		return digest.digest(content);
+	public DataHash getHash(byte[] content, HashType hashType) {
+		try {
+			final MessageDigest digest = MessageDigest.getInstance(hashType.algorithmId);//"SHA3-256");
+			return DataHash.builder().hash(digest.digest(content)).originalData(content).hashType(hashType).build();
+		} catch (NoSuchAlgorithmException ex) {
+			throw new UncheckedNoSuchAlgorithmException(ex);
+		}
 	}
 
 }

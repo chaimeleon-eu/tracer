@@ -3,6 +3,8 @@ package es.upv.grycap.tracer.service;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import es.upv.grycap.tracer.model.HashType;
 import es.upv.grycap.tracer.model.Trace;
 import es.upv.grycap.tracer.model.UserAction;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
@@ -44,7 +47,7 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
-    public ResponseEntity<?> addLog(@RequestBody ReqDTO logRequest) {
+    public ResponseEntity<?> addLog(@Valid @RequestBody ReqDTO logRequest) {
     	bcManager.addEntry(logRequest);
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
 
@@ -53,7 +56,7 @@ public class RController {
     @RequestMapping(value = "/traces/{userId}", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getLogsByUser(@PathVariable(name = "userId", required = true) String userId) {
     	List<Trace> traces = bcManager.getTraceEntriesByUserId(userId);
-        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces/{userId}/{actionIdName}", method = RequestMethod.GET, produces = {"application/json"})
@@ -65,6 +68,11 @@ public class RController {
     @RequestMapping(value = "/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getActions() {
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/hashtypes", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getHashTypes() {
+        return new ResponseEntity<>(HashType.values(), new HttpHeaders(), HttpStatus.OK);
     }
 
 	

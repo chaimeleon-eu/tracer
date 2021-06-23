@@ -33,6 +33,7 @@ public abstract class ReqResDTO implements Serializable {
 
 	protected TYPE type;	
 	protected String name;	
+	protected String path;
 	
 
 }

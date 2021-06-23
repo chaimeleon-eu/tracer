@@ -1,0 +1,39 @@
+package es.upv.grycap.tracer.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import es.upv.grycap.tracer.model.exceptions.HashTypeNotSupported;
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+public enum HashType {
+	
+	@JsonProperty
+	SHA3_256("SHA3-256"),
+	@JsonProperty
+	SHA3_512("SHA3-512");
+	
+	/**
+	 * Algorithm ID must be available to Java
+	 */
+	public String algorithmId;
+	@JsonCreator 
+	private HashType(String algorithmId) {
+		this.algorithmId = algorithmId;
+	}
+	
+	@Override
+	public String toString() {
+		return name();
+	}
+	
+	public static HashType fromAlgorithmId(final String algorithmId) {
+		for (HashType ht: HashType.values()) {
+			if (ht.algorithmId.equalsIgnoreCase(algorithmId))
+				return ht;
+		}
+		throw new HashTypeNotSupported("Hash type using JAVA hash algorithm ID " + algorithmId + " not supported;");
+	}
+
+}

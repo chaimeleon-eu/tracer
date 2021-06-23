@@ -2,9 +2,11 @@ package es.upv.grycap.tracer.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import es.upv.grycap.tracer.model.dto.ReqDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -15,7 +17,7 @@ import lombok.experimental.SuperBuilder;
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
 	    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-	    property = "type"
+	    property = "userAction"
 	)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TraceCreateDataset.class, name = "CREATE_NEW_DATASET"),
@@ -36,7 +38,6 @@ public class Trace implements Serializable {
 	protected String userId;
 	protected String datasetId;
 	
-	protected UserAction type;
+	protected UserAction userAction;
 	
-
 }
