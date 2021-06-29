@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
 	    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-	    property = "type"
+	    property = "contentType"
 	)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ReqResFileDataDTO.class, name = "FILE_DATA"),
@@ -32,18 +32,18 @@ public abstract class ReqResDTO implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 1L;
-	
-	public enum TYPE {FILE_DATA, HTTP_FTP, HASH};
 
 	@NotNull(message="The request resource ID cannot be null.")
 	@NotBlank(message="The request resource ID cannot be empty.")
 	protected String id;
 	@NotNull(message="The request resource type cannot be null.")
-	protected TYPE type;
+	protected ReqResContentType contentType;
 	@NotNull(message="The request resource name cannot be null.")
 	@NotBlank(message="The request resource name cannot be empty.")
 	protected String name;
-	protected String path;
+	@NotNull(message="The request resource type cannot be null.")
+	@NotBlank(message="The request resource type cannot be empty.")
+	protected DatasetResourceType resourceType;
 	
 
 }

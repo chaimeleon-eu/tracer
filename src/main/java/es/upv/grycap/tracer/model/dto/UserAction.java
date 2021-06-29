@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -14,11 +14,11 @@ public enum UserAction {
 	@JsonProperty("VISUALIZE_VERSION_DATASET")
 	VISUALIZE_VERSION_DATASET(3, "Visualize a version of dataset"),
 	@JsonProperty("USE_DATASET_POD")
-	USE_DATASET_POD(4, "Use a dataset in a Kubernetes App"),
+	USE_DATASETS_POD(4, "Use one or more datasets in a Kubernetes App"),
 	@JsonProperty("CREATE_MODEL_POD")
-	CREATE_MODEL_POD(5, "Create a new model in a Kubernetes App"),
+	CREATE_MODEL(5, "Create a new model in a Kubernetes App"),
 	@JsonProperty("USE_MODEL_POD")
-	USE_MODEL_POD(6, "Use an existing model in a Kubernetes App");
+	USE_MODELS(6, "Use one or more existing models in a Kubernetes App");
 	
 	@JsonIgnore
 	public final int id;

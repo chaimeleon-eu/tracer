@@ -13,10 +13,11 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class TraceCreateDataset extends TraceDataset {
-	
-	@JsonIgnore
-	private static final long serialVersionUID = 554105358293232533L;
+public class TraceUseDatasets extends Trace {
 
-	protected List<TraceResource> traceResources;
+	@JsonIgnore
+	private static final long serialVersionUID = 4774388914989813495L;
+	
+	protected List<String> datasetsIds;
+
 }

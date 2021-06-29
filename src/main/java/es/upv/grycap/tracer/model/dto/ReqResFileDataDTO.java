@@ -5,7 +5,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import es.upv.grycap.tracer.model.HashType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import com.sun.istack.NotNull;
 
+import es.upv.grycap.tracer.model.dto.HashType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

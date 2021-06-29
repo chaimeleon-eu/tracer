@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import es.upv.grycap.tracer.model.HashType;
 import es.upv.grycap.tracer.model.Trace;
-import es.upv.grycap.tracer.model.UserAction;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
+import es.upv.grycap.tracer.model.dto.DatasetResourceType;
+import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
+import es.upv.grycap.tracer.model.dto.ReqResContentType;
+import es.upv.grycap.tracer.model.dto.UserAction;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -70,10 +72,26 @@ public class RController {
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/hash_types", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getHashTypes() {
         return new ResponseEntity<>(HashType.values(), new HttpHeaders(), HttpStatus.OK);
     }
+    
+    @RequestMapping(value = "/traces/dataset_resources", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getDatasetResources() {
+        return new ResponseEntity<>(DatasetResourceType.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/request_resource_contents", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getRequestResourceContentTypes() {
+        return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTracesCache() {
+        return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+
 
 	
 }

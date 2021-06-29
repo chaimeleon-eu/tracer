@@ -1,5 +1,6 @@
 package es.upv.grycap.tracer.model;
 
+import es.upv.grycap.tracer.model.dto.HashType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

@@ -20,8 +20,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.springframework.stereotype.Service;
 
 import es.upv.grycap.tracer.model.DataHash;
-import es.upv.grycap.tracer.model.HashType;
 import es.upv.grycap.tracer.model.dto.ReqResHashDTO;
+import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqResFileDataDTO;
 import es.upv.grycap.tracer.model.dto.ReqResHttpDTO;
@@ -40,7 +40,7 @@ public class HashingService {
 		else if (reqResource instanceof ReqResHashDTO) 
 			return getHashReqResourceImpl((ReqResHashDTO)reqResource);
 		else
-			throw new UnknownReqResType("Unknown request resource type " + reqResource.getType());
+			throw new UnknownReqResType("Unknown request resource type " + reqResource.getContentType());
 	}
 	
 	protected DataHash getHashReqResourceImpl(final ReqResFileDataDTO reqResource, HashType hashType)  {

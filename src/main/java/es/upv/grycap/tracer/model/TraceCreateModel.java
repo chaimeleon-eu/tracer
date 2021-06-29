@@ -14,13 +14,13 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class TraceModel extends TraceDataset {
-	
+public class TraceCreateModel extends TraceModel {
+
 	@JsonIgnore
-	private static final long serialVersionUID = 1632046976434313965L;
+	private static final long serialVersionUID = -6536948640006655142L;
 	
-	@NotBlank(message="The application ID cannot be blank.")
-	@NotNull(message="The application ID cannot be null.")
-	protected String applicationId;
+	@NotBlank(message="The model ID cannot be blank.")
+	@NotNull(message="The model ID cannot be null.")
+	protected String modelId;
 
 }

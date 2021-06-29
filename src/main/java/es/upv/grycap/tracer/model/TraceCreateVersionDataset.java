@@ -1,7 +1,5 @@
 package es.upv.grycap.tracer.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
@@ -13,10 +11,11 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public class TraceCreateDataset extends TraceDataset {
+public class TraceCreateVersionDataset extends TraceCreateDataset {
 	
 	@JsonIgnore
-	private static final long serialVersionUID = 554105358293232533L;
+	private static final long serialVersionUID = -7540394263110535067L;
+	
+	protected String previousId;
 
-	protected List<TraceResource> traceResources;
 }

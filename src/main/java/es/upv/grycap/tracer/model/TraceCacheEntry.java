@@ -23,17 +23,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-public class TransactionCacheRec<I extends Input, O extends Output, M extends Object>    {
+public class TraceCacheEntry<T extends Trace>    {
 	
 	public enum Status {SUBMITTED, ACCEPTED};
 	
 	@Id
-	protected long idCache;
+	protected long id;
+	protected String idTransaction;
 	protected Status status;
 	protected Instant submitDate;
-	protected String idTransaction;
-	//@Convert(converter = TransactionConverter.class)
-	//protected Transaction<I, O, M> transaction;
-	protected String transaction;
+	protected T trace;
 
 }

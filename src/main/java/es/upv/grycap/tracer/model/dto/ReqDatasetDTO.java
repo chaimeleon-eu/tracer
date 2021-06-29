@@ -7,17 +7,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
-public class RespCreateDatasetDTO extends RespDTO {
+public class ReqDatasetDTO extends ReqDTO {
 
 	@JsonIgnore
-	private static final long serialVersionUID = -7934268486575243907L;
-
+	private static final long serialVersionUID = -2378736133026750401L;
+	
 	@NotBlank(message="Dataset ID cannot be blank.")
 	@NotNull(message="Dataset ID cannot be null.")
 	protected String datasetId;
+
 }

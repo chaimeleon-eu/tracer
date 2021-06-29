@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ReqCreateDatasetDTO extends ReqDTO {
+public class ReqCreateDatasetDTO extends ReqDatasetDTO {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 276930127687010771L;
