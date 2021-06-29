@@ -43,11 +43,18 @@
 
 	</properties>
 	
-		<dependencies>
-			<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
+	<repositories>
+    <repository>
+        <id>sonatype</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+</repositories>
+	
+<dependencies> 
+<!-- 			<dependency> -->
+<!--             <groupId>org.springframework.boot</groupId> -->
+<!--             <artifactId>spring-boot-starter-thymeleaf</artifactId> -->
+<!--         </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -56,17 +63,52 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
         </dependency>
-        <dependency>
+                <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.springframework.boot</groupId> -->
+<!--             <artifactId>spring-boot-devtools</artifactId> -->
+<!--         </dependency> -->
 	
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>org.hibernate.validator</groupId>
+    <artifactId>hibernate-validator</artifactId>
+</dependency>
+		<dependency>
+    <groupId>com.ripple.cryptoconditions</groupId>
+    <artifactId>crypto-conditions</artifactId>
+    <version>1.0.4</version>
+  </dependency>
+  
+  <dependency>
+    <groupId>javax.validation</groupId>
+    <artifactId>validation-api</artifactId>
+</dependency>
+  
+  <dependency>
+    <groupId>org.bitcoinj</groupId>
+    <artifactId>bitcoinj-core</artifactId>
+    <version>0.15.10</version>
+</dependency>
+
+<dependency>
+    <groupId>commons-io</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>2.9.0</version>
+</dependency>
 		
+		<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+</dependency>
 		
 
 <dependency>
@@ -172,18 +214,6 @@
 					</excludes>
 					<trimStackTrace>false</trimStackTrace>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.junit.platform</groupId>
-						<artifactId>junit-platform-surefire-provider</artifactId>
-						<version>${dep.ver.junit.platform-surefire-provider}</version>
-					</dependency>
-					<dependency>
-						<groupId>org.junit.jupiter</groupId>
-						<artifactId>junit-jupiter-engine</artifactId>
-						<version>${dep.ver.junit}</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -200,7 +230,22 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<excludeDefaultDirectories>true</excludeDefaultDirectories>
+					<filesets>
+						<!-- delete directories that will be generated when you start the develpment 
+							server/client in eclipse -->
+						<fileset>
+							<directory>target</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
 		</plugins>
 		<!--directory>${targetDir}</directory -->
 		<finalName>tracer</finalName>
