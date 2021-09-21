@@ -21,7 +21,7 @@ We strongly recommend the former approach, since the idea of blockchain is that 
 Blockchains can reject blocks for various reasons e.g. invalid format.
 Due to the distributed nature of the system, the fate of a block stay unknown for quite a while.
 On the other hand, our tracing applications **must** respond immediately when it is called.
-As a result, we added a trace caching feature that stores all traces before sending them to the blockchain. 
+As a result, we added a trace caching feature that stores all traces before sending them to the blockchain.
 This way the application can respond immediately, and preserve all traces regardless of their status in the blockchain.
 Once a trace has been successfully added, it is removed from the cache.
 
@@ -31,7 +31,7 @@ The application traces the following user actions:
 - Create a new dataset
 - Create new version of an existing dataset
 - Visualize a certain version of a dataset
-- Launch a Kubernetes pod with mounted datasets 
+- Launch a Kubernetes pod with mounted datasets
 - Create a new model in a Kubernetes Application
 - Use one or more models in a Kubernetes Application
 
@@ -40,7 +40,7 @@ The application traces the following user actions:
 Each dataset (including its various versions) contains a number of resources.
 These resources are normally files such as imaging data or patient information.
 **Tracer** allows the inclusion of various information about resources such as the resource type, the hash of the name, the hash of each reasource's path, and the hash of the content.
-This information allows the user to check the integrity of the resources of a dataset. 
+This information allows the user to check the integrity of the resources of a dataset.
 
 The dataset resources can appear in the following form:
 - as a remote file on a HTTP(S) URL; **Tracer** will try to download the content and hash it.
@@ -57,12 +57,12 @@ The allowance of different hash types gives us the following advantages:
 - increase or decrease the strength of the hash using the bit requirements
 - allow trusted third parties to provide their own hashed data with their hash of choice
 - switch to a different version of a hash without a problem, if there are issues with the a certain version (SHA latest version is 3)
-- use a different hashing algorithm altogether 
- 
+- use a different hashing algorithm altogether
+
 
 ## Rest API
 
-**Tracer** exposes a Rest API that allows the interaction with it. 
+**Tracer** exposes a Rest API that allows the interaction with it.
 The following sub-paragraphs describe each of the implemented calls.
 
 ### List supported user actions
@@ -94,7 +94,7 @@ Since a dataset has various types of resources, you have to set the type.
 
 This call returns the list of available request resources' content types.
 Since the content of a dataset's resource can be made available via different ways, you have to set the type of the path of the resource.
-The application can either obtain the content (downloading the data or simply accessing it if the resource is mounted), or it can add 
+The application can either obtain the content (downloading the data or simply accessing it if the resource is mounted), or it can add
 
 ### Add new trace
 
@@ -105,7 +105,7 @@ In the following sub-paragraphs, we analyze the fields needed in the POSTed data
 
 We split them in two groups:
 - one containing those common to all POST calls
-- a second one with those specific to a certain user action (user action ID specified in each paragraph's title) 
+- a second one with those specific to a certain user action (user action ID specified in each paragraph's title)
 
 #### Dataset Resources
 
@@ -148,7 +148,7 @@ Aside from these fields, by _contentType_ , each resource has its own set of fie
 }
 ```
 
-#### Common fields 
+#### Common fields
 
 These fields must be present in all calls.
 For the available user actions, please check the API call to list the supported user actions.
@@ -181,8 +181,8 @@ This action cannot be used when there's no previous version of the dataset.
 ```
 {
 	<common fields>,
-	"datasetId": <String, values not limited>,
-	"previousId": <String, not null, not blank>
+	"datasetsIds": <String, values not limited>,
+	"previousIds": <List, not null, not blank>
 	"resources": <List, not null>
 }
 ```
@@ -213,7 +213,7 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 ```
 {
 	<common fields>,
-	"datasetId": <String, not null, not blank, values not limited>,
+	"datasetsIds": <List, not null, not blank>,
 	"applicationId": <String, not null, not blank>,
 	"modelId": <String, not null, not blank, values not limited>
 }
@@ -235,7 +235,7 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 **GET /api/v1/traces/{userId}**
 
 It returns a list of all traces containing the user ID specified in the API path.
-The list can be empty if not actions by the requested user have been found. 
+The list can be empty if not actions by the requested user have been found.
 
 ### Get all traces in cache
 
@@ -244,4 +244,3 @@ The list can be empty if not actions by the requested user have been found.
 It returns a list (could be empty) containing all traces submitted to the application that:
 - are waiting for their inclusion in the blockchain
 - could not be inserted into the blockchain
-

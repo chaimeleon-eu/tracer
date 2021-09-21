@@ -14,7 +14,8 @@ import org.hibernate.annotations.Type;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Input;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Output;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
-import es.upv.grycap.tracer.persistence.TransactionConverter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,15 +24,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-public class TraceCacheEntry<T extends Trace>    {
-	
+@Builder
+@AllArgsConstructor
+public class TraceCacheEntry    {
+
 	public enum Status {SUBMITTED, ACCEPTED};
-	
+
 	@Id
 	protected long id;
 	protected String idTransaction;
 	protected Status status;
 	protected Instant submitDate;
-	protected T trace;
+	protected Trace trace;
 
 }

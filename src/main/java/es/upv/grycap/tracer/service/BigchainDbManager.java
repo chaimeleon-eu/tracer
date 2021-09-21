@@ -16,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,33 +76,33 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 public class BigchainDbManager implements BlockchainManager {
-	
-    
+
+
     public static final String TRACE_USER_ID = "userId";
-	
-//	@Autowired
-//	protected TransactionCacheRecRepository transactionCacheRecRepository;
-	
+
+	@Autowired
+	protected ITraceCacheRepository traceCacheRepository;
+
 	@Autowired
 	protected NodeKeysManager nodeKeysManager;
-	
+
 	@Autowired
 	protected TraceHandler traceHandler;
-	
+
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(20);
     //protected enum TransactionMode {sync, commit, async}
-	
+
 	protected WebClient wb;
-	
+
 	protected String transactionModePost;
-	
+
 	@Autowired
 	protected HashingService hashingService;
-	
+
 	protected String blockchaindbBaseUrl;
-	
+
 	protected int defaultAmountTransaction;
-	
+
 	@Autowired
 	public BigchainDbManager(@Value("${blockchaindb.baseUrl}") String blockchaindbBaseUrl,
 			@Value("${blockchaindb.transactionModePost}") String transactionModePost,
@@ -110,17 +111,25 @@ public class BigchainDbManager implements BlockchainManager {
 		this.transactionModePost = transactionModePost;
 		this.defaultAmountTransaction = defaultAmountTransaction;
 	}
-	
+
 	@PostConstruct
 	protected void init() {
 		wb = WebClient.create(blockchaindbBaseUrl);
 	}
-	
+
 	@Override
 	public void addEntry(final ReqDTO entry) {
 		try {
-			Transaction<?, ?, ?> tr = buildTransaction(entry);
-			log.info(getObjectWriter().writeValueAsString(tr));
+			final Trace trace = traceHandler.fromRequest(entry);
+			final Transaction<?, ?, ?> tr = buildTransaction(trace);
+			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
+					.idTransaction(tr.getId())
+					.submitDate(Instant.now())
+					.status(TraceCacheEntry.Status.SUBMITTED)
+					.trace(trace)
+					.build());
+
+			//log.info(getObjectWriter().writeValueAsString(tr));
 			HttpClient client = HttpClient.newHttpClient();
 	        HttpRequest request = HttpRequest.newBuilder()
 	                .uri(URI.create(this.blockchaindbBaseUrl + "/transactions?mode=" + transactionModePost))
@@ -143,16 +152,16 @@ public class BigchainDbManager implements BlockchainManager {
 			throw new UncheckedInterruptedException(e);
 		}
 	}
-	
+
 	@Override
 	public Transaction<?, ?, ?> getTransactionById(final String transactionId) {
 		String transaction = wb.get().uri("/transactions/" + transactionId)
         .retrieve()
-        .onStatus(httpStatus -> HttpStatus.ACCEPTED.equals(httpStatus), 
+        .onStatus(httpStatus -> HttpStatus.ACCEPTED.equals(httpStatus),
         		response -> Mono.empty())
-        .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus), 
+        .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
         		response -> Mono.error(new TransactionNotFoundException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
-        .onStatus(httpStatus -> HttpStatus.BAD_REQUEST.equals(httpStatus), 
+        .onStatus(httpStatus -> HttpStatus.BAD_REQUEST.equals(httpStatus),
         		response -> Mono.error(new BigchaindbException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
         .bodyToMono(String.class)
         .block(REQUEST_TIMEOUT);
@@ -164,9 +173,9 @@ public class BigchainDbManager implements BlockchainManager {
 			throw new UncheckedJsonProcessingException(ex);
 		}
 	}
-	
+
 	public List<Trace> getTraceEntriesByUserId(final String userId) {
-		
+
 		try {
 			HttpResponse<String> response = getAssetsByField(Trace.FNAME_USER_ID, userId);
 	        log.info(response.toString());
@@ -182,25 +191,25 @@ public class BigchainDbManager implements BlockchainManager {
 			throw new UncheckedInterruptedException(e);
 		}
 	}
-	
-	protected HttpResponse<String> getAssetsByField(String fieldName, String fieldValue) 
+
+	protected HttpResponse<String> getAssetsByField(String fieldName, String fieldValue)
 			throws IOException, InterruptedException {
 		HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(this.blockchaindbBaseUrl + "/assets?search=" + 
+                .uri(URI.create(this.blockchaindbBaseUrl + "/assets?search=" +
                 		URLEncoder.encode(fieldValue, StandardCharsets.UTF_8)))
                 .GET()
                 .build();
          return client.send(request,
                 HttpResponse.BodyHandlers.ofString());
 	}
-	
-	protected Transaction<?, ?, ?> buildTransaction(final ReqDTO entry) 
+
+	protected Transaction<?, ?, ?> buildTransaction(final Trace trace)
 			throws JsonProcessingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		Asset asset = buildAsset(entry);
+		final Asset asset = buildAsset(trace);
 		Ed25519Sha256Fulfillment fulfillment = generateFulfillment();
-		List<Input> inputs = buildInputs(entry, fulfillment);
-		List<Output> outputs = buildOutputs(entry, defaultAmountTransaction, fulfillment);
+		List<Input> inputs = buildInputs(fulfillment);
+		List<Output> outputs = buildOutputs(defaultAmountTransaction, fulfillment);
 		Transaction<?,?, ?> tr = Transaction.builder()
 				.asset(asset)
 				.id(null)
@@ -214,7 +223,7 @@ public class BigchainDbManager implements BlockchainManager {
 		tr.setId(id);
 		return tr;
 	}
-	
+
     private void sign(Transaction<?,?, ?> tr)
             throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, JsonProcessingException {
     	byte[] jsonRepr = getObjectWriter().writeValueAsBytes(tr);
@@ -231,7 +240,7 @@ public class BigchainDbManager implements BlockchainManager {
         tr.getInputs().get(0)
                 .setFulfillment(Base64.getUrlEncoder().encodeToString(getEncoded(signature)));
     }
-    
+
     public byte[] getEncoded(byte[] signature)
     {
       try
@@ -242,27 +251,27 @@ public class BigchainDbManager implements BlockchainManager {
         out.writeTaggedObject(1, signature);
         out.close();
         byte[] buffer = baos.toByteArray();
-        
+
 
         baos = new ByteArrayOutputStream();
         out = new DerOutputStream(baos);
         out.writeTaggedConstructedObject(4, buffer);
         out.close();
-        
+
         return baos.toByteArray();
       }
       catch (IOException e) {
         throw new RuntimeException("DER Encoding Error", e);
       }
     }
-	
-	protected Asset buildAsset(final ReqDTO request) {
+
+	protected Asset buildAsset(final Trace trace) {
 		AssetCreate<Trace> asset = new AssetCreate<>();
-		asset.setData(traceHandler.fromRequest(request));
+		asset.setData(trace);
 		return asset;
 	}
-	
-	protected Ed25519Sha256Fulfillment generateFulfillment() 
+
+	protected Ed25519Sha256Fulfillment generateFulfillment()
 			throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		MessageDigest sha512Digest = MessageDigest.getInstance("SHA-512");
 		  Signature edDsaSigner = new EdDSAEngine(sha512Digest);
@@ -277,8 +286,8 @@ public class BigchainDbManager implements BlockchainManager {
 				  (EdDSAPublicKey) nodeKeysManager.getKeyPair().getPublic(), edDsaSignature);
 		  return fulfillment;
 	}
-	
-	protected List<Input> buildInputs(final ReqDTO entry, Ed25519Sha256Fulfillment fulfillment) 
+
+	protected List<Input> buildInputs(Ed25519Sha256Fulfillment fulfillment)
 			throws InvalidKeyException, NoSuchAlgorithmException, SignatureException {
 //		String ownerPublicK = new String(Base64.getDecoder().decode(entry.getUserPublicKey()));
 //		  byte[] optionalMessageToSign = new byte[0];
@@ -299,9 +308,9 @@ public class BigchainDbManager implements BlockchainManager {
 				.fulfillment(null)//getSignatureBase64Url())//Base64.getUrlEncoder().encodeToString(bytes))
 				.build());
 	}
-	
-	protected List<Output> buildOutputs(final ReqDTO entry, int amount, Ed25519Sha256Fulfillment fulfillment) {
-//		final Ed25519Sha256Condition ed25519cond = 
+
+	protected List<Output> buildOutputs(int amount, Ed25519Sha256Fulfillment fulfillment) {
+//		final Ed25519Sha256Condition ed25519cond =
 //				Ed25519Sha256Condition.from((EdDSAPublicKey) nodeKeysManager.getKeyPair().getPublic());
 		final Subcondition sc = new SubconditionED25519(Base58.encode(
 				((EdDSAPublicKey) nodeKeysManager.getKeyPair().getPublic()).getA().toByteArray()));//Base64.getDecoder().decode(entry.getUserPublicKey())));
@@ -313,7 +322,7 @@ public class BigchainDbManager implements BlockchainManager {
 				.append(sc.getType().getCost())
 				.toString();
 		Condition cond = Condition.builder().details(sc).uri(uri).build();
-		
+
 		return List.of(
 				Output.builder()
 					.amount(Integer.toString(amount)).condition(cond)
@@ -323,16 +332,16 @@ public class BigchainDbManager implements BlockchainManager {
 					.build()
 				);
 	}
-	
+
 	protected String determineId(final Transaction<?, ?, ?> tr) throws JsonProcessingException, NoSuchAlgorithmException {
 		byte[] jsonRepr = getObjectWriter().writeValueAsBytes(tr);
 		return Hex.encodeHexString(hashingService.getHash(jsonRepr, HashType.SHA3_256).getHash());
 	}
-	
+
 	protected ObjectReader getObjectReader() {
 		return new ObjectMapper().reader();
 	}
-	
+
 	protected ObjectWriter getObjectWriter() {
 		return new ObjectMapper().configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true).writer();
 	}

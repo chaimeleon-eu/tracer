@@ -2,6 +2,16 @@ package es.upv.grycap.tracer.model;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.MappedSuperclass;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -31,16 +41,23 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = TraceUseModels.class, name = "USE_MODELS")
 })
 @NoArgsConstructor
-public class Trace implements Serializable {
+@MappedSuperclass
+@DiscriminatorColumn(name = "userAction", discriminatorType = DiscriminatorType.STRING)
+public abstract class Trace implements Serializable {
 
 	private static final long serialVersionUID = 5757503237019236987L;
-	
+
 	public static final String FNAME_USER_ID = "userId";
 	//public static final String FNAME_DATASET_ID = "datasetId";
 	public static final String FNAME_TYPE = "type";
-	
+
+	@Id
+	@Column(name="id")
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	protected long id;
+
 	protected String userId;
-	
+
 	protected UserAction userAction;
-	
+
 }

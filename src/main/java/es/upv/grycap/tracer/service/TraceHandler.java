@@ -36,23 +36,23 @@ import es.upv.grycap.tracer.model.exceptions.UserActionNotSupported;
 
 @Service
 public class TraceHandler {
-	
+
 	@Autowired
     private Validator validator;
-	
+
 	@Autowired
 	protected HashingService hashingService;
-	
+
 	protected HashType defaultHashType;
-	
+
 	@Autowired
 	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId) {
 		this.defaultHashType = HashType.fromAlgorithmId(defaultHashAlgorithmId);
 	}
-	
+
 	public Trace fromRequest(final ReqDTO request) {
-		
-		if (request.getUserAction() == UserAction.CREATE_DATASET) {
+
+		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
 			return TraceCreateDataset.builder()
@@ -69,7 +69,7 @@ public class TraceHandler {
 					.userAction(req.getUserAction())
 					.userId(req.getUserId())
 					.traceResources(ltr)
-					.previousId(req.getPreviousId())
+					.previousIds(req.getPreviousIds())
 					.build();
 		} else if (request.getUserAction() == UserAction.VISUALIZE_VERSION_DATASET) {
 			final ReqDatasetDTO req = (ReqDatasetDTO) request;
@@ -103,10 +103,10 @@ public class TraceHandler {
 					.applicationId(req.getApplicationId())
 					.modelsIds(req.getModelsIds())
 					.build();
-		} else 
+		} else
 			throw new UserActionNotSupported("User action " + request.getUserAction() + " not supported when creating traces from a request.");
 	}
-	
+
 	protected List<TraceResource> getTraceResources(final List<ReqResDTO> resReq) {
 		List<TraceResource> ltr = new ArrayList<>();
 		resReq.forEach(r -> {
@@ -117,12 +117,12 @@ public class TraceHandler {
 					.nameHash(Base64.encodeBase64String(hashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
 					.nameHashType(defaultHashType)
 					.id(r.getId())
-//					.pathHash(r.getPath() != null ? 
+//					.pathHash(r.getPath() != null ?
 //							Base64.encodeBase64String(hashingService.getHash(r.getPath().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash())
 //							: null)
 //					.pathHashType(r.getPath() != null ? defaultHashType :  null)
 					.build());
-			
+
 		});
 		return ltr;
 	}

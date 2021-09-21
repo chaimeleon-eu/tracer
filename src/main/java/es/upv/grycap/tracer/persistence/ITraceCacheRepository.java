@@ -10,8 +10,8 @@ import es.upv.grycap.tracer.model.TraceCacheEntry;
 
 
 @Repository
-public interface ITraceCacheRepository extends JpaRepository<TraceCacheEntry<?>, Long> {
-	
+public interface ITraceCacheRepository extends JpaRepository<TraceCacheEntry, Long> {
+
 	@Query("select p.id from #{#entityName} p")
 	public List<String> getAllTransactionsIds();
 
