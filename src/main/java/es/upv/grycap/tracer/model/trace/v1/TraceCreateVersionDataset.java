@@ -1,7 +1,8 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +11,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-@NoArgsConstructor
 public class TraceCreateVersionDataset extends TraceCreateDataset {
 	
 	@JsonIgnore

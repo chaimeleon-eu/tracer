@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model.dto;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;

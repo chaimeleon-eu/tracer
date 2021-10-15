@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import java.time.Instant;
 import java.util.List;

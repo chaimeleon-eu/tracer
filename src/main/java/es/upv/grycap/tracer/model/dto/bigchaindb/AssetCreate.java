@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import es.upv.grycap.tracer.model.Trace;
+import es.upv.grycap.tracer.model.trace.v1.Trace;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

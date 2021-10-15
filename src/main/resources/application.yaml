@@ -1,5 +1,11 @@
 server.servlet.context-path: /api
 server.port: 8090
+
+keycloak:
+    auth-server-url: "http://localhost:8080/auth"
+    realm: CHAIMELEON
+    resource: tracer-service
+    public-client: true
 spring:
     h2.console.enabled: true
     datasource:
@@ -8,7 +14,11 @@ spring:
         username: sa
         password: password
     jpa.database-platform: org.hibernate.dialect.H2Dialect
+    
 tracer:
+    admin:
+        name: admin
+        password: change_me
     hashAlgorithm: SHA3-256
     yearMin: 2021
     yearMax: 2024

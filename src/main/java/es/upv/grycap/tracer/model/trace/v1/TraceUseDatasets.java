@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import java.util.List;
 
@@ -16,7 +16,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-@NoArgsConstructor
 @Entity
 @DiscriminatorValue("USE_DATASETS_POD")
 public class TraceUseDatasets extends Trace {

@@ -10,9 +10,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import es.upv.grycap.tracer.model.Trace;
-import es.upv.grycap.tracer.model.TraceCreateDataset;
-import es.upv.grycap.tracer.model.TraceModel;
+import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
+import es.upv.grycap.tracer.model.trace.v1.TraceModel;
+import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -116,10 +116,10 @@ The JSON representation's common fields of a resource that should be added to th
 
 ```
 {
-	"id": <String, not null, not empty, values not limited to a specific set>,
-	"contentType": <String, values from a predefined set>,
-	"name": <String, not null, not empty, values not limited to a specific set>
-	"resourceType": <String, values from a predefined set>
+    "id": <String, not null, not empty, values not limited to a specific set>,
+    "contentType": <String, values from a predefined set>,
+    "name": <String, not null, not empty, values not limited to a specific set>
+    "resourceType": <String, values from a predefined set>
 }
 ```
 
@@ -128,14 +128,14 @@ Aside from these fields, by _contentType_ , each resource has its own set of fie
 
 ```
 {
-	"url": <String, not null, not blank, valid URL format pointing to a file>
+    "url": <String, not null, not blank, valid URL format pointing to a file>
 }
 ```
 - Base64 encoded content:
 
 ```
 {
-	"data": <String, not null, not blank, valid Base64>
+    "data": <String, not null, not blank, valid Base64>
 }
 ```
 
@@ -143,8 +143,8 @@ Aside from these fields, by _contentType_ , each resource has its own set of fie
 
 ```
 {
-	"hash": <String, not null, not blank>,
-	"hashType": <String, values from a predefined set>
+    "hash": <String, not null, not blank>,
+    "hashType": <String, values from a predefined set>
 }
 ```
 
@@ -155,8 +155,9 @@ For the available user actions, please check the API call to list the supported 
 
 ```
 {
-	"userId": <String, values not limited>,
-	"userAction": <String, values from a predefined set>
+    "userId": <String, values not limited>,
+    "callerId": <String, values not limited>,
+    "userAction": <String, values from a predefined set>
 }
 ```
 
@@ -169,9 +170,9 @@ This list can be empty.
 
 ```
 {
-	<common fields>,
-	"datasetId": <String, values not limited>,
-	"resources": <List, not null>
+    <common fields>,
+    "datasetId": <String, values not limited>,
+    "resources": <List, not null>
 }
 ```
 
@@ -180,10 +181,10 @@ This action cannot be used when there's no previous version of the dataset.
 
 ```
 {
-	<common fields>,
-	"datasetsIds": <String, values not limited>,
-	"previousIds": <List, not null, not blank>
-	"resources": <List, not null>
+    <common fields>,
+    "datasetsId": <String, not null, not blank, values not limited>,
+    "previousId": <String, not null, not blank, values not limited>
+    "resources": <List, not null>
 }
 ```
 
@@ -191,8 +192,8 @@ This action cannot be used when there's no previous version of the dataset.
 
 ```
 {
-	<common fields>,
-	"datasetId": <String, not null, not blank, values not limited>
+    <common fields>,
+    "datasetId": <String, not null, not blank, values not limited>
 }
 ```
 
@@ -203,8 +204,8 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 
 ```
 {
-	<common fields>,
-	"datasetsIds": <List, not null, not empty>
+    <common fields>,
+    "datasetsIds": <List, not null, not empty>
 }
 ```
 
@@ -212,10 +213,10 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 
 ```
 {
-	<common fields>,
-	"datasetsIds": <List, not null, not blank>,
-	"applicationId": <String, not null, not blank>,
-	"modelId": <String, not null, not blank, values not limited>
+    <common fields>,
+    "datasetsIds": <List, not null, not blank>,
+    "applicationId": <String, not null, not blank>,
+    "modelId": <String, not null, not blank, values not limited>
 }
 ```
 
@@ -223,10 +224,10 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 
 ```
 {
-	<common fields>,
-	"datasetId": <String, not null, not blank, values not limited>,
-	"applicationId": <String, not null, not blank>,
-	"modelsIds": <List, not null, not empty>
+    <common fields>,
+    "datasetId": <String, not null, not blank, values not limited>,
+    "applicationId": <String, not null, not blank>,
+    "modelsIds": <List, not null, not empty>
 }
 ```
 

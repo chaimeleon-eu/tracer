@@ -22,6 +22,6 @@ public class ReqCreateVersionDatasetDTO extends ReqCreateDatasetDTO {
 
 	@NotBlank(message="Previous version id of the dataset can't be blank.")
 	@NotNull(message="Previous version id of the dataset can't be null.")
-	protected List<String> previousIds;
+	protected String previousId;
 
 }

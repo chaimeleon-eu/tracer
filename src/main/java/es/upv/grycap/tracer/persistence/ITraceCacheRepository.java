@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import es.upv.grycap.tracer.model.TraceCacheEntry;
+import es.upv.grycap.tracer.model.trace.v1.TraceCacheEntry;
 
 
 @Repository

@@ -44,7 +44,6 @@ import com.ripple.cryptoconditions.Ed25519Sha256Condition;
 import com.ripple.cryptoconditions.Ed25519Sha256Fulfillment;
 import com.ripple.cryptoconditions.der.DerOutputStream;
 
-import es.upv.grycap.tracer.model.Trace;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Asset;
@@ -64,6 +63,8 @@ import es.upv.grycap.tracer.model.exceptions.UncheckedJsonMappingException;
 import es.upv.grycap.tracer.model.exceptions.UncheckedJsonProcessingException;
 import es.upv.grycap.tracer.model.exceptions.UncheckedNoSuchAlgorithmException;
 import es.upv.grycap.tracer.model.exceptions.UncheckedSignatureException;
+import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.model.trace.v1.TraceCacheEntry;
 import es.upv.grycap.tracer.persistence.ITraceCacheRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.i2p.crypto.eddsa.EdDSAEngine;
@@ -118,9 +119,9 @@ public class BigchainDbManager implements BlockchainManager {
 	}
 
 	@Override
-	public void addEntry(final ReqDTO entry) {
+	public void addEntry(final ReqDTO entry, String callerUserId) {
 		try {
-			final Trace trace = traceHandler.fromRequest(entry);
+			final Trace trace = traceHandler.fromRequest(entry, callerUserId);
 			final Transaction<?, ?, ?> tr = buildTransaction(trace);
 			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
 					.idTransaction(tr.getId())

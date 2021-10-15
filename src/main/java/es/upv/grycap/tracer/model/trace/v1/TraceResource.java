@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import java.io.Serializable;
 
@@ -8,17 +8,17 @@ import javax.persistence.Id;
 import com.sun.istack.NotNull;
 
 import es.upv.grycap.tracer.model.dto.HashType;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder
 @Entity
 public class TraceResource implements Serializable {
 
