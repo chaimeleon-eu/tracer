@@ -53,9 +53,9 @@ public class Trace extends TraceBase implements Serializable {
 	
 	public static final int VERSION = 1;
 	
-//	public Trace() {
-//		super(VERSION);
-//	}
+	public Trace() {
+		super(VERSION);
+	}
 
 	@Id
 	@Column(name="id")

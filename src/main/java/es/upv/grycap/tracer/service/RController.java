@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -33,7 +34,6 @@ import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
-import javassist.tools.web.BadHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -67,19 +67,18 @@ public class RController {
     	String id = getCallerUserId(authentication);
     	bcManager.addEntry(logRequest, id);
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
-
     }
     
     @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
-    		@RequestParam(name = "actionUserId") String actionUserId,
-    		@RequestParam(name = "callerUserId") String callerUserId
-    		) throws BadHttpRequest, UnsupportedDataTypeException {
-    	Set<String> roles = getAuthenticatedUserRoles(authentication);
-    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
-    		if (actionUserId == null)
-    			throw new BadHttpRequest(new RuntimeException("Missing \"actionUserId\" request paramenter"));
-    	}
+    		@RequestParam(name = "actionUserId", required=false) String actionUserId,
+    		@RequestParam(name = "callerUserId", required=false) String callerUserId
+    		) throws BadRequest, UnsupportedDataTypeException {
+//    	Set<String> roles = getAuthenticatedUserRoles(authentication);
+//    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
+//    		if (actionUserId == null)
+//    			throw new BadRequest("Missing \"actionUserId\" request paramenter");
+//    	}
     	List<Trace> traces = bcManager.getTraceEntriesByUserId(actionUserId);
         return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
     }

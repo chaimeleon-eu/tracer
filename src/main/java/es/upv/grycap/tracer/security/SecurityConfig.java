@@ -1,11 +1,5 @@
 package es.upv.grycap.tracer.security;
 
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 
@@ -34,6 +28,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -61,12 +56,22 @@ public class SecurityConfig {
 		
 	      @Override
 	        protected void configure(HttpSecurity http) throws Exception {
-	            http.requestMatcher(r -> r.getHeader("Authorization") != null && r.getHeader("Authorization").startsWith("Basic"))
+	            http.addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class)
+	            .requestMatcher(r -> 
+	            	r.getHeader("Authorization") != null && r.getHeader("Authorization").startsWith("Basic"))
 	            //.csrf().disable()
-	            .authorizeRequests(authorize -> authorize
-	            		
-                    .anyRequest().authenticated())
+	            .authorizeRequests(authorize -> {
+					try {
+						authorize
+								
+						    .anyRequest().authenticated().and().exceptionHandling()
+						    .accessDeniedHandler(new RestAccessDeniedHandler());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				})
 	                .httpBasic();
+	            http.csrf().disable(); 
 	        }
 
 	        @Override
@@ -151,12 +156,14 @@ public class SecurityConfig {
 	        	.antMatcher("/**").authorizeRequests(authorize -> {
 					try {
 						authorize
-						        .anyRequest().authenticated().and().exceptionHandling().accessDeniedHandler(new RestAccessDeniedHandler());
+						        .anyRequest().authenticated().and().exceptionHandling()
+						        .accessDeniedHandler(new RestAccessDeniedHandler());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				})
-	                ;
+				});
+
+            http.csrf().disable(); 
 	    }
 
 	}

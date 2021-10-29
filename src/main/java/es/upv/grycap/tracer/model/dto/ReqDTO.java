@@ -26,7 +26,7 @@ import lombok.Setter;
 	    visible = true
 	)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_DATASET"),
+        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_NEW_DATASET"),
         @JsonSubTypes.Type(value = ReqCreateVersionDatasetDTO.class, name = "CREATE_VERSION_DATASET"),
         @JsonSubTypes.Type(value = ReqDatasetDTO.class, name = "VISUALIZE_VERSION_DATASET"),
         @JsonSubTypes.Type(value = ReqUseDatasetsDTO.class, name = "USE_DATASETS_POD"),
@@ -37,8 +37,16 @@ public class ReqDTO implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 7613010919109618521L;
+	
+	/**
+	 * The action of a user (person, application, service etc.) represented by this trace
+	 */
 	@NotNull(message="User action field must have a value from the allowed list.")
 	protected UserAction userAction;
+
+	/**
+	 * The ID of the user (person, application, service etc.) that performed the traced action
+	 */
 	@NotBlank(message="User field ID must have a value.")
 	@NotNull(message="User field ID must have a value.")
 	protected String userId;

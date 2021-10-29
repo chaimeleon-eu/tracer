@@ -7,13 +7,6 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.hibernate.annotations.Type;
-
-import es.upv.grycap.tracer.model.dto.bigchaindb.Input;
-import es.upv.grycap.tracer.model.dto.bigchaindb.Output;
-import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

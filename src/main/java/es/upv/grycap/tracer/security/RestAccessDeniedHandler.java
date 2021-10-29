@@ -22,7 +22,7 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AccessDeniedException e) throws IOException, ServletException {
         OutputStream out = httpServletResponse.getOutputStream();
         ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, new ResponseEntity<>("Access Denied", new HttpHeaders(), HttpStatus.FORBIDDEN));
+        mapper.writeValue(out, new ResponseEntity<>("Access Denied", new HttpHeaders(), HttpStatus.UNAUTHORIZED));
         out.flush();
     }
 }

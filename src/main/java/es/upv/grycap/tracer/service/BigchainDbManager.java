@@ -30,8 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -72,7 +70,6 @@ import net.i2p.crypto.eddsa.EdDSAPrivateKey;
 import net.i2p.crypto.eddsa.EdDSAPublicKey;
 import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable;
 import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
-import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -93,7 +90,7 @@ public class BigchainDbManager implements BlockchainManager {
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(20);
     //protected enum TransactionMode {sync, commit, async}
 
-	protected WebClient wb;
+//	protected WebClient wb;
 
 	protected String transactionModePost;
 
@@ -105,30 +102,30 @@ public class BigchainDbManager implements BlockchainManager {
 	protected int defaultAmountTransaction;
 
 	@Autowired
-	public BigchainDbManager(@Value("${blockchaindb.baseUrl}") String blockchaindbBaseUrl,
-			@Value("${blockchaindb.transactionModePost}") String transactionModePost,
-			@Value("${blockchaindb.defaultAmountTransaction}") int defaultAmountTransaction) {
+	public BigchainDbManager(@Value("${blockchain.url}") String blockchaindbBaseUrl,
+			@Value("${blockchain.bigchaindb.transactionModePost}") String transactionModePost,
+			@Value("${blockchain.bigchaindb.defaultAmountTransaction}") int defaultAmountTransaction) {
 		this.blockchaindbBaseUrl = blockchaindbBaseUrl;
 		this.transactionModePost = transactionModePost;
 		this.defaultAmountTransaction = defaultAmountTransaction;
 	}
 
-	@PostConstruct
-	protected void init() {
-		wb = WebClient.create(blockchaindbBaseUrl);
-	}
+//	@PostConstruct
+//	protected void init() {
+//		wb = WebClient.create(blockchaindbBaseUrl);
+//	}
 
 	@Override
 	public void addEntry(final ReqDTO entry, String callerUserId) {
 		try {
 			final Trace trace = traceHandler.fromRequest(entry, callerUserId);
 			final Transaction<?, ?, ?> tr = buildTransaction(trace);
-			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
-					.idTransaction(tr.getId())
-					.submitDate(Instant.now())
-					.status(TraceCacheEntry.Status.SUBMITTED)
-					.trace(trace)
-					.build());
+//			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
+//					.idTransaction(tr.getId())
+//					.submitDate(Instant.now())
+//					.status(TraceCacheEntry.Status.SUBMITTED)
+//					.trace(trace)
+//					.build());
 
 			//log.info(getObjectWriter().writeValueAsString(tr));
 			HttpClient client = HttpClient.newHttpClient();
@@ -156,23 +153,24 @@ public class BigchainDbManager implements BlockchainManager {
 
 	@Override
 	public Transaction<?, ?, ?> getTransactionById(final String transactionId) {
-		String transaction = wb.get().uri("/transactions/" + transactionId)
-        .retrieve()
-        .onStatus(httpStatus -> HttpStatus.ACCEPTED.equals(httpStatus),
-        		response -> Mono.empty())
-        .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
-        		response -> Mono.error(new TransactionNotFoundException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
-        .onStatus(httpStatus -> HttpStatus.BAD_REQUEST.equals(httpStatus),
-        		response -> Mono.error(new BigchaindbException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
-        .bodyToMono(String.class)
-        .block(REQUEST_TIMEOUT);
-		try {
-			return getObjectReader().readValue(transaction);
-		} catch (JsonMappingException ex) {
-			throw new UncheckedJsonMappingException(ex);
-		} catch (JsonProcessingException ex) {
-			throw new UncheckedJsonProcessingException(ex);
-		}
+		return null;
+//		String transaction = wb.get().uri("/transactions/" + transactionId)
+//        .retrieve()
+//        .onStatus(httpStatus -> HttpStatus.ACCEPTED.equals(httpStatus),
+//        		response -> Mono.empty())
+//        .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
+//        		response -> Mono.error(new TransactionNotFoundException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
+//        .onStatus(httpStatus -> HttpStatus.BAD_REQUEST.equals(httpStatus),
+//        		response -> Mono.error(new BigchaindbException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
+//        .bodyToMono(String.class)
+//        .block(REQUEST_TIMEOUT);
+//		try {
+//			return getObjectReader().readValue(transaction);
+//		} catch (JsonMappingException ex) {
+//			throw new UncheckedJsonMappingException(ex);
+//		} catch (JsonProcessingException ex) {
+//			throw new UncheckedJsonProcessingException(ex);
+//		}
 	}
 
 	public List<Trace> getTraceEntriesByUserId(final String userId) {
@@ -185,11 +183,14 @@ public class BigchainDbManager implements BlockchainManager {
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
 			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
 		} catch (JsonProcessingException ex) {
+			log.error(ex.getMessage(), ex);
 			throw new UncheckedJsonProcessingException(ex);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		} catch (InterruptedException e) {
-			throw new UncheckedInterruptedException(e);
+		} catch (IOException ex) {
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedIOException(ex);
+		} catch (InterruptedException ex) {
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedInterruptedException(ex);
 		}
 	}
 

@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
+@NoArgsConstructor
 public class TraceCreateVersionDataset extends TraceCreateDataset {
 	
 	@JsonIgnore

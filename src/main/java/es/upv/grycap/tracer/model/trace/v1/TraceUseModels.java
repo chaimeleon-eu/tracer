@@ -19,6 +19,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
+@NoArgsConstructor
 @Entity
 @DiscriminatorValue("USE_MODELS")
 public class TraceUseModels extends TraceModel {

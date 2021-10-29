@@ -10,12 +10,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
+@NoArgsConstructor
 public abstract class TraceBase {
 	
 	protected int version;
 	
-//	public TraceBase(int version) {
-//		this.version = version;
-//	}
+	public TraceBase(int version) {
+		this.version = version;
+	}
 
 }
