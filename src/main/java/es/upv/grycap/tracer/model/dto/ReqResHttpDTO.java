@@ -7,7 +7,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import es.upv.grycap.tracer.model.exceptions.UncheckedMalformedURLException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

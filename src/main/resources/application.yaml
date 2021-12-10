@@ -5,7 +5,7 @@ server:
         key-store-type: PKCS12
         key-store: ${HOME}/cert/tracer.p12
         key-store-password: change_me_key
-        key-alias: tracer-dev
+        key-alias: tracer-service
         enabled: true
 
 keycloak:
@@ -24,6 +24,7 @@ spring:
     jpa.database-platform: org.hibernate.dialect.H2Dialect
     
 tracer:
+    disableSSLVerification: false
     admin:
         name: admin
         password: change_me
@@ -34,7 +35,8 @@ tracer:
     version: ^project.version^
 
 blockchain:
-    url: http://localhost:9984/api/v1
+    url: https://localhost:1443/ 
+    # http://localhost:9984/api/v1
     tmpHashDownFolder: /tmp/tracer/
     bigchaindb:
         transactionModePost: sync

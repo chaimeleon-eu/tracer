@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model.exceptions;
+package es.upv.grycap.tracer.exceptions;
 
 public class TransactionNotFoundException extends BigchaindbException {
 

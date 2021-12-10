@@ -22,7 +22,7 @@ import es.upv.grycap.tracer.model.dto.ReqCreateModelDTO;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseDatasetsDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseModelsDTO;
-import es.upv.grycap.tracer.model.exceptions.UserActionNotSupported;
+import es.upv.grycap.tracer.exceptions.UserActionNotSupported;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;

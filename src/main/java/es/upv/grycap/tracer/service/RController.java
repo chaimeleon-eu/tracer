@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +34,7 @@ import es.upv.grycap.tracer.model.dto.DatasetResourceType;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
+import es.upv.grycap.tracer.model.dto.RespErrorDTO;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 */
 @Slf4j
 @RestController
+@CrossOrigin(origins = "http://localhost:3000/", maxAge = 3600)
 @RequestMapping("/v1")
 public class RController {
 	
@@ -69,17 +73,30 @@ public class RController {
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
     }
     
-    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
+//    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
+//    public ResponseEntity<?> getTraces(Authentication authentication, 
+//    		@PathVariable(name = "userId") String userId,
+//    		@RequestParam(name = "callerUserId", required=false) String callerUserId
+//    		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
+//
+//    	List<Trace> traces = bcManager.getTraceEntries();
+//        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
+//    }
+    
+    @RequestMapping(value = "/traces/{userId}", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
-    		@RequestParam(name = "actionUserId", required=false) String actionUserId,
+    		@PathVariable(name = "userId", required=false) String userId,
     		@RequestParam(name = "callerUserId", required=false) String callerUserId
-    		) throws BadRequest, UnsupportedDataTypeException {
-//    	Set<String> roles = getAuthenticatedUserRoles(authentication);
-//    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
-//    		if (actionUserId == null)
-//    			throw new BadRequest("Missing \"actionUserId\" request paramenter");
-//    	}
-    	List<Trace> traces = bcManager.getTraceEntriesByUserId(actionUserId);
+    		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
+    	Set<String> roles = getAuthenticatedUserRoles(authentication);
+    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
+    		if (userId == null)
+    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    	}
+    	if (userId == null || userId.isBlank() || userId.isEmpty()) {
+    		throw new MissingServletRequestParameterException("userId", "String");
+    	}
+    	List<Trace> traces = bcManager.getTraceEntriesByUserId(userId);
         return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
     }
     

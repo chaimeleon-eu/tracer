@@ -57,10 +57,7 @@ public class Trace extends TraceBase implements Serializable {
 		super(VERSION);
 	}
 
-	@Id
-	@Column(name="id")
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	protected long id;
+	
 
 	/**
 	 * The ID of the user (person, application, service etc.) that performed the traced action

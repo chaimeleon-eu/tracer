@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model.trace.v1;
+package es.upv.grycap.tracer.model.trace;
 
 import java.time.Instant;
 import java.util.List;
@@ -7,6 +7,8 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,6 +30,7 @@ public class TraceCacheEntry    {
 	protected String idTransaction;
 	protected Status status;
 	protected Instant submitDate;
-	protected Trace trace;
+	@OneToOne
+	protected TraceBase trace;
 
 }

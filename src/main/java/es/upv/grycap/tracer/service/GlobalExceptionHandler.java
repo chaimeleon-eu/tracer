@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,6 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler({BadRequest.class, UnsupportedDataTypeException.class})
     public ResponseEntity<?> handleExternalDirectMessageException(Exception e, HttpServletResponse response) throws IOException {
+		log.error(e.getMessage(), e);
 		HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
 		if (e instanceof BadRequest || e instanceof UnsupportedDataTypeException) { 
 			status = HttpStatus.BAD_REQUEST;
@@ -41,6 +43,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	
 	@ExceptionHandler({java.net.ConnectException.class, InternalServerError.class,NullPointerException.class})
     public ResponseEntity<?> handleInternalServerError(Exception e, HttpServletResponse response) throws IOException {
+		log.error(e.getMessage(), e);
 		return new ResponseEntity<>(ERROR_MSG, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

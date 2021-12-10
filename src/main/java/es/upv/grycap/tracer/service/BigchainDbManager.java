@@ -11,6 +11,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -42,6 +43,8 @@ import com.ripple.cryptoconditions.Ed25519Sha256Condition;
 import com.ripple.cryptoconditions.Ed25519Sha256Fulfillment;
 import com.ripple.cryptoconditions.der.DerOutputStream;
 
+import es.upv.grycap.tracer.Util;
+import es.upv.grycap.tracer.exceptions.UncheckedKeyManagementException;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Asset;
@@ -53,16 +56,16 @@ import es.upv.grycap.tracer.model.dto.bigchaindb.Subcondition;
 import es.upv.grycap.tracer.model.dto.bigchaindb.SubconditionED25519;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction.Operation;
-import es.upv.grycap.tracer.model.exceptions.BigchaindbException;
-import es.upv.grycap.tracer.model.exceptions.TransactionNotFoundException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedInterruptedException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedInvalidKeyException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedJsonMappingException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedJsonProcessingException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedNoSuchAlgorithmException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedSignatureException;
+import es.upv.grycap.tracer.exceptions.BigchaindbException;
+import es.upv.grycap.tracer.exceptions.TransactionNotFoundException;
+import es.upv.grycap.tracer.exceptions.UncheckedInterruptedException;
+import es.upv.grycap.tracer.exceptions.UncheckedInvalidKeyException;
+import es.upv.grycap.tracer.exceptions.UncheckedJsonMappingException;
+import es.upv.grycap.tracer.exceptions.UncheckedJsonProcessingException;
+import es.upv.grycap.tracer.exceptions.UncheckedNoSuchAlgorithmException;
+import es.upv.grycap.tracer.exceptions.UncheckedSignatureException;
+import es.upv.grycap.tracer.model.trace.TraceCacheEntry;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
-import es.upv.grycap.tracer.model.trace.v1.TraceCacheEntry;
 import es.upv.grycap.tracer.persistence.ITraceCacheRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.i2p.crypto.eddsa.EdDSAEngine;
@@ -94,20 +97,27 @@ public class BigchainDbManager implements BlockchainManager {
 
 	protected String transactionModePost;
 
-	@Autowired
+	
 	protected HashingService hashingService;
 
 	protected String blockchaindbBaseUrl;
 
 	protected int defaultAmountTransaction;
+	
+	protected boolean disableSSLVerification;
 
 	@Autowired
 	public BigchainDbManager(@Value("${blockchain.url}") String blockchaindbBaseUrl,
 			@Value("${blockchain.bigchaindb.transactionModePost}") String transactionModePost,
-			@Value("${blockchain.bigchaindb.defaultAmountTransaction}") int defaultAmountTransaction) {
+			@Value("${blockchain.bigchaindb.defaultAmountTransaction}") int defaultAmountTransaction,
+			@Value("${tracer.disableSSLVerification}") boolean disableSSLVerification,
+			@Autowired HashingService hashingService) {
 		this.blockchaindbBaseUrl = blockchaindbBaseUrl;
 		this.transactionModePost = transactionModePost;
 		this.defaultAmountTransaction = defaultAmountTransaction;
+		this.disableSSLVerification = disableSSLVerification;
+		log.info("Disable SSL verification: " + disableSSLVerification);
+		this.hashingService = hashingService;
 	}
 
 //	@PostConstruct
@@ -128,7 +138,7 @@ public class BigchainDbManager implements BlockchainManager {
 //					.build());
 
 			//log.info(getObjectWriter().writeValueAsString(tr));
-			HttpClient client = HttpClient.newHttpClient();
+			HttpClient client = Util.getHttpClient(disableSSLVerification);
 	        HttpRequest request = HttpRequest.newBuilder()
 	                .uri(URI.create(this.blockchaindbBaseUrl + "/transactions?mode=" + transactionModePost))
 	                .POST(HttpRequest.BodyPublishers.ofString(getObjectWriter().writeValueAsString(tr)))
@@ -137,17 +147,27 @@ public class BigchainDbManager implements BlockchainManager {
 	                HttpResponse.BodyHandlers.ofString());
 	        log.info(response.body());
 		} catch (JsonProcessingException ex) {
+			log.error(ex.getMessage(), ex);
 			throw new UncheckedJsonProcessingException(ex);
 		} catch (InvalidKeyException ex) {
+			log.error(ex.getMessage(), ex);
 			throw new UncheckedInvalidKeyException(ex);
 		} catch (NoSuchAlgorithmException ex) {
+			log.error(ex.getMessage(), ex);
 			throw new UncheckedNoSuchAlgorithmException(ex);
 		} catch (SignatureException ex) {
+			log.error(ex.getMessage(), ex);
 			throw new UncheckedSignatureException(ex);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		} catch (InterruptedException e) {
-			throw new UncheckedInterruptedException(e);
+		} catch (IOException ex) {
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedIOException(ex);
+		} catch (InterruptedException ex) {
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedInterruptedException(ex);
+		} catch (KeyManagementException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedKeyManagementException(ex);
 		}
 	}
 
@@ -172,6 +192,38 @@ public class BigchainDbManager implements BlockchainManager {
 //			throw new UncheckedJsonProcessingException(ex);
 //		}
 	}
+	
+	public List<Trace> getTraceEntries() {
+
+		try {
+			HttpResponse<String> response = getAssets();
+	        log.info(response.toString());
+	        ObjectMapper mapper = new ObjectMapper();
+	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
+	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
+			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
+		} catch (JsonProcessingException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedJsonProcessingException(ex);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedIOException(ex);
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedInterruptedException(ex);
+		} catch (KeyManagementException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedKeyManagementException(ex);
+		} catch (NoSuchAlgorithmException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedNoSuchAlgorithmException(ex);
+		}
+	}
 
 	public List<Trace> getTraceEntriesByUserId(final String userId) {
 
@@ -183,20 +235,42 @@ public class BigchainDbManager implements BlockchainManager {
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
 			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
 		} catch (JsonProcessingException ex) {
+			ex.printStackTrace();
 			log.error(ex.getMessage(), ex);
 			throw new UncheckedJsonProcessingException(ex);
 		} catch (IOException ex) {
+			ex.printStackTrace();
 			log.error(ex.getMessage(), ex);
 			throw new UncheckedIOException(ex);
 		} catch (InterruptedException ex) {
+			ex.printStackTrace();
 			log.error(ex.getMessage(), ex);
 			throw new UncheckedInterruptedException(ex);
+		} catch (KeyManagementException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedKeyManagementException(ex);
+		} catch (NoSuchAlgorithmException ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage(), ex);
+			throw new UncheckedNoSuchAlgorithmException(ex);
 		}
+	}
+	
+	protected HttpResponse<String> getAssets()
+			throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {
+		HttpClient client = Util.getHttpClient(disableSSLVerification);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(this.blockchaindbBaseUrl + "/assets"))
+                .GET()
+                .build();
+         return client.send(request,
+                HttpResponse.BodyHandlers.ofString());
 	}
 
 	protected HttpResponse<String> getAssetsByField(String fieldName, String fieldValue)
-			throws IOException, InterruptedException {
-		HttpClient client = HttpClient.newHttpClient();
+			throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {
+		HttpClient client = Util.getHttpClient(disableSSLVerification);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(this.blockchaindbBaseUrl + "/assets?search=" +
                 		URLEncoder.encode(fieldValue, StandardCharsets.UTF_8)))
