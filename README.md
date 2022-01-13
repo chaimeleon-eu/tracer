@@ -107,7 +107,7 @@ The following sub-paragraphs describe each of the implemented calls.
 
 ### List supported user actions
 
-**GET /api/v1/actions**
+**GET /api/v1/traces/actions**
 
 Returns a list of string containing the user actions that can be traced.
 You must use one of these strings when putting together JSON POST used for traces add.
@@ -115,22 +115,22 @@ The system does not take into account if the string is in capital letters or not
 
 ### List supported hash types
 
-**GET /api/v1/hashes**
+**GET /api/v1/traces/hashes**
 
 The list of hashes supported by this application.
 These can be used to hash various fields in a trace, such as the content of a file part of a dataset.  
 
 ### List supported dataset resources types
 
-**GET /api/v1/dataset_resources**
+**GET /api/v1/traces/dataset_resources**
 
-This call returns the list of supported resources types for a dataset
+This call returns the list of supported resources types for a dataset.
 These values are used when you want to create a new dataset with its resources.
 Since a dataset has various types of resources, you have to set the type.
 
 ### List supported request resource contents types
 
-**GET /api/v1/request_resource_contents**
+**GET /api/v1/traces/request_resource_contents**
 
 This call returns the list of available request resources' content types.
 Since the content of a dataset's resource can be made available via different ways, you have to set the type of the path of the resource.
@@ -175,7 +175,7 @@ Aside from these fields, by _contentType_ , each resource has its own set of fie
 
 ```
 {
-    "data": <String, not null, not blank, valid Base64>
+    "data": <String, not null, not blank, Base64 of the content>
 }
 ```
 
@@ -183,7 +183,7 @@ Aside from these fields, by _contentType_ , each resource has its own set of fie
 
 ```
 {
-    "hash": <String, not null, not blank>,
+    "hash": <String, not null, not blank, Base64 of the hash itself>,
     "hashType": <String, values from a predefined set>
 }
 ```
