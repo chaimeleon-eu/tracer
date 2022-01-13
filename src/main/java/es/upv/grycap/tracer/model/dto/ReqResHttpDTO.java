@@ -7,11 +7,9 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import es.upv.grycap.tracer.model.exceptions.UncheckedMalformedURLException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.URL;
 
 
 @NoArgsConstructor
@@ -26,7 +24,7 @@ public class ReqResHttpDTO  extends ReqResDTO {
 	@Setter
 	@NotNull(message="The URL of the resource can't be null.")
 	@NotBlank(message="The URL of the resource can't be empty.")
-	@URL(regexp = "^(http|ftp|https|ftps).*")
+	//@URL(regexp = "^(http|ftp|https|ftps).*")
 	protected String url;
 	
 //	@Override

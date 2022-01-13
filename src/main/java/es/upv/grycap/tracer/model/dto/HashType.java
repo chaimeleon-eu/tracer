@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import es.upv.grycap.tracer.model.exceptions.HashTypeNotSupported;
+import es.upv.grycap.tracer.exceptions.HashTypeNotSupportedException;
 
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum HashType {
@@ -35,7 +35,7 @@ public enum HashType {
 			if (ht.algorithmId.equalsIgnoreCase(algorithmId))
 				return ht;
 		}
-		throw new HashTypeNotSupported("Hash type using JAVA hash algorithm ID " + algorithmId + " not supported;");
+		throw new HashTypeNotSupportedException("Hash type using JAVA hash algorithm ID " + algorithmId + " not supported;");
 	}
 
 }

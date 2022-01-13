@@ -1,25 +1,46 @@
-server.servlet.context-path: /api
-server.port: 8090
+server:
+    servlet.context-path: /api
+    port: 8090
+    ssl:
+        key-store-type: PKCS12
+        key-store: ${HOME}/cert/tracer.p12
+        key-store-password: change_me_key
+        key-alias: tracer-service
+        enabled: true
+
+keycloak:
+    auth-server-url: "http://localhost:8080/auth"
+    realm: CHAIMELEON
+    resource: tracer-service
+    public-client: true
+    
 spring:
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:~/tracer.db;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${HOME}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
     jpa.database-platform: org.hibernate.dialect.H2Dialect
+    
 tracer:
+    disableSSLVerification: false
+    admin:
+        name: admin
+        password: change_me
     hashAlgorithm: SHA3-256
     yearMin: 2021
     yearMax: 2024
     entity: UPV-I3M-GRyCAP
     version: ^project.version^
-    keypair:
-        private: /tmp/ed25519
-        public: /tmp/ed25519.pub
 
-blockchaindb:
-    baseUrl: http://localhost:9984/api/v1
-    transactionModePost: sync
+blockchain:
+    url: https://localhost:1443/ 
+    # http://localhost:9984/api/v1
     tmpHashDownFolder: /tmp/tracer/
-    defaultAmountTransaction: 1
+    bigchaindb:
+        transactionModePost: sync
+        defaultAmountTransaction: 1
+        keypair:
+            private: /tmp/ed25519
+            public: /tmp/ed25519.pub
