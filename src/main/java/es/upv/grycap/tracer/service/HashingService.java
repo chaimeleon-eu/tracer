@@ -25,9 +25,9 @@ import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqResFileDataDTO;
 import es.upv.grycap.tracer.model.dto.ReqResHttpDTO;
-import es.upv.grycap.tracer.model.exceptions.UncheckedMalformedURLException;
-import es.upv.grycap.tracer.model.exceptions.UncheckedNoSuchAlgorithmException;
-import es.upv.grycap.tracer.model.exceptions.UnknownReqResType;
+import es.upv.grycap.tracer.exceptions.UncheckedMalformedURLException;
+import es.upv.grycap.tracer.exceptions.UncheckedNoSuchAlgorithmException;
+import es.upv.grycap.tracer.exceptions.UnknownReqResType;
 
 @Service
 public class HashingService {

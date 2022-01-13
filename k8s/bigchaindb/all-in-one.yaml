@@ -1,0 +1,376 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: blochaindb-all-in-one-secret
+  namespace: tracer-service
+type: Opaque
+data:
+  # Base64-encoded secret token to authorize POST requests
+  secret-token: "<b64 encoded secret token for authorization>"
+  
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: https-certs
+  namespace: tracer-service
+type: Opaque
+data:
+  # Base64-encoded HTTPS private key
+  cert.key: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRG5CVGNiWnZuVmZiT2oKcUN4SFNBNGpXcGQ5MitDMHQwYTlSU0h0UnMzVlZPTEhxUWNoS3pETzlkMDNUdHpqdDI5dG1qQ3ZJYS81NWxQOQpqWEJvU1RWZ0MrZ25wQU12YzNyeFVlenIzbnBFYlI4eXowUG1ZR0wzdEhXQlhBZ3JGZ3Z5Um9hazlXTENZSVpRCnVqdDdmeXRUT0JLZ2szZXcxR0dMRC9ERUVWZmVUN1VmR1k3MVpkZXFOSXpSVUtKbjlabXgwNjR4RzF2NndLazQKZ09DVGV4NGo3L01JbEVJS3FhV1luZUpPcHNnQlptZS9vR21UWDV1SHA4TU4xQUd5dDdjK0tuS015bHBFUG1FcApSenpTOFRoTzBPci9IV2FtTnNvL2ZNS1R0S0dyNWVNN0FZODBGdW14Qm5lanh5QmNCUVFxUmhUQjlTVXgzL3kzCjU1R3gwR2hWQWdNQkFBRUNnZ0VBWnNQeUpKVmxNMnZzV2pPNEpxbE42TG9tdzR6bzQxclg4OS9wM0tQdmNpT0YKa2UyRngySndIdEJON0lsL1J5alZQM3NraHZORVZiVDR6Y1I2S1ZuUGpYOGVjV3ZMSXZPSzBBaHlqT1gxbTdTeQorU1lyL1RJSk5Fa3BNRGNoUnhGU2xSNThUS3IvbUpuWmhkV2lHaWlTdkQwb1JCZjFXVXJRYlV6VS9GTCt0RndHCkFpV0pNdE40MmgyeTA3TDFTTUptcEVENE84Yzh6RmdGK2NiS1ltcThSdm9hcXU3b1RqSDkwWC9LM0Vva0I4VWkKbU5BNXMxeDF6ajJKZ0F4WlNXN25DN0Q5cXVUckVpb0Nub1BDcThCa2hSby8wRE84cWExM004cVJrRDllWHVqQwpSMjdpT2hvVmp4eXg2UG1xTnIxcFEyZGI2a1M4bWhZbWFLeTd1UzZRVFFLQmdRRC93NUFvWXZtUVdYR3Q3bW13CmZZSFlCV0p3bUM4d0JzUkVSQXJKTXl4VmlOMWFRd0dNb1JZMGQ0Mm1mOHFhMWJuemZqNU92TXl6SU96ZDYwR0oKRDFxaFkzeldQbUZVN0pRSWJNSExXSWx0QStZWGZzTkJOckpFTlh4RG5UKzN0VDlDWTN5Q2MzZVFOcjVYRDd3egowanhFM29hV3QwT3lUVERqcWUyZjF4YzNGd0tCZ1FEbk84NGxaeS9iaWJZc1oxNkpmZGt0TWNFSUdHbmFUd0ZWCjNKaU1MSVBNZXhhRUxleXJwOUNjcmd6SGlPSFlxUnFLb1dobnY0RUxseVdiY0FZd0RkNnN5aitFVEtHYmk0MmIKZzJWV1hhd3dYbzNnbHh1NjhSRUIyQURqVTBpeDRrazRiQmpnWVlCTERwOE5mK0E0Rkc5SzVLYU0vK0N4YjFuYQpsaFducDB3L2N3S0JnUUNwNlMrUnhQN3FhS0ZlM1M0VmM2dVk2U3JXaGlPREVsdTh4ajhzSHZUcTlmdW5oVEE0ClRxUER3MUMxTmR4Uk5IOU9SYVg3Qk80d2FrVXh3S0pPL1laR0JTUGY2SjBjbi9aUUNvQk1LTXRUUXUzTzJnVzUKQXk4MnBSbWlpWXJVN25IU0Z1bVdlRU1MNlhKVndEeFZhT3RsRFRmNFZGT0Mxa2tPVmN0cERxbDdqUUtCZ0M5cgpsRnNYVGprM2hLU1dqa3lrQW1YQ1RsUGFyZHFYV1M3Q2pvWXdtdGJVWjBtMElWVVNsVFdNZkJKdmYrRnV6SUtoCmwwZXZma2RpTjlRb3BSdzF1L1N6aFZNY1pBZ0NGb2hONmZwTU80T3Y0R2l1bElGQjdycnlFVHlOVjlzakRPRUYKU2hTNTZoVjZhaVBhbGFEcWoraEwrOXZ1bmFYRnNDZWpuODFDQWVFQkFvR0JBT1FCY3Z5T3Z1RU9hYnAvSnkzLwp4aVBnblA2dWladHF1d0NoK1EyYlYrMURKbkZYci9iSWFOaEFjaXNlRm5PeTdDVTUya0lVZFYwL1AzV2ZCTjB6Cno2bnE2SG4ydnhheW5LYVptc2Z1SHJYLzdFNmkvQ1ZpZHQycmtyRXVPaEJiTlI0dnVqQkZ2TmFnZXBTUndtTUsKUGc4SUl1bjlDbVN4K1Z2ZFg3WFg1VldhCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K"
+  
+  # Base64-encoded HTTPS certificate chain
+  # starting with your primary SSL cert (e.g. your_domain.crt)
+  # followed by all intermediate certs.
+  # If cert if from DigiCert, download "Best format for nginx".
+  cert.pem: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVWekNDQXorZ0F3SUJBZ0lVZmZla3hmZm9CM0t3Q252cVpQMTZ4UzdXSzNjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dib3hDekFKQmdOVkJBWVRBa1ZUTVJFd0R3WURWUVFJREFoV1lXeGxibU5wWVRFUk1BOEdBMVVFQnd3SQpWbUZzWlc1amFXRXhEREFLQmdOVkJBb01BMVZRVmpFTU1Bb0dBMVVFQ3d3RFNUTk5NVUl3UUFZRFZRUURERGxpCmFXZGphR0ZwYm1SaUxYQnliM2g1TFhObGNuWnBZMlV1ZEhKaFkyVnlMWE5sY25acFkyVXVjM1pqTG1Oc2RYTjAKWlhJdWJHOWpZV3d4SlRBakJna3Foa2lHOXcwQkNRRVdGbUZ6WVd4cFkwQndiM05uY21Ga2J5NTFjSFl1WlhNdwpIaGNOTWpFeE1UQXlNRGswTURNNVdoY05Nakl4TVRBeU1EazBNRE01V2pDQnVqRUxNQWtHQTFVRUJoTUNSVk14CkVUQVBCZ05WQkFnTUNGWmhiR1Z1WTJsaE1SRXdEd1lEVlFRSERBaFdZV3hsYm1OcFlURU1NQW9HQTFVRUNnd0QKVlZCV01Rd3dDZ1lEVlFRTERBTkpNMDB4UWpCQUJnTlZCQU1NT1dKcFoyTm9ZV2x1WkdJdGNISnZlSGt0YzJWeQpkbWxqWlM1MGNtRmpaWEl0YzJWeWRtbGpaUzV6ZG1NdVkyeDFjM1JsY2k1c2IyTmhiREVsTUNNR0NTcUdTSWIzCkRRRUpBUllXWVhOaGJHbGpRSEJ2YzJkeVlXUnZMblZ3ZGk1bGN6Q0NBU0l3RFFZSktvWklodmNOQVFFQkJRQUQKZ2dFUEFEQ0NBUW9DZ2dFQkFPY0ZOeHRtK2RWOXM2T29MRWRJRGlOYWwzM2I0TFMzUnIxRkllMUd6ZFZVNHNlcApCeUVyTU03MTNUZE8zT08zYjIyYU1LOGhyL25tVS8yTmNHaEpOV0FMNkNla0F5OXpldkZSN092ZWVrUnRIekxQClErWmdZdmUwZFlGY0NDc1dDL0pHaHFUMVlzSmdobEM2TzN0L0sxTTRFcUNUZDdEVVlZc1A4TVFSVjk1UHRSOFoKanZWbDE2bzBqTkZRb21mMW1iSFRyakViVy9yQXFUaUE0Sk43SGlQdjh3aVVRZ3FwcFppZDRrNm15QUZtWjcrZwphWk5mbTRlbnd3M1VBYkszdHo0cWNvektXa1ErWVNsSFBOTHhPRTdRNnY4ZFpxWTJ5ajk4d3BPMG9hdmw0enNCCmp6UVc2YkVHZDZQSElGd0ZCQ3BHRk1IMUpUSGYvTGZua2JIUWFGVUNBd0VBQWFOVE1GRXdIUVlEVlIwT0JCWUUKRkF4aTFOTmxFOTFjSldONm9IVHhiWWdPSUZiQk1COEdBMVVkSXdRWU1CYUFGQXhpMU5ObEU5MWNKV042b0hUeApiWWdPSUZiQk1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFHSVZEZEVBCkY5b0kzZ3gvRHRHNmsxT2VqQ00wRWVmY0FPYlpYdVlRRTBHU2RLNWU0M243Qkg3cGZiaVVLaDNIeG9QNVhSZ00KNFV4WHk3SDdGZUxMaDRxYWlxaUE4TUdUdWdWWGd3bmxwUzl1UEJpZXhjRjVhbjJZNnZ1SzVQaGhid2NVdWpqcApoazFjbmhSbm5oVWtXOWJjMlhtbU1IbnErdFZoTUlIQUZOK21BY2ZLNlNnOFZUNmV2bEp0OXZkYUh6WEJBOGg3CmM4TVdKclBRYzQ3d2JhYUUvMzNqSWthKzlWc2ljVGtsbzdNS3hvdU16bElFS0JtNTZ6UWhYQmpDVS9mdGRwTTgKVnVhcThSQm9GSVQ0N0gzdzBOMHMwUkRNbElFZ3VvN2lPaElTOXR0UDRzK0w2YTR1c1B3ZUhzd3FDaFRZUG1segplbDU4QmUvc2hLS2hMZ1k9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+  
+  
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: blochaindb-all-in-one-config
+  namespace: tracer-service
+data:
+  # node-fqdn is the DNS name registered for your HTTPS certificate.
+  node-fqdn: "bigchaindb-proxy.tracer-service.svc.cluster.local"
+
+  # node-frontend-port is the port number on which this node's services
+  # are available to external clients.
+  node-frontend-port: "443"
+
+  # node-health-check-port is the port number on which an external load
+  # balancer can check the status/liveness of the external/public server.
+  # In our deployment, Kubernetes sends 'livenessProbes' to this port and
+  # interprets a successful response as a 'healthy' service.
+  node-health-check-port: "8888"
+
+  # node-dns-server-ip is the IP of the DNS server. A Kubernetes deployment
+  # always has a DNS server (kube-dns).
+  node-dns-server-ip: kube-dns.kube-system.svc.cluster.local
+
+  # mdb-instance-name is the name of the MongoDB instance in this Kubernetes cluster.
+  mdb-instance-name: bigchaindb-service.tracer-service.svc.cluster.local
+
+  # ngx-instance-name is the name of the NGINX instance in this Kubernetes cluster.
+  ngx-instance-name: "bigchaindb-proxy.tracer-service.svc.cluster.local"
+
+  # openresty-instance-name is the name of the OpenResty instance in this
+  # Kubernetes cluster.
+  openresty-instance-name: "<name of the openresty instance>"
+
+  # bdb-instance-name is the name of the BigchainDB instance in this Kubernetes cluster.
+  bdb-instance-name: bigchaindb-service.tracer-service.svc.cluster.local
+
+  # mdb-mon-instance-name is the name of the MongoDB Monitoring Agent instance
+  # in this Kubernetes cluster.
+  mdb-mon-instance-name: "<name of the mdb monitoring agent instance>"
+
+  # ngx-mdb-instance-name is the FQDN of the MongoDB instance in this
+  # Kubernetes cluster.
+  ngx-mdb-instance-name: "bigchaindb-service.tracer-service.svc.cluster.local"
+
+  # ngx-openresty-instance-name is the FQDN of the OpenResty instance in this
+  # Kubernetes cluster.
+  ngx-openresty-instance-name: bigchaindb-service.tracer-service.svc.cluster.local
+
+  # ngx-bdb-instance-name is the FQDN of the BigchainDB instance in this
+  # Kubernetes cluster.
+  ngx-bdb-instance-name: bigchaindb-service.tracer-service.svc.cluster.local
+
+  # mongodb-backend-port is the port on which MongoDB is actually
+  # available/listening for requests.
+  mongodb-backend-port: "27017"
+
+  # TODO: Change `openresty` to `apicast`
+  # openresty-backend-port is the port number on which OpenResty is listening
+  # for requests. This is used by the NGINX instance to forward the requests to
+  # the right port, and by OpenResty instance to bind to the correct port to
+  # receive requests from NGINX instance.
+  openresty-backend-port: "8080"
+
+  # BigchainDB configuration parameters
+  # Refer https://docs.bigchaindb.com/projects/server/en/latest/server-reference/configuration.html
+
+  # bigchaindb-api-port is the port number on which BigchainDB is listening
+  # for HTTP requests.
+  bigchaindb-api-port: "9984"
+
+  # bigchaindb-server-bind is the socket where BigchainDB binds for API
+  # requests.
+  bigchaindb-server-bind: "0.0.0.0:9984"
+
+  # bigchaindb-ws-port and bigchaindb-ws-interface form the socket where
+  # BigchainDB binds for Websocket connections.
+  bigchaindb-ws-port: "9985"
+  bigchaindb-ws-interface: "0.0.0.0"
+
+  # bigchaindb-database-name is the database collection used by BigchainDB with
+  # the MongoDB backend.
+  bigchaindb-database-name: "bigchain"
+
+  # bigchaindb-wsserver-advertised-scheme is the protocol used to access the
+  # WebSocket API in BigchainDB; can be 'ws' or 'wss' (default).
+  bigchaindb-wsserver-advertised-scheme: "wss"
+
+  # Optional: Optimize storage engine(wired tiger)
+  # cache size. e.g. (2048MB, 2GB, 1TB), otherwise
+  # it will use the default cache size; i.e. max((50% RAM - 1GB), 256MB)
+  storage-engine-cache-size: ""
+
+  # POST API authorization mode [threescale | secret-token]
+  authorization-mode: "secret-token"
+    
+  # bdb-p2p-port is used by Tendermint Core to communicate with
+  # other peers in the network. This port is accessible publicly.
+  bdb-p2p-port: "26656"
+
+  # bdb-pub-key-access is the port number used to host/publish the
+  # public key of the tendemrint node in this cluster.
+  bdb-pub-key-access: "9986"
+  
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bigchaindb-service
+  namespace: tracer-service
+spec:
+  ports:
+  - port: 9984
+    protocol: TCP
+    name: api
+  - port: 9985
+    protocol: TCP
+    name: websocket
+  - port: 27017
+    protocol: TCP
+    name: mongodb
+  - port: 26657
+    protocol: TCP
+    name: tendermint-rpc
+  selector:
+    app: bigchaindb
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bigchaindb
+  namespace: tracer-service
+spec:
+  selector:
+    matchLabels:
+      app: bigchaindb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bigchaindb
+    spec:
+      replicas: 1
+      containers:
+      - image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-all-in-one:2.2.2-211025-1
+        imagePullPolicy: Always
+        name: bigchaindb
+        env:
+        ports:
+        - containerPort: 9984
+          name: api
+        - containerPort: 9985
+          name: websocket
+        - containerPort: 27017
+          name: mongodb
+        - containerPort: 26657
+          name: tendermint-rpc
+        volumeMounts:
+        - name: bigchaindb-persistent-storage
+          mountPath: /data/db
+          subPath: data/db
+        - name: bigchaindb-persistent-storage
+          mountPath: /data/configdb
+          subPath: data/configdb
+        - name: bigchaindb-persistent-storage
+          mountPath: /tendermint
+          subPath: tendermint
+      volumes:
+      - name: bigchaindb-persistent-storage
+        persistentVolumeClaim:
+          claimName: bigchaindb-pvc
+          
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bigchaindb-proxy-service
+  namespace: tracer-service
+  labels:
+    name: bigchaindb-proxy-service
+spec:
+  selector:
+    app: bigchaindb-proxy-dep
+  ports:
+  - port: 443
+    targetPort: 443
+    name: public-secure-node-port
+    protocol: TCP
+  - port: 27017
+    targetPort: 27017
+    name: public-mdb-port
+    protocol: TCP
+  - port: 9986
+    targetPort: 9986
+    name: tm-pub-key-access
+    protocol: TCP
+  - port: 26656
+    targetPort: 26656
+    protocol: TCP
+    name: tm-p2p-port
+  - port: 80
+    targetPort: 80
+    name: public-insecure-node-port
+    protocol: TCP
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bigchaindb-proxy-dep
+  namespace: tracer-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bigchaindb-proxy-dep
+  template:
+    metadata:
+      labels:
+        app: bigchaindb-proxy-dep
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
+        imagePullPolicy: Always
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: NODE_FRONTEND_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: node-frontend-port
+        - name: HEALTH_CHECK_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: node-health-check-port
+        - name: NODE_FQDN
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: node-fqdn
+        - name: DNS_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: node-dns-server-ip
+        - name: MONGODB_BACKEND_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: ngx-mdb-instance-name
+        - name: MONGODB_BACKEND_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: mongodb-backend-port
+        - name: OPENRESTY_BACKEND_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: openresty-backend-port
+        - name: OPENRESTY_BACKEND_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: ngx-openresty-instance-name
+        - name: BIGCHAINDB_BACKEND_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: ngx-bdb-instance-name
+        - name: BIGCHAINDB_API_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: bigchaindb-api-port
+        - name: BIGCHAINDB_WS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: bigchaindb-ws-port
+        - name: TM_PUB_KEY_ACCESS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: bdb-pub-key-access
+        - name: TM_P2P_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: bdb-p2p-port
+        - name: AUTHORIZATION_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: blochaindb-all-in-one-config
+              key: authorization-mode
+        ports:
+        # return a pretty error message on port 80, since we are expecting
+        # HTTPS traffic.
+        - containerPort: 80
+          protocol: TCP
+        - containerPort: 443
+          protocol: TCP
+        - containerPort: 8888
+          protocol: TCP
+          name: ngx-port
+        - containerPort: 9986
+          protocol: TCP
+          name: bdb-pub-key
+        - containerPort: 26656
+          protocol: TCP
+          name: bdb-p2p-port
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: ngx-port
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          failureThreshold: 3
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 768Mi
+        volumeMounts:
+        - name: https-certs
+          mountPath: /etc/nginx/ssl/
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: https-certs
+        secret:
+          secretName: https-certs
+          defaultMode: 0400
+          
+          

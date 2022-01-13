@@ -52,8 +52,8 @@ public class NodeKeysManager {
 	protected String keyPrivPath;
 	protected String keyPubPath;
 	
-	public NodeKeysManager(@Value("${tracer.keypair.private}") String keyPrivPath,
-			@Value("${tracer.keypair.public}") String keyPubPath) {
+	public NodeKeysManager(@Value("${blockchain.bigchaindb.keypair.private}") String keyPrivPath,
+			@Value("${blockchain.bigchaindb.keypair.public}") String keyPubPath) {
 		this.keyPrivPath = keyPrivPath;
 		this.keyPubPath = keyPubPath;
 	}

@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: webservice-truststore
+  namespace: tracer-service
+type: Opaque
+data:
+    # pcks12 certificate base 64
+    cert.p12: "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"
+    
+        
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: webservice-authorized-crts
+  namespace: tracer-service
+type: Opaque
+data:
+    bigchaindb-proxy-service.crt: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVWekNDQXorZ0F3SUJBZ0lVZmZla3hmZm9CM0t3Q252cVpQMTZ4UzdXSzNjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dib3hDekFKQmdOVkJBWVRBa1ZUTVJFd0R3WURWUVFJREFoV1lXeGxibU5wWVRFUk1BOEdBMVVFQnd3SQpWbUZzWlc1amFXRXhEREFLQmdOVkJBb01BMVZRVmpFTU1Bb0dBMVVFQ3d3RFNUTk5NVUl3UUFZRFZRUURERGxpCmFXZGphR0ZwYm1SaUxYQnliM2g1TFhObGNuWnBZMlV1ZEhKaFkyVnlMWE5sY25acFkyVXVjM1pqTG1Oc2RYTjAKWlhJdWJHOWpZV3d4SlRBakJna3Foa2lHOXcwQkNRRVdGbUZ6WVd4cFkwQndiM05uY21Ga2J5NTFjSFl1WlhNdwpIaGNOTWpFeE1UQXlNRGswTURNNVdoY05Nakl4TVRBeU1EazBNRE01V2pDQnVqRUxNQWtHQTFVRUJoTUNSVk14CkVUQVBCZ05WQkFnTUNGWmhiR1Z1WTJsaE1SRXdEd1lEVlFRSERBaFdZV3hsYm1OcFlURU1NQW9HQTFVRUNnd0QKVlZCV01Rd3dDZ1lEVlFRTERBTkpNMDB4UWpCQUJnTlZCQU1NT1dKcFoyTm9ZV2x1WkdJdGNISnZlSGt0YzJWeQpkbWxqWlM1MGNtRmpaWEl0YzJWeWRtbGpaUzV6ZG1NdVkyeDFjM1JsY2k1c2IyTmhiREVsTUNNR0NTcUdTSWIzCkRRRUpBUllXWVhOaGJHbGpRSEJ2YzJkeVlXUnZMblZ3ZGk1bGN6Q0NBU0l3RFFZSktvWklodmNOQVFFQkJRQUQKZ2dFUEFEQ0NBUW9DZ2dFQkFPY0ZOeHRtK2RWOXM2T29MRWRJRGlOYWwzM2I0TFMzUnIxRkllMUd6ZFZVNHNlcApCeUVyTU03MTNUZE8zT08zYjIyYU1LOGhyL25tVS8yTmNHaEpOV0FMNkNla0F5OXpldkZSN092ZWVrUnRIekxQClErWmdZdmUwZFlGY0NDc1dDL0pHaHFUMVlzSmdobEM2TzN0L0sxTTRFcUNUZDdEVVlZc1A4TVFSVjk1UHRSOFoKanZWbDE2bzBqTkZRb21mMW1iSFRyakViVy9yQXFUaUE0Sk43SGlQdjh3aVVRZ3FwcFppZDRrNm15QUZtWjcrZwphWk5mbTRlbnd3M1VBYkszdHo0cWNvektXa1ErWVNsSFBOTHhPRTdRNnY4ZFpxWTJ5ajk4d3BPMG9hdmw0enNCCmp6UVc2YkVHZDZQSElGd0ZCQ3BHRk1IMUpUSGYvTGZua2JIUWFGVUNBd0VBQWFOVE1GRXdIUVlEVlIwT0JCWUUKRkF4aTFOTmxFOTFjSldONm9IVHhiWWdPSUZiQk1COEdBMVVkSXdRWU1CYUFGQXhpMU5ObEU5MWNKV042b0hUeApiWWdPSUZiQk1BOEdBMVVkRXdFQi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFHSVZEZEVBCkY5b0kzZ3gvRHRHNmsxT2VqQ00wRWVmY0FPYlpYdVlRRTBHU2RLNWU0M243Qkg3cGZiaVVLaDNIeG9QNVhSZ00KNFV4WHk3SDdGZUxMaDRxYWlxaUE4TUdUdWdWWGd3bmxwUzl1UEJpZXhjRjVhbjJZNnZ1SzVQaGhid2NVdWpqcApoazFjbmhSbm5oVWtXOWJjMlhtbU1IbnErdFZoTUlIQUZOK21BY2ZLNlNnOFZUNmV2bEp0OXZkYUh6WEJBOGg3CmM4TVdKclBRYzQ3d2JhYUUvMzNqSWthKzlWc2ljVGtsbzdNS3hvdU16bElFS0JtNTZ6UWhYQmpDVS9mdGRwTTgKVnVhcThSQm9GSVQ0N0gzdzBOMHMwUkRNbElFZ3VvN2lPaElTOXR0UDRzK0w2YTR1c1B3ZUhzd3FDaFRZUG1segplbDU4QmUvc2hLS2hMZ1k9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: webservice-config
+  namespace: tracer-service
+data:
+  SPRING_PROFILES_ACTIVE: prod
+  KEYCLOAK_AUTH_SERVER_URL: "https://keycloak.keycloak.svc.cluster.local/auth"
+  BLOCKCHAIN_URL: "https://bigchaindb-proxy-service.tracer-service.svc.cluster.local/api/v1"
+  TRACER_ADMIN_NAME: "admin"
+  TRACER_ADMIN_PASSWD: "change_me"
+  TRACER_DISABLESSLVERIFICATION: "true"
+  SERVER_SSL_KEY_STORE_PASSWORD: "change_me_key"
+  SERVER_SSL_KEY_ALIAS: tracer-service
+  SERVER_PORT: "8443"
+  SERVER_SSL_KEY_STORE: "/opt/tracer/ssl/truststore/cert.p12"
+  BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PRIVATE: "/data/webservice/blockchain/bigchaindb/keypair/ed25519"
+  BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PUBLIC: "/data/webservice/blockchain/bigchaindb/keypair/ed25519.public"
+  BLOCKCHAIN_TMPHASHDOWNFOLDER: "/data/webservice/blockchain/bigchaindb/tmp"
+  KEY_DNAME: "CN=localhost,OU=I3M,O=UPV,L=VALENCIA,S=VALENCIA,C=ES"
+  CERTS_FOLDER: /opt/tracer/ssl/authorized
+  
+---
+    
+apiVersion: v1
+kind: Service
+metadata:
+  name: webservice
+  namespace: tracer-service
+spec:
+  ports:
+  - port: 8443
+    protocol: TCP
+    name: api
+  selector:
+    app: webservice
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webservice
+  namespace: tracer-service
+spec:
+  selector:
+    matchLabels:
+      app: webservice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: webservice
+    spec:
+      replicas: 1
+      containers:
+      - image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/tracer-web:1.0.0
+        imagePullPolicy: Always
+        name: webservice
+        env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: SPRING_PROFILES_ACTIVE
+            - name: KEYCLOAK_AUTH_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: KEYCLOAK_AUTH_SERVER_URL
+            - name: BLOCKCHAIN_URL
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: BLOCKCHAIN_URL
+            - name: TRACER_ADMIN_NAME
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: TRACER_ADMIN_NAME
+            - name: TRACER_ADMIN_PASSWD
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: TRACER_ADMIN_PASSWD
+            - name: SERVER_SSL_KEY_STORE_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: SERVER_SSL_KEY_STORE_PASSWORD
+            - name: SERVER_SSL_KEY_STORE
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: SERVER_SSL_KEY_STORE
+            - name: SERVER_SSL_KEY_ALIAS
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: SERVER_SSL_KEY_ALIAS
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: SERVER_PORT
+            - name: BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PRIVATE
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PRIVATE
+            - name: BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: BLOCKCHAIN_BIGCHAINDB_KEYPAIR_PUBLIC
+            - name: BLOCKCHAIN_TMPHASHDOWNFOLDER
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: BLOCKCHAIN_TMPHASHDOWNFOLDER
+            - name: KEY_DNAME
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: KEY_DNAME
+            - name: TRACER_DISABLESSLVERIFICATION
+              valueFrom:
+                configMapKeyRef:
+                  name: webservice-config
+                  key: TRACER_DISABLESSLVERIFICATION
+        ports:
+        - containerPort: 8443
+          name: api
+        volumeMounts:
+        - name: webservice-ps
+          mountPath: /data/webservice
+          subPath: data/webservice
+        - name: webservice-authorized-crts
+          mountPath: /opt/tracer/ssl/authorized
+          readOnly: true
+        - name: webservice-truststore
+          mountPath: /opt/tracer/ssl/truststore
+          readOnly: true
+      volumes:
+      - name: webservice-ps
+        persistentVolumeClaim:
+          claimName: webservice-pvc
+      - name: webservice-truststore
+        secret:
+          secretName: webservice-truststore
+          defaultMode: 0400
+      - name: webservice-authorized-crts
+        secret:
+          secretName: webservice-authorized-crts
+          defaultMode: 0400
+      
+
