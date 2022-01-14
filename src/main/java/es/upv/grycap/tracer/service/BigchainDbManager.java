@@ -18,6 +18,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +46,8 @@ import com.ripple.cryptoconditions.der.DerOutputStream;
 
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.UncheckedKeyManagementException;
+import es.upv.grycap.tracer.model.FilterParams;
+import es.upv.grycap.tracer.model.IFilterParams;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Asset;
@@ -66,6 +69,8 @@ import es.upv.grycap.tracer.exceptions.UncheckedNoSuchAlgorithmException;
 import es.upv.grycap.tracer.exceptions.UncheckedSignatureException;
 import es.upv.grycap.tracer.model.trace.TraceCacheEntry;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.model.trace.v1.TraceDataset;
+import es.upv.grycap.tracer.model.trace.v1.TraceUseDatasets;
 import es.upv.grycap.tracer.persistence.ITraceCacheRepository;
 import lombok.extern.slf4j.Slf4j;
 import net.i2p.crypto.eddsa.EdDSAEngine;
@@ -193,7 +198,7 @@ public class BigchainDbManager implements BlockchainManager {
 //		}
 	}
 	
-	public List<Trace> getTraceEntries() {
+	public List<Trace> getTraces(final FilterParams fp) {
 
 		try {
 			HttpResponse<String> response = getAssets();
@@ -201,7 +206,36 @@ public class BigchainDbManager implements BlockchainManager {
 	        ObjectMapper mapper = new ObjectMapper();
 	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
-			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
+			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData())
+					.filter(t -> {
+						List<Boolean> filters = new ArrayList<>();
+						if (fp.hasCallerUserId()) {
+							if (t.getCallerId().equalsIgnoreCase(fp.getCallerUserId()))
+								filters.add(true);
+							else
+								filters.add(false);
+						}
+						if (fp.hasDatasetId()) {
+							if (t instanceof TraceDataset) {
+								TraceDataset td = (TraceDataset) t;
+
+								if (td.getDatasetId().equalsIgnoreCase(fp.getDatasetId()))
+									filters.add(true);
+								else
+									filters.add(false);
+							} else if (t instanceof TraceUseDatasets) {
+								TraceUseDatasets td = (TraceUseDatasets) t;
+
+								if (td.getDatasetsIds().stream().anyMatch(fp.getDatasetId()::equalsIgnoreCase))
+									filters.add(true);
+								else
+									filters.add(false);
+							}
+						}
+						return !filters.contains(false);
+					})
+					
+					.collect(Collectors.toList());
 		} catch (JsonProcessingException ex) {
 			ex.printStackTrace();
 			log.error(ex.getMessage(), ex);
@@ -225,37 +259,37 @@ public class BigchainDbManager implements BlockchainManager {
 		}
 	}
 
-	public List<Trace> getTraceEntriesByUserId(final String userId) {
-
-		try {
-			HttpResponse<String> response = getAssetsByField(Trace.FNAME_USER_ID, userId);
-	        log.info(response.toString());
-	        ObjectMapper mapper = new ObjectMapper();
-	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
-	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
-			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
-		} catch (JsonProcessingException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedJsonProcessingException(ex);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedIOException(ex);
-		} catch (InterruptedException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedInterruptedException(ex);
-		} catch (KeyManagementException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedKeyManagementException(ex);
-		} catch (NoSuchAlgorithmException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedNoSuchAlgorithmException(ex);
-		}
-	}
+//	public List<Trace> getTraceEntriesByUserId(final String userId) {
+//
+//		try {
+//			HttpResponse<String> response = getAssetsByField(Trace.FNAME_USER_ID, userId);
+//	        log.info(response.toString());
+//	        ObjectMapper mapper = new ObjectMapper();
+//	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
+//	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
+//			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
+//		} catch (JsonProcessingException ex) {
+//			ex.printStackTrace();
+//			log.error(ex.getMessage(), ex);
+//			throw new UncheckedJsonProcessingException(ex);
+//		} catch (IOException ex) {
+//			ex.printStackTrace();
+//			log.error(ex.getMessage(), ex);
+//			throw new UncheckedIOException(ex);
+//		} catch (InterruptedException ex) {
+//			ex.printStackTrace();
+//			log.error(ex.getMessage(), ex);
+//			throw new UncheckedInterruptedException(ex);
+//		} catch (KeyManagementException ex) {
+//			ex.printStackTrace();
+//			log.error(ex.getMessage(), ex);
+//			throw new UncheckedKeyManagementException(ex);
+//		} catch (NoSuchAlgorithmException ex) {
+//			ex.printStackTrace();
+//			log.error(ex.getMessage(), ex);
+//			throw new UncheckedNoSuchAlgorithmException(ex);
+//		}
+//	}
 	
 	protected HttpResponse<String> getAssets()
 			throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {

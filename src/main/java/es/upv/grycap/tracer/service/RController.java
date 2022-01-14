@@ -28,6 +28,7 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
 import es.upv.grycap.tracer.model.dto.DatasetResourceType;
@@ -83,20 +84,24 @@ public class RController {
 //        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
 //    }
     
-    @RequestMapping(value = "/traces/{userId}", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
-    		@PathVariable(name = "userId", required=false) String userId,
-    		@RequestParam(name = "callerUserId", required=false) String callerUserId
+    		@RequestParam(name = "userId", required=false) String userId,
+    		@RequestParam(name = "callerUserId", required=false) String callerUserId,
+    		@RequestParam(name = "datasetId", required=false) String datasetId,
+    		@RequestParam(name = "modelId", required=false) String modelId    		
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
     	Set<String> roles = getAuthenticatedUserRoles(authentication);
     	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
-    		if (userId == null)
-    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+//    		if (userId == null)
+//    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+        	if (userId == null || userId.isBlank() || userId.isEmpty()) {
+        		throw new MissingServletRequestParameterException("userId", "String");
+        	}
     	}
-    	if (userId == null || userId.isBlank() || userId.isEmpty()) {
-    		throw new MissingServletRequestParameterException("userId", "String");
-    	}
-    	List<Trace> traces = bcManager.getTraceEntriesByUserId(userId);
+    	
+    	List<Trace> traces = bcManager.getTraces(FilterParams.builder()
+    			.callerUserId(callerUserId).datasetId(datasetId).modelId(modelId).userId(callerUserId).build());
         return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
     }
     
