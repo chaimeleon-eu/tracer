@@ -37,7 +37,7 @@ import net.i2p.crypto.eddsa.spec.EdDSAParameterSpec;
 import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec;
 import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec;
 
-@Service
+//@Service
 @Slf4j
 public class NodeKeysManager {
 	
@@ -52,8 +52,7 @@ public class NodeKeysManager {
 	protected String keyPrivPath;
 	protected String keyPubPath;
 	
-	public NodeKeysManager(@Value("${blockchain.bigchaindb.keypair.private}") String keyPrivPath,
-			@Value("${blockchain.bigchaindb.keypair.public}") String keyPubPath) {
+	public NodeKeysManager(String keyPrivPath, String keyPubPath) {
 		this.keyPrivPath = keyPrivPath;
 		this.keyPubPath = keyPubPath;
 	}

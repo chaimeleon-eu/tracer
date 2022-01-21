@@ -46,6 +46,7 @@ import com.ripple.cryptoconditions.der.DerOutputStream;
 
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.UncheckedKeyManagementException;
+import es.upv.grycap.tracer.model.BigchainDbProperties;
 import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IFilterParams;
 import es.upv.grycap.tracer.model.dto.HashType;
@@ -89,7 +90,7 @@ public class BigchainDbManager implements BlockchainManager {
 	@Autowired
 	protected ITraceCacheRepository traceCacheRepository;
 
-	@Autowired
+	//@Autowired
 	protected NodeKeysManager nodeKeysManager;
 
 	@Autowired
@@ -100,29 +101,31 @@ public class BigchainDbManager implements BlockchainManager {
 
 //	protected WebClient wb;
 
-	protected String transactionModePost;
+//	protected String transactionModePost;
 
 	
 	protected HashingService hashingService;
 
-	protected String blockchaindbBaseUrl;
+//	protected String blockchaindbBaseUrl;
 
-	protected int defaultAmountTransaction;
+//	protected int defaultAmountTransaction;
 	
 	protected boolean disableSSLVerification;
+	
+	protected final BigchainDbProperties props;
 
 	@Autowired
-	public BigchainDbManager(@Value("${blockchain.url}") String blockchaindbBaseUrl,
-			@Value("${blockchain.bigchaindb.transactionModePost}") String transactionModePost,
-			@Value("${blockchain.bigchaindb.defaultAmountTransaction}") int defaultAmountTransaction,
+	public BigchainDbManager(@Value("${blockchain.bigchaindb}") final BigchainDbProperties props,
 			@Value("${tracer.disableSSLVerification}") boolean disableSSLVerification,
 			@Autowired HashingService hashingService) {
-		this.blockchaindbBaseUrl = blockchaindbBaseUrl;
-		this.transactionModePost = transactionModePost;
-		this.defaultAmountTransaction = defaultAmountTransaction;
+		this.props = props;
+//		this.blockchaindbBaseUrl = blockchaindbBaseUrl;
+//		this.transactionModePost = transactionModePost;
+//		this.defaultAmountTransaction = defaultAmountTransaction;
 		this.disableSSLVerification = disableSSLVerification;
 		log.info("Disable SSL verification: " + disableSSLVerification);
 		this.hashingService = hashingService;
+		nodeKeysManager = new NodeKeysManager(props.getKeypairPrivate(), props.getKeypairPublic());
 	}
 
 //	@PostConstruct
@@ -131,7 +134,7 @@ public class BigchainDbManager implements BlockchainManager {
 //	}
 
 	@Override
-	public void addEntry(final ReqDTO entry, String callerUserId) {
+	public void addTrace(final ReqDTO entry, String callerUserId) {
 		try {
 			final Trace trace = traceHandler.fromRequest(entry, callerUserId);
 			final Transaction<?, ?, ?> tr = buildTransaction(trace);
@@ -145,7 +148,7 @@ public class BigchainDbManager implements BlockchainManager {
 			//log.info(getObjectWriter().writeValueAsString(tr));
 			HttpClient client = Util.getHttpClient(disableSSLVerification);
 	        HttpRequest request = HttpRequest.newBuilder()
-	                .uri(URI.create(this.blockchaindbBaseUrl + "/transactions?mode=" + transactionModePost))
+	                .uri(URI.create(props.getUrl() + "/transactions?mode=" + props.getTransactionModePost().name()))
 	                .POST(HttpRequest.BodyPublishers.ofString(getObjectWriter().writeValueAsString(tr)))
 	                .build();
 	        HttpResponse<String> response = client.send(request,
@@ -209,27 +212,31 @@ public class BigchainDbManager implements BlockchainManager {
 			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData())
 					.filter(t -> {
 						List<Boolean> filters = new ArrayList<>();
-						if (fp.hasCallerUserId()) {
-							if (t.getCallerId().equalsIgnoreCase(fp.getCallerUserId()))
-								filters.add(true);
-							else
-								filters.add(false);
+						if (fp.hasCallerUsersIds()) {
+							filters.add(fp.containsCallerUserId(t.getCallerId()));
 						}
-						if (fp.hasDatasetId()) {
+						if (fp.hasUsersIds()) {
+							filters.add(fp.containsUserId(t.getUserId()));
+						}
+						if (fp.hasUserActions()) {
+							filters.add(fp.containsUserAction(t.getUserAction()));
+						}
+						if (fp.hasDatasetsIds()) {
 							if (t instanceof TraceDataset) {
 								TraceDataset td = (TraceDataset) t;
-
-								if (td.getDatasetId().equalsIgnoreCase(fp.getDatasetId()))
-									filters.add(true);
-								else
-									filters.add(false);
+								filters.add(fp.containsDatasetId(td.getDatasetId()));								
 							} else if (t instanceof TraceUseDatasets) {
 								TraceUseDatasets td = (TraceUseDatasets) t;
-
-								if (td.getDatasetsIds().stream().anyMatch(fp.getDatasetId()::equalsIgnoreCase))
-									filters.add(true);
-								else
-									filters.add(false);
+								boolean foundId = false;
+								for (String id: td.getDatasetsIds()) {
+									if (fp.containsDatasetId(id)) {
+										foundId = true;
+										break;
+									}										
+								}
+								filters.add(foundId);
+							} else {
+								filters.add(false);
 							}
 						}
 						return !filters.contains(false);
@@ -258,44 +265,12 @@ public class BigchainDbManager implements BlockchainManager {
 			throw new UncheckedNoSuchAlgorithmException(ex);
 		}
 	}
-
-//	public List<Trace> getTraceEntriesByUserId(final String userId) {
-//
-//		try {
-//			HttpResponse<String> response = getAssetsByField(Trace.FNAME_USER_ID, userId);
-//	        log.info(response.toString());
-//	        ObjectMapper mapper = new ObjectMapper();
-//	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
-//	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
-//			return assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData()).collect(Collectors.toList());
-//		} catch (JsonProcessingException ex) {
-//			ex.printStackTrace();
-//			log.error(ex.getMessage(), ex);
-//			throw new UncheckedJsonProcessingException(ex);
-//		} catch (IOException ex) {
-//			ex.printStackTrace();
-//			log.error(ex.getMessage(), ex);
-//			throw new UncheckedIOException(ex);
-//		} catch (InterruptedException ex) {
-//			ex.printStackTrace();
-//			log.error(ex.getMessage(), ex);
-//			throw new UncheckedInterruptedException(ex);
-//		} catch (KeyManagementException ex) {
-//			ex.printStackTrace();
-//			log.error(ex.getMessage(), ex);
-//			throw new UncheckedKeyManagementException(ex);
-//		} catch (NoSuchAlgorithmException ex) {
-//			ex.printStackTrace();
-//			log.error(ex.getMessage(), ex);
-//			throw new UncheckedNoSuchAlgorithmException(ex);
-//		}
-//	}
 	
 	protected HttpResponse<String> getAssets()
 			throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {
 		HttpClient client = Util.getHttpClient(disableSSLVerification);
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(this.blockchaindbBaseUrl + "/assets"))
+                .uri(URI.create(props.getUrl() + "/assets"))
                 .GET()
                 .build();
          return client.send(request,
@@ -306,7 +281,7 @@ public class BigchainDbManager implements BlockchainManager {
 			throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {
 		HttpClient client = Util.getHttpClient(disableSSLVerification);
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(this.blockchaindbBaseUrl + "/assets?search=" +
+                .uri(URI.create(props.getUrl() + "/assets?search=" +
                 		URLEncoder.encode(fieldValue, StandardCharsets.UTF_8)))
                 .GET()
                 .build();
@@ -319,7 +294,7 @@ public class BigchainDbManager implements BlockchainManager {
 		final Asset asset = buildAsset(trace);
 		Ed25519Sha256Fulfillment fulfillment = generateFulfillment();
 		List<Input> inputs = buildInputs(fulfillment);
-		List<Output> outputs = buildOutputs(defaultAmountTransaction, fulfillment);
+		List<Output> outputs = buildOutputs(props.getDefaultAmountTransaction(), fulfillment);
 		Transaction<?,?, ?> tr = Transaction.builder()
 				.asset(asset)
 				.id(null)

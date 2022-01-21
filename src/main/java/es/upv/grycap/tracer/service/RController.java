@@ -70,7 +70,7 @@ public class RController {
     public ResponseEntity<?> addTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
     	String id = getCallerUserId(authentication);
-    	bcManager.addEntry(logRequest, id);
+    	bcManager.addTrace(logRequest, id);
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
     }
     
@@ -86,22 +86,26 @@ public class RController {
     
     @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
-    		@RequestParam(name = "userId", required=false) String userId,
-    		@RequestParam(name = "callerUserId", required=false) String callerUserId,
-    		@RequestParam(name = "datasetId", required=false) String datasetId,
-    		@RequestParam(name = "modelId", required=false) String modelId    		
+    		@RequestParam(name = "userId", required=false) List<String> usersIds,
+    		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
+    		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
+    		@RequestParam(name = "userAction", required=false) List<UserAction> userActions		
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
-    	Set<String> roles = getAuthenticatedUserRoles(authentication);
-    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
-//    		if (userId == null)
-//    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
-        	if (userId == null || userId.isBlank() || userId.isEmpty()) {
-        		throw new MissingServletRequestParameterException("userId", "String");
-        	}
-    	}
+//    	Set<String> roles = getAuthenticatedUserRoles(authentication);
+//    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
+////    		if (userId == null)
+////    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+//        	if (userId == null || userId.isBlank() || userId.isEmpty()) {
+//        		throw new MissingServletRequestParameterException("userId", "String");
+//        	}
+//    	}
+    	final FilterParams fp = new FilterParams();
+    	fp.setCallerUsersIds(callerUsersIds);
+    	fp.setDatasetsIds(datasetsIds);
+    	fp.setUsersIds(usersIds);
+    	fp.setUserActions(userActions);
     	
-    	List<Trace> traces = bcManager.getTraces(FilterParams.builder()
-    			.callerUserId(callerUserId).datasetId(datasetId).modelId(modelId).userId(callerUserId).build());
+    	List<Trace> traces = bcManager.getTraces(fp);
         return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
     }
     
