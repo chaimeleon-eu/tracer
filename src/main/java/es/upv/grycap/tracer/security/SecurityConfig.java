@@ -16,8 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.provisioning.JdbcUserDetailsManagerConfigurer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -34,9 +36,21 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import es.upv.grycap.tracer.conf.ExceptionHandlerFilter;
 import es.upv.grycap.tracer.model.TracerRoles;
+import lombok.extern.slf4j.Slf4j;
 
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+@Slf4j
 public class SecurityConfig {
+	
+	@Configuration
+	public class KeycloakConfig {
+
+	    @Bean
+	    public KeycloakSpringBootConfigResolver keycloakConfigResolver() {
+	        return new KeycloakSpringBootConfigResolver();
+	    }
+	}
 	
 	@Configuration
 	@Order(1)
@@ -56,21 +70,25 @@ public class SecurityConfig {
 		
 	      @Override
 	        protected void configure(HttpSecurity http) throws Exception {
-	            http.addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class)
-	            .requestMatcher(r -> 
-	            	r.getHeader("Authorization") != null && r.getHeader("Authorization").startsWith("Basic"))
-	            //.csrf().disable()
-	            .authorizeRequests(authorize -> {
-					try {
-						authorize
-								
-						    .anyRequest().authenticated().and().exceptionHandling()
-						    .accessDeniedHandler(new RestAccessDeniedHandler());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				})
-	                .httpBasic();
+	            http//.antMatchers("/api/v1").permitAll()
+	            	//.and().authorizeRequests().antMatchers("/api/v1/**").fullyAuthenticated()
+	            	//.and()
+	            .authorizeHttpRequests().antMatchers("/api/v1/").permitAll().and()
+	            .authorizeHttpRequests().antMatchers("/api/v1").permitAll().and()
+	            	.authorizeHttpRequests().antMatchers("/api/v1/**").authenticated().and()
+	            	.addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class)
+			            .requestMatcher(r -> 
+			            	r.getHeader("Authorization") != null && r.getHeader("Authorization").startsWith("Basic"))
+			            .csrf().disable()
+			            .authorizeRequests(authorize -> {
+							try {
+								authorize.anyRequest().authenticated().and().exceptionHandling()
+								    .accessDeniedHandler(new RestAccessDeniedHandler());
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						})
+			                .httpBasic();
 	            http.csrf().disable(); 
 	        }
 
@@ -94,6 +112,28 @@ public class SecurityConfig {
 		}
 	}
 	
+//	@Configuration
+//	@Order(2)
+//	public class OIDCAuthConf extends WebSecurityConfigurerAdapter {
+//		protected void configure(HttpSecurity http) throws Exception {
+//	        http
+//	            .authorizeHttpRequests().antMatchers("/api/v1/").permitAll().and()
+//	            .authorizeHttpRequests().antMatchers("/api/v1").permitAll().and()
+//	          .authorizeRequests().antMatchers("/api/v1/**").authenticated()
+//			    .and()
+//			    .oauth2Client();
+//	    }
+//		@Override
+//	 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//		    SimpleAuthorityMapper grantedAuthorityMapper = new SimpleAuthorityMapper();
+//		    grantedAuthorityMapper.setPrefix("ROLE_");
+//
+//		    KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
+//		    keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(grantedAuthorityMapper);
+//		    auth.authenticationProvider(keycloakAuthenticationProvider);
+//	 	}
+//	}
+	
 	@KeycloakConfiguration
 	@Order(2)
 	public class KeycloakSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
@@ -116,10 +156,10 @@ public class SecurityConfig {
 	        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
 	    }
 
-	    @Bean
-	    public KeycloakConfigResolver keycloakConfigResolver() {
-	        return new KeycloakSpringBootConfigResolver();
-	    }
+//	    @Bean
+//	    public KeycloakConfigResolver keycloakConfigResolver() {
+//	        return new KeycloakSpringBootConfigResolver();
+//	    }
 
 //	    @Override
 //	    public void configure(AuthenticationManagerBuilder auth) {
@@ -152,8 +192,10 @@ public class SecurityConfig {
 	    @Override
 	    protected void configure(HttpSecurity http) throws Exception {
 	        super.configure(http);
-	        http.addFilterBefore(exceptionHandlerFilter, KeycloakAuthenticationProcessingFilter.class)
-	        	.antMatcher("/**").authorizeRequests(authorize -> {
+	        http.authorizeHttpRequests().antMatchers("/api/v1/").permitAll().and()
+            .authorizeHttpRequests().antMatchers("/api/v1").permitAll()
+            .and().addFilterBefore(exceptionHandlerFilter, KeycloakAuthenticationProcessingFilter.class)
+	        	.antMatcher("/api/v1/**").authorizeRequests(authorize -> {
 					try {
 						authorize
 						        .anyRequest().authenticated().and().exceptionHandling()
