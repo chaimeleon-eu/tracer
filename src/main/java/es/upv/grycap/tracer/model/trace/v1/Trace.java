@@ -1,6 +1,8 @@
 package es.upv.grycap.tracer.model.trace.v1;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import es.upv.grycap.tracer.exceptions.UncheckedInterruptedException;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.AllArgsConstructor;
@@ -26,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
+//@SuperBuilder
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
 	    include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -51,10 +54,11 @@ public class Trace extends TraceBase implements Serializable {
 	//public static final String FNAME_DATASET_ID = "datasetId";
 	public static final String FNAME_TYPE = "type";
 	
-	public static final int VERSION = 1;
+	public static final String VERSION = "1";
 	
 	public Trace() {
 		super(VERSION);
+		id = generateId();
 	}
 
 	
@@ -71,5 +75,14 @@ public class Trace extends TraceBase implements Serializable {
 	 * The action of a user (person, application, service etc.) represented by this trace
 	 */
 	protected UserAction userAction;
+	
+	public static synchronized String generateId() {
+		try {
+			TimeUnit.MILLISECONDS.sleep(5);
+		} catch (InterruptedException e) {
+			throw new UncheckedInterruptedException(e);
+		}
+		return Long.toString(Instant.now().toEpochMilli());
+	}
 
 }
