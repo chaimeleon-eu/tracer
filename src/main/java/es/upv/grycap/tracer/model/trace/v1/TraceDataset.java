@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
+//@SuperBuilder
 @NoArgsConstructor
 public class TraceDataset extends Trace {
 

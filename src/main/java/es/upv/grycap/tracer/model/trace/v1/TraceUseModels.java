@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
+//@SuperBuilder
 @NoArgsConstructor
 @Entity
 @DiscriminatorValue("USE_MODELS")

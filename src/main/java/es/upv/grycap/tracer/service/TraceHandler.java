@@ -1,13 +1,12 @@
 package es.upv.grycap.tracer.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Validator;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateVersionDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceDataset;
-import es.upv.grycap.tracer.model.trace.v1.TraceModel;
 import es.upv.grycap.tracer.model.trace.v1.TraceResource;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseDatasets;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseModels;
@@ -37,17 +35,15 @@ import es.upv.grycap.tracer.model.trace.v1.UserAction;
 @Service
 public class TraceHandler {
 
-	@Autowired
-    private Validator validator;
-
-	@Autowired
 	protected HashingService hashingService;
 
 	protected HashType defaultHashType;
 
 	@Autowired
-	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId) {
+	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId,
+			@Autowired HashingService hashingService) {
 		this.defaultHashType = HashType.fromAlgorithmId(defaultHashAlgorithmId);
+		this.hashingService = hashingService;
 	}
 
 	public Trace fromRequest(final ReqDTO request, String callerId) {
@@ -55,39 +51,42 @@ public class TraceHandler {
 		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
-			ds = TraceCreateDataset.builder()
-				.datasetId(req.getDatasetId())
-				.traceResources(ltr).build();
+			TraceCreateDataset dsTmp = new TraceCreateDataset();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setTraceResources(ltr);
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.CREATE_VERSION_DATASET) {
 			final ReqCreateVersionDatasetDTO req = (ReqCreateVersionDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
-			ds = TraceCreateVersionDataset.builder()
-			.datasetId(req.getDatasetId())
-			.traceResources(ltr)
-			.previousId(req.getPreviousId()).build();
+			TraceCreateVersionDataset dsTmp = new TraceCreateVersionDataset();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setTraceResources(ltr);
+			dsTmp.setPreviousId(req.getPreviousId());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.VISUALIZE_VERSION_DATASET) {
 			final ReqDatasetDTO req = (ReqDatasetDTO) request;
-			ds = TraceDataset.builder()
-			.datasetId(req.getDatasetId()).build();
+			TraceDataset dsTmp = new TraceDataset();
+			dsTmp.setDatasetId(req.getDatasetId());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_DATASETS_POD) {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
-			ds = TraceUseDatasets.builder()
-					.datasetsIds(req.getDatasetsIds()).build();
-			return ds;
+			TraceUseDatasets dsTmp = new TraceUseDatasets();
+			dsTmp.setDatasetsIds(req.getDatasetsIds());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.CREATE_MODEL) {
 			final ReqCreateModelDTO req = (ReqCreateModelDTO) request;
-			ds = TraceCreateModel.builder()
-				.datasetId(req.getDatasetId())
-				.applicationId(req.getApplicationId())
-				.modelId(req.getModelId())
-					.build();
+			TraceCreateModel dsTmp = new TraceCreateModel();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setApplicationId(req.getApplicationId());
+			dsTmp.setModelId(req.getModelId());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_MODELS) {
 			final ReqUseModelsDTO req = (ReqUseModelsDTO) request;
-			ds = TraceUseModels.builder()
-					.datasetId(req.getDatasetId())
-					.applicationId(req.getApplicationId())
-					.modelsIds(req.getModelsIds())
-					.build();
+			TraceUseModels dsTmp = new TraceUseModels();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setApplicationId(req.getApplicationId());
+			dsTmp.setModelsIds(req.getModelsIds());
+			ds = dsTmp;
 		} else
 			throw new UserActionNotSupported("User action " + request.getUserAction() + " not supported when creating traces from a request.");
 

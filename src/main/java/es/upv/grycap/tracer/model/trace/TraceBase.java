@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -17,8 +18,6 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
-@NoArgsConstructor
 @Entity
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
@@ -31,14 +30,15 @@ import lombok.experimental.SuperBuilder;
 })
 public abstract class TraceBase {
 	
-	protected int version;
+
+	protected String version;
 	
 	@Id
 	@Column(name="id")
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	protected long id;
+	protected String id;
 	
-	public TraceBase(int version) {
+	public TraceBase(String version) {
 		this.version = version;
 	}
 
