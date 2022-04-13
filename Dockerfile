@@ -1,4 +1,4 @@
-FROM alpine:3.14.2
+FROM alpine:3.15
 
 ADD src /opt/tracer-src/src
 ADD pom.xml /opt/tracer-src
@@ -7,7 +7,7 @@ ADD entrypoint.sh /opt
 RUN \    
     # Install those dependencies that will be removed afterwards
     apk --no-cache add --virtual build-dependencies \
-        bash openjdk11 maven \
+        bash openjdk17 maven \
     && chmod +x /opt/entrypoint.sh \
     && cd /opt/tracer-src \
     && mvn -U clean package \
@@ -17,7 +17,7 @@ RUN \
     # Install the runtime dependencies
     && apk del build-dependencies  \
     && rm -rf /opt/tracer-src /root/.m2 /var/cache/apk/* \
-    && apk --no-cache add openjdk11-jre-headless
+    && apk --no-cache add openjdk17-jre-headless
 
 ENV SERVER_PORT 8443 
 ENV SERVER_SSL_KEY_ALIAS '' 
