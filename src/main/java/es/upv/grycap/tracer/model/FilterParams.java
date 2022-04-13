@@ -1,15 +1,20 @@
 package es.upv.grycap.tracer.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.Getter;
 
 @Getter
 public class FilterParams implements IFilterParams {
 	
+	protected Set<BlockchainType> blockchains;
 	protected Set<String> usersIds;
 	protected Set<String> callerUsersIds;
 	protected Set<String> datasetsIds;
@@ -21,22 +26,33 @@ public class FilterParams implements IFilterParams {
 //		datasetsIds = Set.of();
 //	}
 	
+	public void setBlockchains(final Collection<BlockchainType> blockchains) {
+		if (blockchains != null)
+			this.blockchains = blockchains.stream().collect(Collectors.toSet());
+	}
+	
 	public void setUsersIds(final Collection<String> usersIds) {
-		this.usersIds = usersIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
+		if (usersIds != null)
+			this.usersIds = usersIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
 	}
 	
 	public void setCallerUsersIds(final Collection<String> callerUsersIds) {
-		this.callerUsersIds = callerUsersIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
+		if (callerUsersIds != null)
+			this.callerUsersIds = callerUsersIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
 	}
 	
 	public void setDatasetsIds(final Collection<String> datasetsIds) {
-		this.datasetsIds = datasetsIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
+		if (datasetsIds != null)
+			this.datasetsIds = datasetsIds.stream().map(e -> e.toLowerCase()).collect(Collectors.toSet());
 	}
 	
 	public void setUserActions(final Collection<UserAction> userActions) {
-		this.userActions = userActions.stream().collect(Collectors.toSet());
+		if (userActions != null)
+			this.userActions = userActions.stream().collect(Collectors.toSet());
 	}
 
+	public boolean hasBlockchains() {return blockchains != null && !blockchains.isEmpty();}
+	public boolean containsBlockchain(BlockchainType blockchain) {return hasBlockchains() && blockchains.contains(blockchain);}
 	public boolean hasUsersIds() {return usersIds != null && !usersIds.isEmpty();}
 	public boolean containsUserId(String userId) {return hasUsersIds() && usersIds.contains(userId.toLowerCase());}
 	public boolean hasCallerUsersIds() {return callerUsersIds != null && !callerUsersIds.isEmpty();}
@@ -45,5 +61,25 @@ public class FilterParams implements IFilterParams {
 	public boolean containsDatasetId(String datasetId) {return hasDatasetsIds() && datasetsIds.contains(datasetId.toLowerCase());}
 	public boolean hasUserActions() {return userActions != null && !userActions.isEmpty();}
 	public boolean containsUserAction(UserAction userAction) {return hasUserActions() && userActions.contains(userAction);}
+	
+	public Collection<String> toCollectionOfValues() {
+		Set<String> result = new HashSet<>();
+		if (hasBlockchains()) {
+			blockchains.forEach(bc -> result.add(bc.name()));
+		}
+		if (hasCallerUsersIds()) {
+			result.addAll(callerUsersIds);
+		}
+		if (hasDatasetsIds()) {
+			result.addAll(datasetsIds);
+		}
+		if (hasUserActions()) {
+			userActions.forEach(ua -> result.add(ua.name()));
+		}
+		if (hasUsersIds()) {
+			result.addAll(usersIds);
+		}
+		return result;
+	}
 
 }

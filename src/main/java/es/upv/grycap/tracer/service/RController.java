@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 */
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:3000/", maxAge = 3600)
+//@CrossOrigin(origins = "http://asaserver.i3m.upv.es:3005", maxAge = 3600)
 @RequestMapping("/api/v1")
 public class RController {
 	
@@ -117,9 +117,7 @@ public class RController {
     	fp.setDatasetsIds(datasetsIds);
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
-    	
-    	Map<BlockchainType, List<Trace>> traces = bcManager.getTraces(fp);
-        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces/{userId}/{actionIdName}", method = RequestMethod.GET, produces = {"application/json"})
@@ -128,23 +126,23 @@ public class RController {
 //        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.OK);
 //    }
     
-    @RequestMapping(value = "/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getActions(Authentication authentication) {
     	
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getHashTypes(Authentication authentication) {
         return new ResponseEntity<>(HashType.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/dataset_resources", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/dataset_resources", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getDatasetResources(Authentication authentication) {
         return new ResponseEntity<>(DatasetResourceType.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/request_resource_contents", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/request_resource_contents", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getRequestResourceContentTypes(Authentication authentication) {
         return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
     }

@@ -9,19 +9,23 @@ import org.web3j.protocol.core.methods.response.EthGasPrice;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import es.upv.grycap.tracer.model.BesuProperties;
+import es.upv.grycap.tracer.model.BlockchainProperties;
 import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 
+@Service
 public class BesuManager implements BlockchainManager {
 	
 	protected final BesuProperties props;
 	
 	@Autowired
-	public BesuManager(@Value("${blockchain.besu}") final BesuProperties props) {
+	public BesuManager(@Autowired final BesuProperties props) {
 		this.props = props;
 	}
 
@@ -38,9 +42,13 @@ public class BesuManager implements BlockchainManager {
 	}
 
 	@Override
-	public List<Trace> getTraces(FilterParams filterParams) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<TraceBase> getTraces(FilterParams filterParams) {
+		return List.of();
+	}
+
+	@Override
+	public BlockchainProperties getBlockchainProperties() {
+		return props;
 	}
 
 }

@@ -91,11 +91,14 @@ public class SecurityConfig {
 //						})
 //			                .httpBasic();
 //	            http.csrf().disable(); 
-	    	  http.authorizeRequests().antMatchers("/api/v1").permitAll()
+	    	  http.csrf().disable()//.cors().and()
+	    	  	.authorizeRequests().antMatchers("/api/v1").permitAll()
 	    	  	.antMatchers("/api/v1/").permitAll()
+	    	  	.antMatchers("/api/v1/static/**").permitAll()
 	    	  	.antMatchers("/api/v1/**").fullyAuthenticated()
 	    	  	.and().requestMatcher(r -> r.getHeader("Authorization") != null && r.getHeader("Authorization")
 	    	  		.startsWith("Basic")).httpBasic();
+	    	  	//.and().csrf().disable();
 	        }
 
 	        @Override
@@ -211,9 +214,14 @@ public class SecurityConfig {
 //					}
 //				});
 
-	    	  http.authorizeRequests().antMatchers("/api/v1").permitAll()
-	    	  	.antMatchers("/api/v1/").permitAll().antMatchers("/api/v1/**").fullyAuthenticated()
+	    	  http.csrf().disable()//.cors().and()
+	    	  	.authorizeRequests()
+	    	  	.antMatchers("/api/v1").permitAll()
+	    	  	.antMatchers("/api/v1/").permitAll()
+	    	  	.antMatchers("/api/v1/static/**").permitAll()
+	    	  	.antMatchers("/api/v1/**").fullyAuthenticated()
 	    	  	.and().addFilterBefore(exceptionHandlerFilter, KeycloakAuthenticationProcessingFilter.class);
+	    	  	//.csrf().disable();
 	    }
 
 	}

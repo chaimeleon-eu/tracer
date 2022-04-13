@@ -57,7 +57,7 @@ public class NodeKeysManager {
 		this.keyPubPath = keyPubPath;
 	}
 	
-	@PostConstruct
+//	@PostConstruct
 	protected void init() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException {
 		if (Files.exists(Path.of(keyPubPath)) && Files.exists(Path.of(keyPrivPath))) {
 			log.info("Public and private found, load them");

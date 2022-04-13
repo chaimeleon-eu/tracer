@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import es.upv.grycap.tracer.exceptions.BigchaindbException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	
 
 	public static final String ERROR_MSG = "There's been an internal error. That's all we know";
+	
+	@ExceptionHandler({BigchaindbException.class})
+    public ResponseEntity<?> handleExternalDirectMessageException(BigchaindbException e, HttpServletResponse response) throws IOException {
+		log.error(e.getMessage(), e);
+        return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
 
 	@ExceptionHandler({BadRequest.class, UnsupportedDataTypeException.class})
     public ResponseEntity<?> handleExternalDirectMessageException(Exception e, HttpServletResponse response) throws IOException {

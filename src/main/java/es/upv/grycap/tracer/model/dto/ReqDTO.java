@@ -50,4 +50,10 @@ public class ReqDTO implements Serializable {
 	@NotBlank(message="User field ID must have a value.")
 	@NotNull(message="User field ID must have a value.")
 	protected String userId;
+	
+	/**
+	 * The blockchains you are interacting with.
+	 * Can be missing, all enabled blockchains is assumed
+	 */
+	protected List<BlockchainType> blockchains;
 }
