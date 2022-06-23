@@ -4,11 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.bitcoinj.core.Base58;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +57,11 @@ import es.upv.grycap.tracer.model.BigchainDbProperties;
 import es.upv.grycap.tracer.model.BlockchainProperties;
 import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IFilterParams;
+import es.upv.grycap.tracer.model.TraceCacheOpResult;
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.HashType;
+import es.upv.grycap.tracer.model.dto.ITransaction;
+import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Asset;
 import es.upv.grycap.tracer.model.dto.bigchaindb.AssetCreate;
@@ -67,6 +74,7 @@ import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction;
 import es.upv.grycap.tracer.model.dto.bigchaindb.Transaction.Operation;
 import es.upv.grycap.tracer.exceptions.BigchaindbException;
 import es.upv.grycap.tracer.exceptions.TransactionNotFoundException;
+import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
 import es.upv.grycap.tracer.exceptions.UncheckedInterruptedException;
 import es.upv.grycap.tracer.exceptions.UncheckedInvalidKeyException;
 import es.upv.grycap.tracer.exceptions.UncheckedJsonMappingException;
@@ -136,12 +144,25 @@ public class BigchainDbManager implements BlockchainManager {
 //	protected void init() {
 //		wb = WebClient.create(blockchaindbBaseUrl);
 //	}
+	
+	public ITransaction generateTransaction(final ReqDTO entry, String callerUserId) {
+		final TraceBase trace = traceHandler.fromRequest(entry, callerUserId);
+		try {
+			return buildTransaction(trace);
+		} catch (JsonProcessingException | InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
+			log.error(Util.getFullStackTrace(e));
+			throw UncheckedExceptionFactory.get(e);
+		}
+	}
 
 	@Override
-	public void addTrace(final ReqDTO entry, String callerUserId) {
+	public TraceCacheOpResult submitTransaction(final ITransaction transaction) {
+		String resultMsg = null;
+		ReqCacheStatus resultStatus = null;
+		String tId = null;
 		try {
-			final TraceBase trace = traceHandler.fromRequest(entry, callerUserId);
-			final Transaction<?, ?, ?> tr = buildTransaction(trace);
+			
+			tId = transaction.getId();
 //			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
 //					.idTransaction(tr.getId())
 //					.submitDate(Instant.now())
@@ -152,61 +173,126 @@ public class BigchainDbManager implements BlockchainManager {
 			//log.info(getObjectWriter().writeValueAsString(tr));
 			HttpClient client = Util.getHttpClient(disableSSLVerification);
 	        HttpRequest request = HttpRequest.newBuilder()
-	                .uri(URI.create(props.getUrl() + "/transactions?mode=" + props.getTransactionModePost().name()))
-	                .POST(HttpRequest.BodyPublishers.ofString(getObjectWriter().writeValueAsString(tr)))
+	                .uri(URI.create(props.getUrl() + "/transactions?mode=commit"))// + props.getTransactionModePost().name()))
+	                .POST(HttpRequest.BodyPublishers.ofString(getObjectWriter().writeValueAsString(transaction)))
 	                .build();
 	        HttpResponse<String> response = client.send(request,
 	                HttpResponse.BodyHandlers.ofString());
 	        if (response.statusCode() > 299) {
-	        	throw new BigchaindbException(response.body());
+	        	//throw new BigchaindbException(response.body());
+				resultMsg = "Blockchain returned status " + response.statusCode() + " with the following message: " + response.body();
+				resultStatus = ReqCacheStatus.BLOCKCHAIN_ERROR;
+	        } else {
+	        	resultStatus = ReqCacheStatus.BLOCKCHAIN_SUCCESS;
 	        }
 	        //log.info(response.body());
-		} catch (JsonProcessingException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedJsonProcessingException(ex);
-		} catch (InvalidKeyException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedInvalidKeyException(ex);
-		} catch (NoSuchAlgorithmException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedNoSuchAlgorithmException(ex);
-		} catch (SignatureException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedSignatureException(ex);
-		} catch (IOException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedIOException(ex);
-		} catch (InterruptedException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedInterruptedException(ex);
-		} catch (KeyManagementException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
-			throw new UncheckedKeyManagementException(ex);
+		} catch (ConnectException | ClosedChannelException e) {
+			// Blockchain is not available
+			String st = Util.getFullStackTrace(e);
+			log.error(st);
+			resultMsg = st;
+			resultStatus = ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE;
+		} catch (Exception e) {
+			log.error(Util.getFullStackTrace(e));
+			resultMsg = Util.getFullStackTrace(e);
+			resultStatus = ReqCacheStatus.ERROR;
 		}
+//		} catch (JsonProcessingException ex) {
+//			log.error(ex.getMessage(), ex);
+//			
+//			//throw new UncheckedJsonProcessingException(ex);
+//		} catch (InvalidKeyException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedInvalidKeyException(ex);
+//		} catch (NoSuchAlgorithmException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedNoSuchAlgorithmException(ex);
+//		} catch (SignatureException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedSignatureException(ex);
+//		} catch (IOException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedIOException(ex);
+//		} catch (InterruptedException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedInterruptedException(ex);
+//		} catch (KeyManagementException ex) {
+//			log.error(ex.getMessage(), ex);
+//			//throw new UncheckedKeyManagementException(ex);
+//		}
+		return new TraceCacheOpResult(resultMsg, resultStatus, tId);
+	}
+	
+	@Override
+	public TraceCacheOpResult getTransactionStatusById(final String transactionId) {
+		String resultMsg = null;
+		ReqCacheStatus resultStatus = null;
+		try {
+//			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
+//					.idTransaction(tr.getId())
+//					.submitDate(Instant.now())
+//					.status(TraceCacheEntry.Status.SUBMITTED)
+//					.trace(trace)
+//					.build());
+
+			//log.info(getObjectWriter().writeValueAsString(tr));
+			HttpClient client = Util.getHttpClient(disableSSLVerification);
+	        HttpRequest request = HttpRequest.newBuilder()
+	        		.uri(URI.create(props.getUrl() + "/transactions/" + transactionId)).GET().build();
+	        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+	        if (response.statusCode() > 299) {
+	        	//throw new BigchaindbException(response.body());
+				resultMsg = "Blockchain returned status " + response.statusCode() + " with the following message: " + response.body();
+				resultStatus = ReqCacheStatus.BLOCKCHAIN_ERROR;
+	        } else {
+	        	resultStatus = ReqCacheStatus.BLOCKCHAIN_SUCCESS;
+	        }
+	        //log.info(response.body());
+		} catch (ConnectException | ClosedChannelException e) {
+			// Blockchain is not available
+			String st = Util.getFullStackTrace(e);
+			log.error(st);
+			resultMsg = st;
+			resultStatus = ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE;
+		}  catch (Exception e) {
+			log.error(Util.getFullStackTrace(e));
+			resultMsg = Util.getFullStackTrace(e);
+			resultStatus = ReqCacheStatus.ERROR;
+		}
+		return new TraceCacheOpResult(resultMsg, resultStatus, transactionId);
+		
 	}
 
-	@Override
-	public Transaction<?, ?, ?> getTransactionById(final String transactionId) {
-		return null;
-//		String transaction = wb.get().uri("/transactions/" + transactionId)
-//        .retrieve()
-//        .onStatus(httpStatus -> HttpStatus.ACCEPTED.equals(httpStatus),
-//        		response -> Mono.empty())
-//        .onStatus(httpStatus -> HttpStatus.NOT_FOUND.equals(httpStatus),
-//        		response -> Mono.error(new TransactionNotFoundException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
-//        .onStatus(httpStatus -> HttpStatus.BAD_REQUEST.equals(httpStatus),
-//        		response -> Mono.error(new BigchaindbException(response.bodyToMono(String.class).block(REQUEST_TIMEOUT))))
-//        .bodyToMono(String.class)
-//        .block(REQUEST_TIMEOUT);
+//	@Override
+//	public ITransaction getTransactionById(final String transactionId) {
+//		String resultMsg = null;
+//		ReqCacheStatus resultStatus = null;
 //		try {
-//			return getObjectReader().readValue(transaction);
-//		} catch (JsonMappingException ex) {
-//			throw new UncheckedJsonMappingException(ex);
-//		} catch (JsonProcessingException ex) {
-//			throw new UncheckedJsonProcessingException(ex);
+////			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
+////					.idTransaction(tr.getId())
+////					.submitDate(Instant.now())
+////					.status(TraceCacheEntry.Status.SUBMITTED)
+////					.trace(trace)
+////					.build());
+//
+//			//log.info(getObjectWriter().writeValueAsString(tr));
+//			HttpClient client = Util.getHttpClient(disableSSLVerification);
+//	        HttpRequest request = HttpRequest.newBuilder()
+//	                .uri(URI.create(props.getUrl() + "/transactions/" + transactionId)).GET().build();
+//	        HttpResponse<String> response = client.send(request,
+//	                HttpResponse.BodyHandlers.ofString());
+//	        if (response.statusCode() > 299) {
+//	        	return null;
+//	        } else {
+//	        	return getObjectReader().readValue(response.body(), Transaction.class);
+//	        }
+//	        //log.info(response.body());
+//		} catch (Exception e) {
+//			log.error(ExceptionUtils.getStackTrace(e));
+//			resultMsg = ExceptionUtils.getStackTrace(e);
+//			resultStatus = ReqCacheStatus.ERROR;
 //		}
-	}
+//	}
 	@Override
 	public List<TraceBase> getTraces(final FilterParams fp) {
 
@@ -227,24 +313,19 @@ public class BigchainDbManager implements BlockchainManager {
 					.collect(Collectors.toList());
 			 return traces;//traceFiltering.filterTraces(traces, fp);
 		} catch (JsonProcessingException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
+			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedJsonProcessingException(ex);
 		} catch (IOException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
+			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedIOException(ex);
 		} catch (InterruptedException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
+			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedInterruptedException(ex);
 		} catch (KeyManagementException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
+			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedKeyManagementException(ex);
 		} catch (NoSuchAlgorithmException ex) {
-			ex.printStackTrace();
-			log.error(ex.getMessage(), ex);
+			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedNoSuchAlgorithmException(ex);
 		}
 	}
@@ -418,6 +499,11 @@ public class BigchainDbManager implements BlockchainManager {
 	@Override
 	public BlockchainProperties getBlockchainProperties() {
 		return props;
+	}
+
+	@Override
+	public BlockchainType getType() {
+		return BlockchainType.BIGCHAINDB_PRIVATE;
 	}
 
 }

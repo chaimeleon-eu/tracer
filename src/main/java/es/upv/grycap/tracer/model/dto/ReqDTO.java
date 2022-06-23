@@ -2,6 +2,7 @@ package es.upv.grycap.tracer.model.dto;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -55,5 +56,5 @@ public class ReqDTO implements Serializable {
 	 * The blockchains you are interacting with.
 	 * Can be missing, all enabled blockchains is assumed
 	 */
-	protected List<BlockchainType> blockchains;
+	protected Set<BlockchainType> blockchains;
 }

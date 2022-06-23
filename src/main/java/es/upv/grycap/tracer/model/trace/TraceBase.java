@@ -18,7 +18,6 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Entity
 @JsonTypeInfo(
 	    use = JsonTypeInfo.Id.NAME,
 	    include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -33,9 +32,6 @@ public abstract class TraceBase {
 
 	protected String version;
 	
-	@Id
-	@Column(name="id")
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	protected String id;
 	
 	public TraceBase(String version) {

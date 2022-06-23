@@ -25,7 +25,15 @@ spring:
         driverClassName: org.h2.Driver
         username: sa
         password: password
-    jpa.database-platform: org.hibernate.dialect.H2Dialect
+    jpa:
+        database-platform: org.hibernate.dialect.H2Dialect        
+        hibernate:
+            ddl-auto: update
+        properties:
+            open-in-view: false
+            hibernate:
+                enable_lazy_load_no_trans: true
+        show-sql: true
     security:
         oauth2:
             client:
@@ -49,7 +57,11 @@ spring:
                         
 tracer:
     # in KB
-    request-parse-limit: 128 
+    request-parse-limit: 128
+    cache:
+        threads: 20
+        # in seconds
+        retry-delay: 10
     disableSSLVerification: false
     admin:
         name: admin

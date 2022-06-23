@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
+import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
+import es.upv.grycap.tracer.exceptions.UncheckedUnsupportedDataTypeException;
+import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.HashType;
 
 /**
@@ -30,7 +33,7 @@ public class UserManager {
 	}
 
     
-    public Set<String> getAuthenticatedUserRoles(Authentication authentication) throws UnsupportedDataTypeException {
+    public Set<String> getAuthenticatedUserRoles(Authentication authentication) {
     	Object principal = authentication.getPrincipal();
     	if (principal instanceof User) {
     		User user = (User) principal;
@@ -40,11 +43,37 @@ public class UserManager {
     		Set<String> roleNames = pr.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles();
     		return roleNames;
     	} else {
-    		throw new UnsupportedDataTypeException("The user authentication type is unsupported");
+    		throw new UncheckedUnsupportedDataTypeException("The user authentication type is unsupported");
+    	}
+    }
+    
+    public String getUserId(Authentication authentication)  {
+    	Object principal = authentication.getPrincipal();
+    	if (principal instanceof User) {
+    		User user = (User) principal;
+    		return user.getUsername();
+    	} else if (principal instanceof KeycloakPrincipal) {
+    		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;
+    		return  pr.getKeycloakSecurityContext().getIdToken().getSubject();
+    	} else {
+    		throw new UncheckedUnsupportedDataTypeException("The user authentication type is unsupported");
+    	}
+    }
+    
+    public boolean userHasRole(final Authentication authentication, TracerRoles role) {
+    	Object principal = authentication.getPrincipal();
+    	if (principal instanceof User) {
+    		User user = (User) principal;
+    		return user.getAuthorities().stream().map(authority -> authority.getAuthority()).collect(Collectors.toSet()).contains("ROLE_" + role.name());
+    	} else if (principal instanceof KeycloakPrincipal) {
+    		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;
+    		return pr.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles().contains("ROLE_" + role.name());
+    	} else {
+    		throw new UncheckedUnsupportedDataTypeException("The user authentication type is unsupported");
     	}
     }
 
-    public String getCallerUserId(Authentication authentication) throws UnsupportedDataTypeException {
+    public String getCallerUserId(Authentication authentication){
     	Object principal = authentication.getPrincipal();
     	if (principal instanceof User) {
     		User user = (User) principal;
@@ -56,8 +85,12 @@ public class UserManager {
 
     		return null;
     	} else {
-    		throw new UnsupportedDataTypeException("The user authentication type is unsupported");
+    		throw new UncheckedUnsupportedDataTypeException("The user authentication type is unsupported");
     	}
+    }
+    
+    public boolean isAdmin(Authentication authentication) {
+    		return getAuthenticatedUserRoles(authentication).contains("ROLE_" + TracerRoles.TRACER_ADMIN);
     }
     
 }

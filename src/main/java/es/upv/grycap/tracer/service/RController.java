@@ -1,8 +1,10 @@
 package es.upv.grycap.tracer.service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.activation.UnsupportedDataTypeException;
@@ -30,6 +32,8 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import es.upv.grycap.tracer.model.FilterParams;
+import es.upv.grycap.tracer.model.IReqCacheEntry;
+import es.upv.grycap.tracer.model.ReqCacheEntrySummary;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
@@ -55,13 +59,10 @@ public class RController {
 	protected AppInfoDTO appInfo;
 	
 	protected BlockchainManagerProxy bcManager;
-	
-	protected UserManager userManager;
 		
-	public RController(@Autowired AppInfoDTO appInfo, @Autowired BlockchainManagerProxy bcManager, @Autowired UserManager userManager) {
+	public RController(@Autowired AppInfoDTO appInfo, @Autowired BlockchainManagerProxy bcManager) {
 		this.appInfo = appInfo;
 		this.bcManager = bcManager;
-		this.userManager = userManager;
 	}
 
 
@@ -77,12 +78,34 @@ public class RController {
 //
 //    }
     
+    @RequestMapping(value = "/login", method = RequestMethod.POST, produces = {"application/json"})
+    public ResponseEntity<?> login(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    		throws UnsupportedDataTypeException {
+    	
+        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.ACCEPTED);
+    }
+    
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
     public ResponseEntity<?> addTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
-    	String id = userManager.getCallerUserId(authentication);
-    	bcManager.addTrace(logRequest, id);
-        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
+    	final Collection<ReqCacheEntrySummary> summaries = bcManager.addTrace(authentication, logRequest);
+        return new ResponseEntity<>(summaries, new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTracesCache(Authentication authentication,
+    		@RequestParam(name = "detailed", required=false) Boolean detailed) 
+    		throws UnsupportedDataTypeException {
+    	List<? extends IReqCacheEntry> result = bcManager.getReqsCache(authentication, detailed == null ? false : detailed);
+        return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/cache/{id}", method = RequestMethod.DELETE, produces = {"application/json"})
+    public ResponseEntity<?> deleteTracesCache(Authentication authentication,
+    		@PathVariable("id") UUID id) 
+    		throws UnsupportedDataTypeException {
+    	IReqCacheEntry result = bcManager.deleteReqCache(authentication, id);
+        return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
@@ -146,10 +169,6 @@ public class RController {
     public ResponseEntity<?> getRequestResourceContentTypes(Authentication authentication) {
         return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
     }
-    
-    @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getTracesCache() {
-        return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
-    }
+
 	
 }

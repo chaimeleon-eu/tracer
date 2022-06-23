@@ -23,6 +23,8 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -33,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @Slf4j
+@EnableJpaRepositories
 public class General {
 	
 //	@Bean(name="entityManagerFactory")
@@ -56,5 +59,10 @@ public class General {
 	    loggingFilter.setMaxPayloadLength(64000);
 	    return loggingFilter;
 	}
+	
+//    @Bean
+//    EvaluationContextExtension reqCacheStatusExtension() {
+//        return new SecurityEvaluationContextExtension();
+//    }
 
 }

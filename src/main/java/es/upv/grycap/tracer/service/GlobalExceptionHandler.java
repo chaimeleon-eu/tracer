@@ -3,6 +3,7 @@ package es.upv.grycap.tracer.service;
 import java.io.IOException;
 
 import javax.activation.UnsupportedDataTypeException;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpHeaders;
@@ -38,11 +39,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
-	@ExceptionHandler({BadRequest.class, UnsupportedDataTypeException.class})
+	@ExceptionHandler({EntityNotFoundException.class, BadRequest.class, UnsupportedDataTypeException.class})
     public ResponseEntity<?> handleExternalDirectMessageException(Exception e, HttpServletResponse response) throws IOException {
 		log.error(e.getMessage(), e);
 		HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
-		if (e instanceof BadRequest || e instanceof UnsupportedDataTypeException) { 
+		if (e instanceof EntityNotFoundException || e instanceof BadRequest || e instanceof UnsupportedDataTypeException) { 
 			status = HttpStatus.BAD_REQUEST;
 		}
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), status);

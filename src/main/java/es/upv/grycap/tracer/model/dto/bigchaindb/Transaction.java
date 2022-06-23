@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import es.upv.grycap.tracer.model.dto.ITransaction;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public class Transaction<I extends Input, O extends Output, M> {
+public class Transaction<I extends Input, O extends Output, M> implements ITransaction {
 	
 	public enum Operation {CREATE, TRANSFER, VALIDATOR_ELECTION, CHAIN_MIGRATION_ELECTION, VOTE};
 	public static final String VER_2 = "2.0";
