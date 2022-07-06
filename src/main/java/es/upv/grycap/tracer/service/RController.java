@@ -86,7 +86,7 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
-    public ResponseEntity<?> addTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
     	final Collection<ReqCacheEntrySummary> summaries = bcManager.addTrace(authentication, logRequest);
         return new ResponseEntity<>(summaries, new HttpHeaders(), HttpStatus.OK);
@@ -118,8 +118,26 @@ public class RController {
 //        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
 //    }
     
+    /**
+     * Search the blockchain(s) for traces with the valid values given the search parameters.
+     * Every parameter can appear multiple times, in which case all traces with a value found in the
+     *     set comprising all values of a given parameter will be considered valid.        
+     *  Be aware that this call will only search through a blockchain and return successfully
+     *     incorporated traces.
+     *     
+     * @param authentication
+     * @param usersIds the IDs of the users that executed the action for which a trace has been generated
+     * @param callerUsersIds the IDs of the users that requested the creation of a trace
+     * @param datasetsIds the IDs of the datasets
+     * @param userActions the user actions for which traces have been created
+     * @param blockchains the blockchains that will be searched
+     * @return
+     * @throws BadRequest
+     * @throws UnsupportedDataTypeException
+     * @throws MissingServletRequestParameterException
+     */
     @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
+    public ResponseEntity<?> getTraces(Authentication authentication, 
     		@RequestParam(name = "userId", required=false) List<String> usersIds,
     		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
     		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
@@ -141,6 +159,12 @@ public class RController {
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
         return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/{traceId}", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTrace(Authentication authentication,
+    		@PathVariable("traceId") String traceId) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
+        return new ResponseEntity<>(bcManager.getTraceById(traceId), new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces/{userId}/{actionIdName}", method = RequestMethod.GET, produces = {"application/json"})

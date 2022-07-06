@@ -24,6 +24,10 @@ public class TraceUseModels extends TraceModel {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 4598094156983695180L;
+	
+	/**
+	 * The list of models IDs that were used when this action was executed	
+	 */
 	@NotEmpty(message="List of models IDs cannot be empty.")
 	@NotNull(message="List of models IDs cannot be null.")
 	protected List<String> modelsIds;

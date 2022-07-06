@@ -19,5 +19,8 @@ public class TraceCreateDataset extends TraceDataset {
 	@JsonIgnore
 	private static final long serialVersionUID = 554105358293232533L;
 
+	/**
+	 * The resources' information
+	 */
 	protected List<TraceResource> traceResources;
 }

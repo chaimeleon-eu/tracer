@@ -2,6 +2,9 @@ package es.upv.grycap.tracer.model.trace.v1;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import es.upv.grycap.tracer.model.trace.TraceBase;
@@ -16,8 +19,14 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class TraceDataset extends Trace {
 
+
 	@JsonIgnore
 	private static final long serialVersionUID = -5620792989961648202L;
+	/**
+	 * The id of the dataset referenced by this trace
+	 */
+	@NotBlank(message="The dataset ID cannot be blank.")
+	@NotNull(message="The dataset ID cannot be null.")
 	protected String datasetId;
 
 }

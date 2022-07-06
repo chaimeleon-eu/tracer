@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 public class BigchainDbProperties extends BlockchainProperties {
 	
-	public enum TRANSACTION_MODE {sync, async};
+	public enum TRANSACTION_MODE {sync, async, commit};
 
     protected TRANSACTION_MODE transactionModePost;
     protected int defaultAmountTransaction;

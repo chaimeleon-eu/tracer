@@ -22,6 +22,7 @@ import es.upv.grycap.tracer.model.dto.ReqResDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseDatasetsDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseModelsDTO;
 import es.upv.grycap.tracer.exceptions.UserActionNotSupported;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;
@@ -35,18 +36,19 @@ import es.upv.grycap.tracer.model.trace.v1.UserAction;
 @Service
 public class TraceHandler {
 
-	protected HashingService hashingService;
+	//protected HashingService hashingService;
 
 	protected HashType defaultHashType;
 
 	@Autowired
-	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId,
-			@Autowired HashingService hashingService) {
+	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId
+			//@Autowired HashingService hashingService
+			) {
 		this.defaultHashType = HashType.fromAlgorithmId(defaultHashAlgorithmId);
-		this.hashingService = hashingService;
+		//this.hashingService = hashingService;
 	}
 
-	public Trace fromRequest(final ReqDTO request, String callerId) {
+	public TraceBase fromRequest(final ReqDTO request, String callerId) {
 		Trace ds = null; 
 		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
@@ -76,14 +78,14 @@ public class TraceHandler {
 		} else if (request.getUserAction() == UserAction.CREATE_MODEL) {
 			final ReqCreateModelDTO req = (ReqCreateModelDTO) request;
 			TraceCreateModel dsTmp = new TraceCreateModel();
-			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setDatasetsIds(req.getDatasetsIds());
 			dsTmp.setApplicationId(req.getApplicationId());
 			dsTmp.setModelId(req.getModelId());
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_MODELS) {
 			final ReqUseModelsDTO req = (ReqUseModelsDTO) request;
 			TraceUseModels dsTmp = new TraceUseModels();
-			dsTmp.setDatasetId(req.getDatasetId());
+			//dsTmp.setDatasetId(req.getDatasetId());
 			dsTmp.setApplicationId(req.getApplicationId());
 			dsTmp.setModelsIds(req.getModelsIds());
 			ds = dsTmp;
@@ -100,11 +102,11 @@ public class TraceHandler {
 	protected List<TraceResource> getTraceResources(final List<ReqResDTO> resReq) {
 		List<TraceResource> ltr = new ArrayList<>();
 		resReq.forEach(r -> {
-			DataHash hd = hashingService.getHashReqResource(r, defaultHashType);
+			DataHash hd = HashingService.getHashReqResource(r, defaultHashType);
 			ltr.add(TraceResource.builder()
 					.contentHash(Base64.encodeBase64String(hd.getHash()))
 					.contentHashType(hd.getHashType())
-					.nameHash(Base64.encodeBase64String(hashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
+					.nameHash(Base64.encodeBase64String(HashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
 					.nameHashType(defaultHashType)
 					.id(r.getId())
 //					.pathHash(r.getPath() != null ?

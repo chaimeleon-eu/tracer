@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public class Transaction<I extends Input, O extends Output, M> implements ITransaction {
+public class Transaction<I extends Input, O extends Output, M> implements ITransaction<Object> {
 	
 	public enum Operation {CREATE, TRANSFER, VALIDATOR_ELECTION, CHAIN_MIGRATION_ELECTION, VOTE};
 	public static final String VER_2 = "2.0";
@@ -29,4 +29,9 @@ public class Transaction<I extends Input, O extends Output, M> implements ITrans
 	protected Operation operation;
 	protected Asset asset;
 	protected M metadata;
+	@Override
+	public Object getTransaction() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

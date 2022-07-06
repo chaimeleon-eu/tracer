@@ -100,7 +100,7 @@ public class Util {
 				|| status == ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE) {
 			try {
 				TimeUnit.SECONDS.sleep(retryDelay);
-				CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(manager, rce.getRequest(), rce.getCallerUserId()), 
+				CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(manager, rce.getTrace(), rce.getCallerId()), 
 						executorCache)
 						.thenAccept(new TraceCacheOpConsumer(manager, rce.getId(), reqCacheDetailedRepo, executorCache, retryDelay));
 			} catch (InterruptedException e) {

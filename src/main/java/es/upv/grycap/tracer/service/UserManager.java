@@ -24,13 +24,7 @@ import es.upv.grycap.tracer.model.dto.HashType;
 */
 @Service
 public class UserManager {
-	
-	protected HashingService hashingService;
-	
-	@Autowired
-	public UserManager(@Autowired HashingService hashingService) {
-		this.hashingService = hashingService;
-	}
+
 
     
     public Set<String> getAuthenticatedUserRoles(Authentication authentication) {
@@ -77,7 +71,7 @@ public class UserManager {
     	Object principal = authentication.getPrincipal();
     	if (principal instanceof User) {
     		User user = (User) principal;
-    		String id = Hex.encodeHexString(hashingService.getHash(user.getUsername().getBytes(), HashType.SHA3_512).getHash());
+    		String id = Hex.encodeHexString(HashingService.getHash(user.getUsername().getBytes(), HashType.SHA3_512).getHash());
     		return id;
     	} else if (principal instanceof KeycloakPrincipal) {
     		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;

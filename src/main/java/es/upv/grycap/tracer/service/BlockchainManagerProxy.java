@@ -2,6 +2,7 @@ package es.upv.grycap.tracer.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,8 @@ import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.RespTraceDTO;
 import es.upv.grycap.tracer.model.dto.RespTracesDTO;
+import es.upv.grycap.tracer.model.trace.TraceBase;
+import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.persistence.IReqCacheDetailedRepo;
 import es.upv.grycap.tracer.persistence.IReqCacheSummaryRepo;
 import es.upv.grycap.tracer.service.caching.CachingManager;
@@ -53,28 +56,32 @@ import es.upv.grycap.tracer.service.caching.TraceCacheOpSubmitter;
 @Service
 public class BlockchainManagerProxy {
 	
-	protected HashingService hashingService;
+	//protected HashingService hashingService;
 	protected int requestParseLimit;
 	
 	protected UserManager userManager;
 	protected CachingManager cachingManager;
 	
 	protected BlockchainManagersRepo blockchainManagersRepo;
+	protected TraceHandler traceHandler;
 	
 	@Autowired
 	public BlockchainManagerProxy(@Autowired BlockchainManagersRepo blockchainManagersRepo, @Autowired CachingManager cachingManager, 
-			@Autowired HashingService hashingService, 
+			//@Autowired HashingService hashingService, 
 			@Autowired UserManager userManager,
+			@Autowired TraceHandler traceHandler,
 			@Value("${tracer.request-parse-limit}") int requestParseLimit) {
 		this.blockchainManagersRepo = blockchainManagersRepo;
 		this.cachingManager = cachingManager;
-		this.hashingService = hashingService;
+		//this.hashingService = hashingService;
 		this.userManager = userManager;
+		this.traceHandler = traceHandler;
 		this.requestParseLimit = requestParseLimit;
 	}
 
 	public Collection<ReqCacheEntrySummary> addTrace(final Authentication authentication, final ReqDTO req) {
-
+		String callerUserId = userManager.getCallerUserId(authentication);
+		final TraceBase tr = traceHandler.fromRequest(req, callerUserId);
 		final Collection<ReqCacheEntrySummary> rces = new ArrayList<>();
 		Collection<BlockchainManager> managers = null;
 		if (req.getBlockchains() != null) {
@@ -86,7 +93,7 @@ public class BlockchainManagerProxy {
 			managers = blockchainManagersRepo.getActiveManagers().values();
 		}
 		managers.forEach(mgr -> {
-						rces.add(cachingManager.addReqCache(authentication, req, mgr));
+						rces.add(cachingManager.addTraceCache(authentication, tr, mgr));
 					});
 		return rces;
 	}
@@ -103,16 +110,23 @@ public class BlockchainManagerProxy {
 		if (filterParams.getBlockchains() == null) {
 			return new RespTracesDTO(blockchainManagersRepo.getActiveManagers().entrySet().stream()
 					.filter(e -> e.getValue().getBlockchainProperties().isEnabled())
-				.map(e -> new RespTraceDTO(e.getKey(), e.getValue().getTraces(filterParams)))
+				.map(e -> new RespTraceDTO<TraceSummaryBase>(e.getKey(), e.getValue().getTraces(filterParams)))
 				.collect(Collectors.toList()));
 		} else {
 			return new RespTracesDTO(filterParams.getBlockchains().stream()
 					.filter(bc -> blockchainManagersRepo.getActiveManagers().containsKey(bc) && 
 							blockchainManagersRepo.getActiveManagers().get(bc).getBlockchainProperties().isEnabled())
-				.map(bc -> new RespTraceDTO(bc, blockchainManagersRepo.getActiveManagers().get(bc).getTraces(filterParams)))
+				.map(bc -> new RespTraceDTO<TraceSummaryBase>(bc, blockchainManagersRepo.getActiveManagers().get(bc).getTraces(filterParams)))
 				.collect(Collectors.toList()));
-		}
-				
+		}				
+	}
+	
+	public RespTracesDTO getTraceById(String traceId) {
+			return new RespTracesDTO(blockchainManagersRepo.getActiveManagers().entrySet().stream()
+					.filter(e -> e.getValue().getBlockchainProperties().isEnabled())
+				.map(e -> new RespTraceDTO<TraceBase>(e.getKey(), 
+						Arrays.asList(e.getValue().getTraceById(traceId)).stream().filter(t -> t != null).toList()))
+				.collect(Collectors.toList()));				
 	}
 	
 	public BlockchainType[] getAllBlockchainTypes() {

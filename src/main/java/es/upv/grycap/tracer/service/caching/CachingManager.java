@@ -36,6 +36,7 @@ import es.upv.grycap.tracer.model.ReqCacheEntrySummary;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.persistence.IReqCacheDetailedRepo;
 import es.upv.grycap.tracer.persistence.IReqCacheSummaryRepo;
 import es.upv.grycap.tracer.service.BlockchainManager;
@@ -102,26 +103,25 @@ public class CachingManager {
     	executorCache.shutdown();
     }
     
-    public ReqCacheEntrySummary addReqCache(final Authentication authentication, final ReqDTO req, final BlockchainManager mgr) {
+    public ReqCacheEntrySummary addTraceCache(final Authentication authentication, final TraceBase req, final BlockchainManager mgr) {
 		final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 		String reqStr;
 		try {
-			String callerUserId = userManager.getCallerUserId(authentication);
 			reqStr = mapper.writeValueAsString(req);
 			final Instant now = Instant.now();
 			final ReqCacheEntryDetailed rce = ReqCacheEntryDetailed.builder()
 					.blockchainType(mgr.getType())
 					.creationDate(now)
-					.callerUserId(callerUserId)
+					.callerId(req.getCallerId())
 					.id(UUID.randomUUID())
 					.modificationDate(now)
-					.request(reqStr)
+					.trace(reqStr)
 					.status(ReqCacheStatus.WAITING)
-					.traceId(UUID.randomUUID().toString())
+					.traceId(req.getId())
 					.build();
 			//rces.add(rce);
 			reqCacheDetailedRepo.saveAndFlush(rce);
-			CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(mgr, rce.getRequest(), rce.getCallerUserId()), 
+			CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(mgr, rce.getTrace(), rce.getCallerId()), 
 					executorCache)
 					.thenAccept(new TraceCacheOpConsumer(mgr, rce.getId(), reqCacheDetailedRepo, executorCache, retryDelay));
 			
@@ -143,11 +143,11 @@ public class CachingManager {
     		// otherwise return only those with the same caller ID
     		if (detailed) {
     			Example<ReqCacheEntryDetailed> ex = Example.of(
-    					ReqCacheEntryDetailed.builder().callerUserId(userManager.getCallerUserId(authentication)).build());
+    					ReqCacheEntryDetailed.builder().callerId(userManager.getCallerUserId(authentication)).build());
     			return reqCacheDetailedRepo.findAll(ex);
     		} else {
     			Example<ReqCacheEntrySummary> ex = Example.of(
-    					ReqCacheEntrySummary.builder().callerUserId(userManager.getCallerUserId(authentication)).build());
+    					ReqCacheEntrySummary.builder().callerId(userManager.getCallerUserId(authentication)).build());
     			return reqCacheSummaryRepo.findAll(ex);
     		}
     	}

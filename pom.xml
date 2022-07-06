@@ -22,6 +22,7 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyMMdd.HHmm</maven.build.timestamp.format>
+        <solidity.version>0.7.6</solidity.version>
 
 
 		<dep.ver.junit.platform-surefire-provider>1.3.1</dep.ver.junit.platform-surefire-provider>
@@ -37,6 +38,7 @@
 		<dep.ver.plugin.jar>2.6</dep.ver.plugin.jar>
 		<dep.ver.plugin.checkstyle>3.0.0</dep.ver.plugin.checkstyle>
 		<dep.ver.plugin.com.puppycrawl.tools.checkstyle>8.14</dep.ver.plugin.com.puppycrawl.tools.checkstyle>
+		<dep.ver.web3j>4.8.7</dep.ver.web3j>
 		<v.org.apache.maven.plugins.maven-compiler-plugin>2.3.2</v.org.apache.maven.plugins.maven-compiler-plugin>
 
 	</properties>
@@ -144,7 +146,7 @@
 		<dependency>
 			<groupId>org.web3j</groupId>
 			<artifactId>core</artifactId>
-			<version>4.8.9</version>
+			<version>${dep.ver.web3j}</version>
 		</dependency>
 <!-- 		<dependency> -->
 <!-- 			<groupId>org.web3j</groupId> -->
@@ -178,6 +180,46 @@
 			</resource>
 		</resources>
 		<plugins>
+            <plugin>
+                <groupId>org.web3j</groupId>
+                <artifactId>web3j-maven-plugin</artifactId>
+                <version>${dep.ver.web3j}</version> 
+
+                <configuration>
+                    <packageName>es.upv.grycap.tracer.model.besu</packageName>
+                    <sourceDestination>src/main/java</sourceDestination>
+                    <nativeJavaType>true</nativeJavaType>
+                    <outputFormat>java,bin</outputFormat>
+                    <soliditySourceFiles>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>**/*.sol</include>
+                        </includes>
+                    </soliditySourceFiles>
+                    <abiSourceFiles>
+                        <directory>src/main/resources</directory>
+                        <includes>
+                            <include>**/*.json</include>
+                        </includes>
+                    </abiSourceFiles>
+                    <outputDirectory>
+                        <java>src/main/java</java>
+                        <bin>src/bin/generated</bin>
+                        <abi>src/abi/generated</abi>
+                    </outputDirectory>
+                    <contract>
+                        <includes>
+                            <include>greeter</include>
+                        </includes>
+                        <excludes>
+                            <exclude>mortal</exclude>
+                        </excludes>
+                    </contract>
+                    <pathPrefixes>
+                        <pathPrefix>dep=../dependencies</pathPrefix>
+                    </pathPrefixes>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>

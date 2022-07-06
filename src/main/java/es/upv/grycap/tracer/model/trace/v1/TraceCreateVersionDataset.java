@@ -16,6 +16,9 @@ public class TraceCreateVersionDataset extends TraceCreateDataset {
 	@JsonIgnore
 	private static final long serialVersionUID = -7540394263110535067L;
 	
+	/**
+	 * The ID of the previous version of the dataset
+	 */
 	protected String previousId;
 
 }

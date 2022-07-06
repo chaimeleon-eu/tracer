@@ -25,6 +25,6 @@ public class ReqCacheEntryDetailed extends ReqCacheEntrySummary implements IReqC
 	/**
 	 * JSON representation of the request object
 	 */
-	protected String request;
+	protected String trace;
 
 }

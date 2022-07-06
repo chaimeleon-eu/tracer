@@ -73,12 +73,16 @@ public class NodeKeysManager {
 		} else {
 			log.info("Public and/or private keys not found, generate them");
 			  //Generate ED25519-SHA-256 KeyPair and Signer
-			  net.i2p.crypto.eddsa.KeyPairGenerator edDsaKpg = new net.i2p.crypto.eddsa.KeyPairGenerator();
+			  net.i2p.crypto.eddsa.KeyPairGenerator edDsaKpg = 
+					  new net.i2p.crypto.eddsa.KeyPairGenerator();
 			  EdDSANamedCurveSpec ed25519 = EdDSANamedCurveTable.getByName("Ed25519");
 			  //EdDSAGenParameterSpec spec = new EdDSAGenParameterSpec();
 			  //EdDSANamedCurveSpec spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519);
 			  //spec.
 			  edDsaKpg.initialize(256, SecureRandom.getInstanceStrong());
+			  /// This step can be very slow due to the secure random number generator
+			  /// If the entropy pool is depleted, 
+			  /// it takes quite a while to replenish it and to allow the generator to proceed, blocking the whole program till that moment
 			  nodeKeyPair = edDsaKpg.generateKeyPair();
 				log.info("Save generate pub key as " + keyPubPath);
 			  FileUtils.writeByteArrayToFile(new File(keyPubPath), nodeKeyPair.getPublic().getEncoded());

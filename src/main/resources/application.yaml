@@ -83,12 +83,15 @@ blockchain:
     besu:
         private:
             enabled: false
-            url: https://localhost:1443/ 
+            url: https://localhost:1443/
+            wallet:
+                password: eth-test
+                path: /tmp/tracer/besu/wallet
     bigchaindb:
         private:
             enabled: true
             url: http://asaserver.i3m.upv.es:9984/api/v1
-            transactionModePost: sync
+            transactionModePost: commit
             defaultAmountTransaction: 1
-            keypairPrivate: /tmp/ed25519
-            keypairPublic: /tmp/ed25519.pub
+            keypairPrivate: /tmp/tracer/bigchaindb/keys/ed25519
+            keypairPublic: /tmp/tracer/bigchaindb/keys/ed25519.pub

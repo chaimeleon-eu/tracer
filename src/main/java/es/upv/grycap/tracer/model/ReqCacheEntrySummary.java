@@ -60,7 +60,7 @@ public class ReqCacheEntrySummary implements IReqCacheEntry {
 	protected BlockchainType blockchainType;	
 
 	@NotNull
-	protected String callerUserId;
+	protected String callerId;
 	
 	@NotNull
 	protected String traceId;

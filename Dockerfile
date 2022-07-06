@@ -7,7 +7,7 @@ ADD entrypoint.sh /opt
 RUN \    
     # Install those dependencies that will be removed afterwards
     apk --no-cache add --virtual build-dependencies \
-        bash openjdk17 maven \
+        bash openjdk17 maven haveged \
     && chmod +x /opt/entrypoint.sh \
     && cd /opt/tracer-src \
     && mvn -U clean package \

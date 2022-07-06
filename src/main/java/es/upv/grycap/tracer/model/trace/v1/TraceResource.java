@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import es.upv.grycap.tracer.model.dto.HashType;
@@ -18,34 +19,36 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-@Entity
 @NoArgsConstructor
 public class TraceResource implements Serializable {
 
 	private static final long serialVersionUID = -9144643513573832608L;
 	/**
-	 * The ID of the file.
-	 * Must protect file information
+	 * The ID of the resource, must be anonymized.
 	 */
-	@Id
 	protected String id;
 	/**
 	 * Base64 encoded String of the hash
 	 */
+	@NotNull
+	@NotEmpty
 	protected String nameHash;
+	@NotEmpty
 	@NotNull
 	protected HashType nameHashType;
 	/**
-	 * Base64 encoded String of the hash
+	 * Base64 encoded String of the hash of the path
 	 */
 	protected String pathHash;
-	@NotNull
 	protected HashType pathHashType;
 	/**
-	 * Base64 encoded String of the hash
+	 * Base64 encoded String of the hash of the content
 	 */
+	@NotNull
+	@NotEmpty
 	protected String contentHash;
 	@NotNull
+	@NotEmpty
 	protected HashType contentHashType;
 
 }

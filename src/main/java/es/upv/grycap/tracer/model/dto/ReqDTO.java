@@ -16,7 +16,9 @@ import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceModel;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
@@ -34,6 +36,8 @@ import lombok.Setter;
         @JsonSubTypes.Type(value = ReqCreateModelDTO.class, name = "CREATE_MODEL"),
         @JsonSubTypes.Type(value = ReqUseModelsDTO.class, name = "USE_MODELS")
 })
+@SuperBuilder
+@NoArgsConstructor
 public class ReqDTO implements Serializable {
 
 	@JsonIgnore
