@@ -61,7 +61,7 @@ tracer:
     cache:
         threads: 20
         # in seconds
-        retry-delay: 10
+        retry-delay: 60
     disableSSLVerification: false
     admin:
         name: admin
@@ -83,6 +83,7 @@ blockchain:
     besu:
         private:
             enabled: false
+            name: "Besu Private"
             url: https://localhost:1443/
             wallet:
                 password: eth-test
@@ -90,6 +91,7 @@ blockchain:
     bigchaindb:
         private:
             enabled: true
+            name: "BigchainDB Private"
             url: http://asaserver.i3m.upv.es:9984/api/v1
             transactionModePost: commit
             defaultAmountTransaction: 1

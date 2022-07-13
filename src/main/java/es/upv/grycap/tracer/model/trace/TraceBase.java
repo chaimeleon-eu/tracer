@@ -10,11 +10,13 @@ import javax.persistence.MappedSuperclass;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 
 @JsonTypeInfo(
@@ -26,6 +28,8 @@ import lombok.experimental.SuperBuilder;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = es.upv.grycap.tracer.model.trace.v1.Trace.class, name = "V1")
 })
+@Slf4j
+//@JsonDeserialize(using = TraceBaseDeserializer.class)
 public abstract class TraceBase implements ITraceResponse {
 	
 	/**
@@ -53,5 +57,17 @@ public abstract class TraceBase implements ITraceResponse {
 	}
 	
 	public abstract TraceSummaryBase toSummary();
+	
+//	public static TraceBase fromString(String str) {
+//		ObjectMapper om = new ObjectMapper();
+//		TraceBase tb = null;
+//		try {
+//			tb = om.readValue(str, Trace.class);
+//		} catch (JsonProcessingException e) {
+//			log.error(e.getMessage(), e);
+//			throw UncheckedExceptionFactory.get(e);
+//		}
+//		return tb;
+//	}
 
 }
