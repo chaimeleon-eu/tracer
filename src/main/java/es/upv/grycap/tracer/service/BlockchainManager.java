@@ -19,7 +19,7 @@ import es.upv.grycap.tracer.model.trace.v1.Trace;
 @Service
 public interface BlockchainManager {
 	
-	public ITransaction<?> generateTransaction(final ReqDTO entry, String callerUserId);
+	public ITransaction<?> generateTransaction(final TraceBase entry, String callerUserId);
 	public TraceCacheOpResult submitTransaction(final ITransaction<?> transaction);	
 	
 	//public ITransaction getTransactionById(final String transactionId);

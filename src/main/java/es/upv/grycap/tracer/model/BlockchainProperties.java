@@ -10,6 +10,7 @@ public abstract class BlockchainProperties {
 	
 	protected boolean enabled;
 	protected String url;
+	protected String name;
 	//protected BlockchainType type;
 
 }

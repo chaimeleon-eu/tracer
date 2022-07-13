@@ -3,6 +3,7 @@ package es.upv.grycap.tracer.model;
 import java.time.Instant;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -21,10 +22,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReqCacheEntryDetailed extends ReqCacheEntrySummary implements IReqCacheEntry {
+public class TraceCacheDetailed extends TraceCacheSummary implements IReqCacheEntry {
 	/**
 	 * JSON representation of the request object
 	 */
+	@Column(columnDefinition="TEXT")
 	protected String trace;
 
 }

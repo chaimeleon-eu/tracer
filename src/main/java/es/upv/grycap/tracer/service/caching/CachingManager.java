@@ -31,14 +31,14 @@ import es.upv.grycap.tracer.exceptions.CaseNotHandledException;
 import es.upv.grycap.tracer.exceptions.UncheckedJsonProcessingException;
 import es.upv.grycap.tracer.exceptions.UncheckedUnsupportedDataTypeException;
 import es.upv.grycap.tracer.model.IReqCacheEntry;
-import es.upv.grycap.tracer.model.ReqCacheEntryDetailed;
-import es.upv.grycap.tracer.model.ReqCacheEntrySummary;
+import es.upv.grycap.tracer.model.TraceCacheDetailed;
+import es.upv.grycap.tracer.model.TraceCacheSummary;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.trace.TraceBase;
-import es.upv.grycap.tracer.persistence.IReqCacheDetailedRepo;
-import es.upv.grycap.tracer.persistence.IReqCacheSummaryRepo;
+import es.upv.grycap.tracer.persistence.ITraceCacheDetailedRepo;
+import es.upv.grycap.tracer.persistence.ITraceCacheSummaryRepo;
 import es.upv.grycap.tracer.service.BlockchainManager;
 import es.upv.grycap.tracer.service.BlockchainManagersRepo;
 import es.upv.grycap.tracer.service.UserManager;
@@ -63,15 +63,15 @@ public class CachingManager {
 	 */
 	protected ExecutorService executorCache;
 	
-	protected IReqCacheSummaryRepo reqCacheSummaryRepo;
-	protected IReqCacheDetailedRepo reqCacheDetailedRepo;
+	protected ITraceCacheSummaryRepo reqCacheSummaryRepo;
+	protected ITraceCacheDetailedRepo reqCacheDetailedRepo;
 	
 	protected int retryDelay;
 	
 	@Autowired
 	public CachingManager(@Autowired BlockchainManagersRepo blockchainManagersRepo, 
-			@Autowired UserManager userManager, @Autowired IReqCacheSummaryRepo reqCacheSummaryRepo,
-			@Autowired IReqCacheDetailedRepo reqCacheDetailedRepo,
+			@Autowired UserManager userManager, @Autowired ITraceCacheSummaryRepo reqCacheSummaryRepo,
+			@Autowired ITraceCacheDetailedRepo reqCacheDetailedRepo,
 			@Value("${tracer.cache.threads}") int cacheThreads,
 			@Value("${tracer.cache.retry-delay}") int retryDelay) {
 		this.blockchainManagersRepo = blockchainManagersRepo;
@@ -86,7 +86,7 @@ public class CachingManager {
 	@PostConstruct
 	public void init() {
 
-		List<ReqCacheEntryDetailed> reqs = reqCacheDetailedRepo.findAllByStatuses(
+		List<TraceCacheDetailed> reqs = reqCacheDetailedRepo.findAllByStatuses(
 				List.of(ReqCacheStatus.WAITING, ReqCacheStatus.BLOCKCHAIN_WAITING,
 						ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE));//example);
 		
@@ -103,13 +103,13 @@ public class CachingManager {
     	executorCache.shutdown();
     }
     
-    public ReqCacheEntrySummary addTraceCache(final Authentication authentication, final TraceBase req, final BlockchainManager mgr) {
+    public TraceCacheSummary addTraceCache(final Authentication authentication, final TraceBase req, final BlockchainManager mgr) {
 		final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 		String reqStr;
 		try {
 			reqStr = mapper.writeValueAsString(req);
 			final Instant now = Instant.now();
-			final ReqCacheEntryDetailed rce = ReqCacheEntryDetailed.builder()
+			final TraceCacheDetailed rce = TraceCacheDetailed.builder()
 					.blockchainType(mgr.getType())
 					.creationDate(now)
 					.callerId(req.getCallerId())
@@ -121,6 +121,7 @@ public class CachingManager {
 					.build();
 			//rces.add(rce);
 			reqCacheDetailedRepo.saveAndFlush(rce);
+			
 			CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(mgr, rce.getTrace(), rce.getCallerId()), 
 					executorCache)
 					.thenAccept(new TraceCacheOpConsumer(mgr, rce.getId(), reqCacheDetailedRepo, executorCache, retryDelay));
@@ -142,12 +143,12 @@ public class CachingManager {
     	} else {
     		// otherwise return only those with the same caller ID
     		if (detailed) {
-    			Example<ReqCacheEntryDetailed> ex = Example.of(
-    					ReqCacheEntryDetailed.builder().callerId(userManager.getCallerUserId(authentication)).build());
+    			Example<TraceCacheDetailed> ex = Example.of(
+    					TraceCacheDetailed.builder().callerId(userManager.getCallerUserId(authentication)).build());
     			return reqCacheDetailedRepo.findAll(ex);
     		} else {
-    			Example<ReqCacheEntrySummary> ex = Example.of(
-    					ReqCacheEntrySummary.builder().callerId(userManager.getCallerUserId(authentication)).build());
+    			Example<TraceCacheSummary> ex = Example.of(
+    					TraceCacheSummary.builder().callerId(userManager.getCallerUserId(authentication)).build());
     			return reqCacheSummaryRepo.findAll(ex);
     		}
     	}
@@ -156,7 +157,7 @@ public class CachingManager {
 	@Transactional
 	public IReqCacheEntry deleteReqCache(final Authentication authentication, UUID id) {
 		// TODO: Careful with removing entity while a thread updates its status 
-		Optional<ReqCacheEntryDetailed> rce = reqCacheDetailedRepo.findById(id);
+		Optional<TraceCacheDetailed> rce = reqCacheDetailedRepo.findById(id);
 		rce.ifPresentOrElse(e -> {reqCacheDetailedRepo.delete(e); reqCacheDetailedRepo.flush();}, 
 				() -> {throw new EntityNotFoundException("Request cache with id "+ id + " not found.");});
 		

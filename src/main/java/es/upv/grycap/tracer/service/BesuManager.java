@@ -67,14 +67,15 @@ public class BesuManager implements BlockchainManager {
 				}
 				
 			});
-			if (files.length > 1) {
+			if (files == null || files.length == 0) {
+				throw new BesuException("No files found in Besu's wallet directory " + props.getWallet().getPath());
+			} else if (files.length > 1) {
 				throw new BesuException("Multiple files found in Besu's wallet directory " + props.getWallet().getPath() + " when there only one must exist at on this path");
-			} else if (files.length == 0) {
-				throw new BesuException("No files foound in Besu's wallet directory " + props.getWallet().getPath());
+			} else {
+				log.info("Try to load existing wallet at " + files[0].getAbsolutePath());
+				credentials = WalletUtils.loadCredentials(props.getWallet().getPassword(), files[0].getAbsolutePath());
 			}
-			log.info("Try to load existing wallet at " + files[0].getAbsolutePath());
-			credentials = WalletUtils.loadCredentials(props.getWallet().getPassword(), files[0].getAbsolutePath());
-		} catch (IOException | CipherException e) {
+		} catch (IOException | CipherException | BesuException e) {
 			log.error(Util.getFullStackTrace(e));
 			log.info("Try to create a new wallet");
 			try {
@@ -95,7 +96,7 @@ public class BesuManager implements BlockchainManager {
 		}
 	}
 	
-	public ITransaction<?> generateTransaction(final ReqDTO entry, String callerUserId) {
+	public ITransaction<?> generateTransaction(final TraceBase entry, String callerUserId) {
 		Transaction transaction = Transaction.createContractTransaction(
 				 credentials.getAddress(),
 	              BigInteger.ZERO,

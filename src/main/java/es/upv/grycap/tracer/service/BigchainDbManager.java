@@ -148,8 +148,8 @@ public class BigchainDbManager implements BlockchainManager {
 //		wb = WebClient.create(blockchaindbBaseUrl);
 //	}
 	
-	public ITransaction<?> generateTransaction(final ReqDTO entry, String callerUserId) {
-		final TraceBase trace = traceHandler.fromRequest(entry, callerUserId);
+	public ITransaction<?> generateTransaction(final TraceBase trace, String callerUserId) {
+		//final TraceBase trace = traceHandler.fromRequest(entry, callerUserId);
 		try {
 			return buildTransaction(trace);
 		} catch (JsonProcessingException | InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
@@ -312,9 +312,9 @@ public class BigchainDbManager implements BlockchainManager {
 			
 	        log.info(response.toString());
 	        ObjectMapper mapper = new ObjectMapper();
-	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
+	        List<AssetCreate<TraceBase>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<TraceBase>>>(){});
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
-			List<TraceBase>  traces = assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData())
+			List<TraceBase>  traces = assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<TraceBase>) asset).getData())
 					.collect(Collectors.toList());
 			 return traces.stream().map(e -> e.toSummary()).toList();//traceFiltering.filterTraces(traces, fp);
 		} catch (JsonProcessingException ex) {
@@ -343,9 +343,9 @@ public class BigchainDbManager implements BlockchainManager {
 			
 	        log.info(response.toString());
 	        ObjectMapper mapper = new ObjectMapper();
-	        List<AssetCreate<Trace>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<Trace>>>(){});
+	        List<AssetCreate<TraceBase>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<TraceBase>>>(){});
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
-			List<TraceBase>  traces = assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<Trace>) asset).getData())
+			List<TraceBase>  traces = assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<TraceBase>) asset).getData())
 					.collect(Collectors.toList());
 			 List<TraceBase> filt = traces.stream().filter(e -> e.getId().contentEquals(traceId)).toList();
 			 if (filt.size() > 1) {

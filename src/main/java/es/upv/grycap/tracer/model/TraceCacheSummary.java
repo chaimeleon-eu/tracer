@@ -20,7 +20,7 @@ import javax.validation.constraints.NotNull;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.persistence.BlockchainTypeConverter;
-import es.upv.grycap.tracer.persistence.ReqCacheStatusConverter;
+import es.upv.grycap.tracer.persistence.TraceCacheStatusConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table
 @Inheritance(strategy = InheritanceType.JOINED)
-public class ReqCacheEntrySummary implements IReqCacheEntry {
+public class TraceCacheSummary implements IReqCacheEntry {
 	
 	@Id
 	protected UUID id;
@@ -48,7 +48,7 @@ public class ReqCacheEntrySummary implements IReqCacheEntry {
 	@NotNull
 	protected Instant modificationDate;
 	
-	@Convert(converter = ReqCacheStatusConverter.class)
+	@Convert(converter = TraceCacheStatusConverter.class)
 	@NotNull
 	protected ReqCacheStatus status;
 	

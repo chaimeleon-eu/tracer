@@ -7,7 +7,14 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@SuperBuilder
 @NoArgsConstructor
-public class RespDTO {
+public class BlockchainProvider {
+	
+	protected BlockchainType type;
+	
+	protected String name;
+	
+	protected boolean enabled;
 
 }

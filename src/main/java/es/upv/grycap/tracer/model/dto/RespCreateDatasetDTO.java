@@ -12,7 +12,6 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor
 public class RespCreateDatasetDTO extends RespDTO {
 

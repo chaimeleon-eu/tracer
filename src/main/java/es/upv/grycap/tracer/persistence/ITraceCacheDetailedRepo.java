@@ -8,13 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import es.upv.grycap.tracer.model.ReqCacheEntryDetailed;
+import es.upv.grycap.tracer.model.TraceCacheDetailed;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 
 @Repository
-public interface IReqCacheDetailedRepo extends JpaRepository<ReqCacheEntryDetailed, UUID> {
+public interface ITraceCacheDetailedRepo extends JpaRepository<TraceCacheDetailed, UUID> {
 	
 	@Query("SELECT r FROM #{#entityName} r WHERE r.status IN :statuses")
-	public List<ReqCacheEntryDetailed> findAllByStatuses(@Param("statuses") List<ReqCacheStatus> statuses);
+	public List<TraceCacheDetailed> findAllByStatuses(@Param("statuses") List<ReqCacheStatus> statuses);
 
 }

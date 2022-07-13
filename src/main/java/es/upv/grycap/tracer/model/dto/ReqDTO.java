@@ -30,19 +30,14 @@ import lombok.experimental.SuperBuilder;
 	)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_NEW_DATASET"),
-        @JsonSubTypes.Type(value = ReqCreateVersionDatasetDTO.class, name = "CREATE_VERSION_DATASET"),
-        @JsonSubTypes.Type(value = ReqDatasetDTO.class, name = "VISUALIZE_VERSION_DATASET"),
+        @JsonSubTypes.Type(value = ReqUpdateDataset.class, name = "UPDATE_DATASET"),
         @JsonSubTypes.Type(value = ReqUseDatasetsDTO.class, name = "USE_DATASETS_POD"),
         @JsonSubTypes.Type(value = ReqCreateModelDTO.class, name = "CREATE_MODEL"),
         @JsonSubTypes.Type(value = ReqUseModelsDTO.class, name = "USE_MODELS")
 })
 @SuperBuilder
 @NoArgsConstructor
-public class ReqDTO implements Serializable {
-
-	@JsonIgnore
-	private static final long serialVersionUID = 7613010919109618521L;
-	
+public class ReqDTO {
 	/**
 	 * The action of a user (person, application, service etc.) represented by this trace
 	 */

@@ -1,4 +1,5 @@
 pragma solidity >=0.7.0 <0.8.0;
+pragma abicoder v2;
 
 contract ChaimeleonTracingV1 {
     TraceEntry[] private traces;
@@ -36,11 +37,11 @@ contract ChaimeleonTracingV1 {
         return traces.length;
     }
     
-    function getTracesByDatasetId(string memory datasetId) public view returns (string[]) {
-        uint128[] poss = tracesPosByDatasetId[datasetId];
-        string[] memory result = new string[]();
+    function getTracesByDatasetId(string memory datasetId) public view returns (string[] memory) {
+        uint128[] memory poss = tracesPosByDatasetId[datasetId];
+        string[] memory result = new string[](poss.length);
         for (uint i=0; i<poss.length; i++) {
-            result.push(traces[poss[i]].trace);
+            result[i] = traces[poss[i]].trace;
         }
         return result;
     }

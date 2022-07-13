@@ -7,7 +7,7 @@ import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 
 @Converter
-public class ReqCacheBlockchainTypeConverter implements AttributeConverter<BlockchainType, String> {
+public class TraceCacheBlockchainTypeConverter implements AttributeConverter<BlockchainType, String> {
 
 	@Override
 	public String convertToDatabaseColumn(BlockchainType attribute) {

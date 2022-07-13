@@ -33,7 +33,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IReqCacheEntry;
-import es.upv.grycap.tracer.model.ReqCacheEntrySummary;
+import es.upv.grycap.tracer.model.TraceCacheSummary;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
@@ -88,7 +88,7 @@ public class RController {
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
     public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
-    	final Collection<ReqCacheEntrySummary> summaries = bcManager.addTrace(authentication, logRequest);
+    	final Collection<TraceCacheSummary> summaries = bcManager.addTrace(authentication, logRequest);
         return new ResponseEntity<>(summaries, new HttpHeaders(), HttpStatus.OK);
     }
     
@@ -159,6 +159,11 @@ public class RController {
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
         return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getProviders(Authentication authentication) {
+    	return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/{traceId}", method = RequestMethod.GET, produces = {"application/json"})

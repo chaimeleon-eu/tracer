@@ -13,10 +13,10 @@ import javax.transaction.Transactional;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import es.upv.grycap.tracer.Util;
-import es.upv.grycap.tracer.model.ReqCacheEntryDetailed;
+import es.upv.grycap.tracer.model.TraceCacheDetailed;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
-import es.upv.grycap.tracer.persistence.IReqCacheDetailedRepo;
+import es.upv.grycap.tracer.persistence.ITraceCacheDetailedRepo;
 import es.upv.grycap.tracer.service.BlockchainManager;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,13 +26,13 @@ public class TraceCacheOpConsumer implements Consumer<TraceCacheOpResult> {
 	protected final BlockchainManager manager;
 	protected final UUID reqCacheEntryId;
 	
-	protected final IReqCacheDetailedRepo reqCacheDetailedRepo;
+	protected final ITraceCacheDetailedRepo reqCacheDetailedRepo;
 	
 	protected final Executor executorCacheSubmitter;
 	
 	protected final int retryDelay;
 	
-	public TraceCacheOpConsumer(final BlockchainManager manager, UUID reqCacheEntryId, final IReqCacheDetailedRepo reqCacheDetailedRepo, 
+	public TraceCacheOpConsumer(final BlockchainManager manager, UUID reqCacheEntryId, final ITraceCacheDetailedRepo reqCacheDetailedRepo, 
 			final Executor executorCacheSubmitter, int retryDelay) {
 		this.reqCacheEntryId = reqCacheEntryId;
 		this.reqCacheDetailedRepo = reqCacheDetailedRepo;
@@ -49,12 +49,12 @@ public class TraceCacheOpConsumer implements Consumer<TraceCacheOpResult> {
 	
 	@Transactional
 	protected void update(TraceCacheOpResult result) {
-		Optional<ReqCacheEntryDetailed> rceO = reqCacheDetailedRepo.findById(reqCacheEntryId);
+		Optional<TraceCacheDetailed> rceO = reqCacheDetailedRepo.findById(reqCacheEntryId);
 		// If the entry has been added successfully to the blockchain,
 		// remove from cache
 		
 		if (rceO.isPresent()) {
-			ReqCacheEntryDetailed rce = rceO.get();
+			TraceCacheDetailed rce = rceO.get();
 			if (result.getStatus() != ReqCacheStatus.BLOCKCHAIN_SUCCESS) {
 				rce.setModificationDate(Instant.now());
 				rce.setStatus(result.getStatus());

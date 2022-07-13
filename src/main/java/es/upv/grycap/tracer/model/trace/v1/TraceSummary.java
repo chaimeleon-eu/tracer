@@ -31,6 +31,9 @@ public class TraceSummary extends TraceSummaryBase {
 	 */
 	protected String id;
 	
+	/**
+	 * The moment where this trace was created at
+	 */
 	protected Instant creationDate;
 	
 	public TraceSummary() {

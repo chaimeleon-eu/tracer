@@ -17,9 +17,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 public class ReqDatasetDTO extends ReqDTO {
-
-	@JsonIgnore
-	private static final long serialVersionUID = -2378736133026750401L;
 	
 	/**
 	 * The ID of the dataset that was just created 

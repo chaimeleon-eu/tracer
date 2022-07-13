@@ -19,9 +19,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class TraceDataset extends Trace {
 
-
-	@JsonIgnore
-	private static final long serialVersionUID = -5620792989961648202L;
 	/**
 	 * The id of the dataset referenced by this trace
 	 */

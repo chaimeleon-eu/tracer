@@ -23,10 +23,10 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import es.upv.grycap.tracer.exceptions.CaseNotHandledException;
-import es.upv.grycap.tracer.model.ReqCacheEntryDetailed;
+import es.upv.grycap.tracer.model.TraceCacheDetailed;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
-import es.upv.grycap.tracer.persistence.IReqCacheDetailedRepo;
+import es.upv.grycap.tracer.persistence.ITraceCacheDetailedRepo;
 import es.upv.grycap.tracer.service.BlockchainManager;
 import es.upv.grycap.tracer.service.caching.TraceCacheOpConsumer;
 import es.upv.grycap.tracer.service.caching.TraceCacheOpSubmitter;
@@ -83,8 +83,8 @@ public class Util {
 	}
 	
 	public static void loopRequestFutures(ReqCacheStatus status, int retryDelay,
-			final BlockchainManager manager, final ReqCacheEntryDetailed rce, 
-			final IReqCacheDetailedRepo reqCacheDetailedRepo,
+			final BlockchainManager manager, final TraceCacheDetailed rce, 
+			final ITraceCacheDetailedRepo reqCacheDetailedRepo,
 			final Executor executorCache) {
 		if (status == ReqCacheStatus.BLOCKCHAIN_WAITING) {
 			try {

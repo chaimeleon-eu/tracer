@@ -6,7 +6,7 @@ import javax.persistence.Converter;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 
 @Converter
-public class ReqCacheStatusConverter implements AttributeConverter<ReqCacheStatus, String> {
+public class TraceCacheStatusConverter implements AttributeConverter<ReqCacheStatus, String> {
 
 	@Override
 	public String convertToDatabaseColumn(ReqCacheStatus attribute) {
