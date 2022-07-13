@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import es.upv.grycap.tracer.model.DataHash;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqCreateDatasetDTO;
-import es.upv.grycap.tracer.model.dto.ReqCreateVersionDatasetDTO;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqDatasetDTO;
 import es.upv.grycap.tracer.model.dto.ReqCreateModelDTO;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
+import es.upv.grycap.tracer.model.dto.ReqUpdateDataset;
 import es.upv.grycap.tracer.model.dto.ReqUseDatasetsDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseModelsDTO;
 import es.upv.grycap.tracer.exceptions.UserActionNotSupported;
@@ -26,9 +26,9 @@ import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;
-import es.upv.grycap.tracer.model.trace.v1.TraceCreateVersionDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceResource;
+import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseDatasets;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseModels;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
@@ -57,18 +57,11 @@ public class TraceHandler {
 			dsTmp.setDatasetId(req.getDatasetId());
 			dsTmp.setTraceResources(ltr);
 			ds = dsTmp;
-		} else if (request.getUserAction() == UserAction.CREATE_VERSION_DATASET) {
-			final ReqCreateVersionDatasetDTO req = (ReqCreateVersionDatasetDTO) request;
-			List<TraceResource> ltr = getTraceResources(req.getResources());
-			TraceCreateVersionDataset dsTmp = new TraceCreateVersionDataset();
+		} else if (request.getUserAction() == UserAction.UPDATE_DATASET) {
+			final ReqUpdateDataset req = (ReqUpdateDataset) request;
+			TraceUpdateDataset dsTmp = new TraceUpdateDataset();
 			dsTmp.setDatasetId(req.getDatasetId());
-			dsTmp.setTraceResources(ltr);
-			dsTmp.setPreviousId(req.getPreviousId());
-			ds = dsTmp;
-		} else if (request.getUserAction() == UserAction.VISUALIZE_VERSION_DATASET) {
-			final ReqDatasetDTO req = (ReqDatasetDTO) request;
-			TraceDataset dsTmp = new TraceDataset();
-			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setUpdateDetails(req.getUpdateDetails());
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_DATASETS_POD) {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
