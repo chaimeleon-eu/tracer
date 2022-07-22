@@ -178,7 +178,7 @@ spec:
       priorityClassName: core-services
       replicas: 1
       containers:
-      - image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-all-in-one:2.2.2-220204
+      - image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-all-in-one:2.2.2-220204
         imagePullPolicy: Always
         name: bigchaindb
         env:
@@ -200,13 +200,13 @@ spec:
             cpu: "2"
         volumeMounts:
         - name: bigchaindb-persistent-storage
-          mountPath: /data/db
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/db
           subPath: data/db
         - name: bigchaindb-persistent-storage
-          mountPath: /data/configdb
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/configdb
           subPath: data/configdb
         - name: bigchaindb-persistent-storage
-          mountPath: /tendermint
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/tendermint
           subPath: tendermint
       volumes:
       - name: bigchaindb-persistent-storage
@@ -270,7 +270,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: nginx
-        image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
+        image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
         imagePullPolicy: Always
         terminationMessagePolicy: FallbackToLogsOnError
         env:

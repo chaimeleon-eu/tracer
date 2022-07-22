@@ -29,8 +29,9 @@ metadata:
   name: webservice-config
   namespace: tracer-service
 data:
+  BASE_DIR: "/data/tracer-ws"
   SPRING_PROFILES_ACTIVE: prod
-  KEYCLOAK_AUTH_SERVER_URL: "https://keycloak.keycloak.svc.cluster.local/auth"
+  KEYCLOAK_AUTH_SERVER_URL: "https://chaimeleon-eu.i3m.upv.es/auth"
   BLOCKCHAIN_BIGCHAINDB_PRIVATE_URL: "https://bigchaindb-proxy-service.tracer-service.svc.cluster.local/api/v1"
   TRACER_ADMIN_NAME: "admin"
   TRACER_ADMIN_PASSWD: "change_me"
@@ -39,9 +40,6 @@ data:
   SERVER_SSL_KEY_ALIAS: tracer-service
   SERVER_PORT: "8443"
   SERVER_SSL_KEY_STORE: "/opt/tracer/ssl/truststore/cert.p12"
-  BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPRIVATE: "/data/webservice/blockchain/bigchaindb/keypair/ed25519"
-  BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPUBLIC: "/data/webservice/blockchain/bigchaindb/keypair/ed25519.public"
-  BLOCKCHAIN_TMPHASHDOWNFOLDER: "/data/webservice/blockchain/bigchaindb/tmp"
   KEY_DNAME: "CN=localhost,OU=I3M,O=UPV,L=VALENCIA,S=VALENCIA,C=ES"
   CERTS_FOLDER: /opt/tracer/ssl/authorized
   
@@ -81,10 +79,15 @@ spec:
       replicas: 1
       priorityClassName: core-services
       containers:
-      - image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/tracer-web:1.2.0
+      - image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/tracer-web:1.3.4
         imagePullPolicy: Always
         name: webservice
         env:
+            - name: BASE_DIR
+              valueFrom:
+                configMapKeyRef:
+                    name: webservice-config
+                    key: BASE_DIR
             - name: SPRING_PROFILES_ACTIVE
               valueFrom:
                 configMapKeyRef:
@@ -130,21 +133,6 @@ spec:
                 configMapKeyRef:
                     name: webservice-config
                     key: SERVER_PORT
-            - name: BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPRIVATE
-              valueFrom:
-                configMapKeyRef:
-                    name: webservice-config
-                    key: BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPRIVATE
-            - name: BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPUBLIC
-              valueFrom:
-                configMapKeyRef:
-                    name: webservice-config
-                    key: BLOCKCHAIN_BIGCHAINDB_PRIVATE_KEYPAIRPUBLIC
-            - name: BLOCKCHAIN_TMPHASHDOWNFOLDER
-              valueFrom:
-                configMapKeyRef:
-                    name: webservice-config
-                    key: BLOCKCHAIN_TMPHASHDOWNFOLDER
             - name: KEY_DNAME
               valueFrom:
                 configMapKeyRef:
@@ -167,8 +155,8 @@ spec:
           name: api
         volumeMounts:
         - name: webservice-ps
-          mountPath: /data/webservice
-          subPath: data/webservice
+          mountPath: /data/tracer-ws
+          subPath: data/tracer-ws
         - name: webservice-authorized-crts
           mountPath: /opt/tracer/ssl/authorized
           readOnly: true
