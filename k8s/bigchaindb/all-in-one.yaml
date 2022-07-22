@@ -270,7 +270,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: nginx
-        image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
+        image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-proxy:2.2.2-220722
         imagePullPolicy: Always
         terminationMessagePolicy: FallbackToLogsOnError
         env:
