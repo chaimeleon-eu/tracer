@@ -27,12 +27,10 @@ public class BlockchainManagerProxyTest extends BlockchainManagerProxy{
 		for (long idx=0; idx< count; ++idx) {
 			resources.add(ReqResHashDTO.builder()
 					.contentType(ReqResContentType.HASH)
-					.description(null)
 					.hash(Base64.getEncoder().encodeToString(
 							HashingService.getHash(UUID.randomUUID().toString().getBytes(), HashType.SHA3_256).getHash()))
 					.hashType(HashType.SHA3_256)
 					.id(UUID.randomUUID().toString())
-					.name(Long.toString(idx))
 					.build());
 		}
 		
@@ -40,7 +38,7 @@ public class BlockchainManagerProxyTest extends BlockchainManagerProxy{
 				.blockchains(null)
 				.datasetId(UUID.randomUUID().toString())
 				.resources(resources)
-				.userAction(UserAction.CREATE_NEW_DATASET)
+				.userAction(UserAction.CREATE_DATASET)
 				.userId(UUID.randomUUID().toString())
 				.build();
 	}

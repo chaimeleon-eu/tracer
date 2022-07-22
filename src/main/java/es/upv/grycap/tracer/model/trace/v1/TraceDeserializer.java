@@ -35,13 +35,13 @@ public class TraceDeserializer extends StdDeserializer<Trace> {
 	        String ua = ((TextNode) node.get("userAction")).asText();
 	        UserAction userAction = UserAction.valueOf(ua);
         	Gson gson = new Gson();
-	        if (userAction == UserAction.CREATE_NEW_DATASET) {
+	        if (userAction == UserAction.CREATE_DATASET) {
 	        	return gson.fromJson(node.toString(), TraceCreateDataset.class);
 	        } else if (userAction == UserAction.UPDATE_DATASET) {
 	        	return gson.fromJson(node.toString(), TraceUpdateDataset.class);
 	        } else if (userAction == UserAction.CREATE_MODEL) {
 	        	return gson.fromJson(node.toString(), TraceCreateModel.class);
-	        } else if (userAction == UserAction.USE_DATASETS_POD) {
+	        } else if (userAction == UserAction.USE_DATASETS) {
 	        	return gson.fromJson(node.toString(), TraceUseDatasets.class);
 	        } else if (userAction == UserAction.USE_MODELS) {
 	        	return gson.fromJson(node.toString(), TraceUseModels.class);

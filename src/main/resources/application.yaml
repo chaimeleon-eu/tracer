@@ -1,3 +1,5 @@
+base-dir: /tmp/tracer
+
 server:
     port: 8090
     ssl:
@@ -21,7 +23,7 @@ keycloak:
 spring:
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:${HOME}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${base-dir}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
@@ -79,7 +81,7 @@ tracer:
 
 blockchain:
     # http://localhost:9984/api/v1
-    tmpHashDownFolder: /tmp/tracer/
+    tmpHashDownFolder: ${base-dir}/tmp-hash
     besu:
         private:
             enabled: false
@@ -87,7 +89,7 @@ blockchain:
             url: https://localhost:1443/
             wallet:
                 password: eth-test
-                path: /tmp/tracer/besu/wallet
+                path: ${base-dir}/besu/wallet
     bigchaindb:
         private:
             enabled: true
@@ -95,5 +97,5 @@ blockchain:
             url: http://asaserver.i3m.upv.es:9984/api/v1
             transactionModePost: commit
             defaultAmountTransaction: 1
-            keypairPrivate: /tmp/tracer/bigchaindb/keys/ed25519
-            keypairPublic: /tmp/tracer/bigchaindb/keys/ed25519.pub
+            keypairPrivate: ${base-dir}/bigchaindb/keys/ed25519
+            keypairPublic: ${base-dir}/bigchaindb/keys/ed25519.pub

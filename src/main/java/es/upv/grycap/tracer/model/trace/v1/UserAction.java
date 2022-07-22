@@ -7,12 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum UserAction {
-	@JsonProperty("CREATE_NEW_DATASET")
-	CREATE_NEW_DATASET(1, "Create a new dataset"),
+	@JsonProperty("CREATE_DATASET")
+	CREATE_DATASET(1, "Create a new dataset"),
 	@JsonProperty("UPDATE_DATASET")
 	UPDATE_DATASET(2, "Update existing dataset properties"),
-	@JsonProperty("USE_DATASETS_POD")
-	USE_DATASETS_POD(4, "Use one or more datasets in a Kubernetes App"),
+	@JsonProperty("USE_DATASETS")
+	USE_DATASETS(4, "Use one or more datasets in a Kubernetes App"),
 	@JsonProperty("CREATE_MODEL_POD")
 	CREATE_MODEL(5, "Create a new model in a Kubernetes App"),
 	@JsonProperty("USE_MODEL_POD")

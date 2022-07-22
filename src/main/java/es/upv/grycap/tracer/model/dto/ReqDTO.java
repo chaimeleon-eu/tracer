@@ -29,9 +29,9 @@ import lombok.experimental.SuperBuilder;
 	    visible = true
 	)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_NEW_DATASET"),
+        @JsonSubTypes.Type(value = ReqCreateDatasetDTO.class, name = "CREATE_DATASET"),
         @JsonSubTypes.Type(value = ReqUpdateDataset.class, name = "UPDATE_DATASET"),
-        @JsonSubTypes.Type(value = ReqUseDatasetsDTO.class, name = "USE_DATASETS_POD"),
+        @JsonSubTypes.Type(value = ReqUseDatasetsDTO.class, name = "USE_DATASETS"),
         @JsonSubTypes.Type(value = ReqCreateModelDTO.class, name = "CREATE_MODEL"),
         @JsonSubTypes.Type(value = ReqUseModelsDTO.class, name = "USE_MODELS")
 })
