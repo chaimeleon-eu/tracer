@@ -18,16 +18,17 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@SuperBuilder
+//@SuperBuilder
 @NoArgsConstructor
-@Entity
-@DiscriminatorValue("USE_MODELS")
 public class TraceUseModels extends TraceModel {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 4598094156983695180L;
+	
+	/**
+	 * The list of models IDs that were used when this action was executed	
+	 */
 	@NotEmpty(message="List of models IDs cannot be empty.")
 	@NotNull(message="List of models IDs cannot be null.")
-	@ElementCollection
 	protected List<String> modelsIds;
 }

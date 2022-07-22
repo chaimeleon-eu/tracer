@@ -28,22 +28,46 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = ReqResHashDTO.class, name = "HASH")
 })
 @NoArgsConstructor
+@SuperBuilder
 public abstract class ReqResDTO implements Serializable {
 
 	@JsonIgnore
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * The id of the submitted resource with the request to add a trace.
+	 * It has to uniquely identify this resource on the system.
+	 * The uniqueness is not verified by this service.
+	 */
 	@NotNull(message="The request resource ID cannot be null.")
 	@NotBlank(message="The request resource ID cannot be empty.")
 	protected String id;
+	
+	/**
+	 * An enum identifier of the resource stored by this object.
+	 */
 	@NotNull(message="The request resource type cannot be null.")
 	protected ReqResContentType contentType;
-	@NotNull(message="The request resource name cannot be null.")
-	@NotBlank(message="The request resource name cannot be empty.")
-	protected String name;
-	@NotNull(message="The request resource type cannot be null.")
-	@NotBlank(message="The request resource type cannot be empty.")
-	protected DatasetResourceType resourceType;
+	
+	/**
+	 * The name of the resource
+	 */
+//	@NotNull(message="The request resource name cannot be null.")
+//	@NotBlank(message="The request resource name cannot be empty.")
+//	protected String name;
+	
+//	/**
+//	 *  The description of the data referred to by this resource object.
+//	 *  Can be null.
+//	 */
+//	protected String description;
+	
+//	/**
+//	 * The actual type of the data described by this resource
+//	 */
+//	@NotNull(message="The request resource type cannot be null.")
+//	@NotBlank(message="The request resource type cannot be empty.")
+//	protected DatasetResourceType resourceType;
 	
 
 }

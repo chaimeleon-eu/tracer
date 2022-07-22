@@ -7,9 +7,9 @@ import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 
 @Service
 public class TraceEntryResponseDTOHandler {
-	
-	public RespCreateDatasetDTO getEntryRespDTO(final TraceCreateDataset traceEntry) {
-		return RespCreateDatasetDTO.builder().build();
-	}
+//	
+//	public RespCreateDatasetDTO getEntryRespDTO(final TraceCreateDataset traceEntry) {
+//		return RespCreateDatasetDTO.builder().build();
+//	}
 
 }

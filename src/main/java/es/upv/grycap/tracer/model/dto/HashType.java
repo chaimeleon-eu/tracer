@@ -7,6 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.upv.grycap.tracer.exceptions.HashTypeNotSupportedException;
 
+/**
+ * Various hashes types are needed by the system (such as the hash of the data of a file part of a dataset).
+ * These are the supported hashes at the moment. 
+ * 
+ * @author Andy S Alic
+ *
+ */
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum HashType {
 	

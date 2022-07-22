@@ -1,5 +1,6 @@
+base-dir: /tmp/tracer
+
 server:
-    servlet.context-path: /api
     port: 8090
     ssl:
         key-store-type: PKCS12
@@ -7,40 +8,94 @@ server:
         key-store-password: change_me_key
         key-alias: tracer-service
         enabled: true
+      
+logging.level.org.springframework.web:
+    filter.CommonsRequestLoggingFilter: DEBUG
+    reactive.function.client.ExchangeFunctions: DEBUG
 
 keycloak:
-    auth-server-url: "http://localhost:8080/auth"
+    auth-server-url: "https://asaserver.i3m.upv.es:20000/auth"
     realm: CHAIMELEON
     resource: tracer-service
     public-client: true
+    bearer-only: true
     
 spring:
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:${HOME}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${base-dir}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
-    jpa.database-platform: org.hibernate.dialect.H2Dialect
-    
+    jpa:
+        database-platform: org.hibernate.dialect.H2Dialect        
+        hibernate:
+            ddl-auto: update
+        properties:
+            open-in-view: false
+            hibernate:
+                enable_lazy_load_no_trans: true
+        show-sql: true
+    security:
+        oauth2:
+            client:
+                registration:
+                    keycloak:
+                        client-id: tracer-service
+#                        client-secret: 
+                        authorization-grant-type: authorization_code
+                        redirect-uri: http://localhost:8090/api/v1
+                        scope: profile
+#                        realm: CHAIMELEON
+#                        public-client: true
+#                        provider: keycloak
+                provider:
+                    keycloak:
+                        authorization-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/auth
+#                        jwk-set-uri:  https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/certs
+#                        issuer-uri: https://localhost:20000/auth/realms/CHAIMELEON
+                        token-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/token
+                        user-name-attribute: preferred_username
+                        
 tracer:
+    # in KB
+    request-parse-limit: 128
+    cache:
+        threads: 20
+        # in seconds
+        retry-delay: 60
     disableSSLVerification: false
     admin:
         name: admin
         password: change_me
     hashAlgorithm: SHA3-256
-    yearMin: 2021
-    yearMax: 2024
-    entity: UPV-I3M-GRyCAP
-    version: ^project.version^
+    info:
+        yearMin: 2021
+        yearMax: 2024
+        entity: "UPV-I3M-GRyCAP"
+        version: ^project.version^
+        name: "Tracer Web Service"
+        api:
+            v1:
+                traces: /api/v1/traces
 
 blockchain:
-    url: https://localhost:1443/ 
     # http://localhost:9984/api/v1
-    tmpHashDownFolder: /tmp/tracer/
+    tmpHashDownFolder: ${base-dir}/tmp-hash
+    besu:
+        private:
+            enabled: false
+            name: "Besu Private"
+            url: https://localhost:1443/
+            wallet:
+                password: eth-test
+                path: ${base-dir}/besu/wallet
     bigchaindb:
-        transactionModePost: sync
-        defaultAmountTransaction: 1
-        keypair:
-            private: /tmp/ed25519
-            public: /tmp/ed25519.pub
+        private:
+            enabled: true
+            name: "BigchainDB Private"
+            url: http://asaserver.i3m.upv.es:9984/api/v1
+            transactionModePost: commit
+            defaultAmountTransaction: 1
+            keypairPrivate: ${base-dir}/bigchaindb/keys/ed25519
+            keypairPublic: ${base-dir}/bigchaindb/keys/ed25519.pub
