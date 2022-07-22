@@ -103,7 +103,8 @@ public class CachingManager {
     	executorCache.shutdown();
     }
     
-    public TraceCacheSummary addTraceCache(final Authentication authentication, final TraceBase req, final BlockchainManager mgr) {
+    public TraceCacheSummary addTraceCache(final Authentication authentication, 
+    		final TraceBase req, final BlockchainManager mgr) {
 		final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 		String reqStr;
 		try {

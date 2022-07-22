@@ -8,6 +8,7 @@ import javax.activation.UnsupportedDataTypeException;
 import org.apache.commons.codec.binary.Hex;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.IDToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -17,12 +18,14 @@ import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
 import es.upv.grycap.tracer.exceptions.UncheckedUnsupportedDataTypeException;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.HashType;
+import lombok.extern.slf4j.Slf4j;
 
 /**
 *
 * @author Andy S Alic (asalic)
 */
 @Service
+@Slf4j
 public class UserManager {
 
 
@@ -75,9 +78,10 @@ public class UserManager {
     		return id;
     	} else if (principal instanceof KeycloakPrincipal) {
     		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;
-    		Set<String> roleNames = pr.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles();
+    		//log.info("User caller subject is: " + pr.getKeycloakSecurityContext().getToken().getSubject());
+    		//log.info("User caller ID is: " + pr.getKeycloakSecurityContext().getToken().getId());
 
-    		return null;
+    		return pr.getKeycloakSecurityContext().getToken().getSubject();
     	} else {
     		throw new UncheckedUnsupportedDataTypeException("The user authentication type is unsupported");
     	}
