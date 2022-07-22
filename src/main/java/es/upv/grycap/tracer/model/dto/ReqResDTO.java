@@ -52,15 +52,15 @@ public abstract class ReqResDTO implements Serializable {
 	/**
 	 * The name of the resource
 	 */
-	@NotNull(message="The request resource name cannot be null.")
-	@NotBlank(message="The request resource name cannot be empty.")
-	protected String name;
+//	@NotNull(message="The request resource name cannot be null.")
+//	@NotBlank(message="The request resource name cannot be empty.")
+//	protected String name;
 	
-	/**
-	 *  The description of the data refered to by this resource object.
-	 *  Can be null.
-	 */
-	protected String description;
+//	/**
+//	 *  The description of the data referred to by this resource object.
+//	 *  Can be null.
+//	 */
+//	protected String description;
 	
 //	/**
 //	 * The actual type of the data described by this resource

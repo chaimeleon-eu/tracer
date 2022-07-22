@@ -27,20 +27,20 @@ public class TraceResource implements Serializable {
 	 * The ID of the resource, must be anonymized.
 	 */
 	protected String id;
-	/**
-	 * Base64 encoded String of the hash
-	 */
-	@NotNull
-	@NotEmpty
-	protected String nameHash;
-	@NotEmpty
-	@NotNull
-	protected HashType nameHashType;
-	/**
-	 * Base64 encoded String of the hash of the path
-	 */
-	protected String pathHash;
-	protected HashType pathHashType;
+//	/**
+//	 * Base64 encoded String of the hash
+//	 */
+//	@NotNull
+//	@NotEmpty
+//	protected String nameHash;
+//	@NotEmpty
+//	@NotNull
+//	protected HashType nameHashType;
+//	/**
+//	 * Base64 encoded String of the hash of the path
+//	 */
+//	protected String pathHash;
+//	protected HashType pathHashType;
 	/**
 	 * Base64 encoded String of the hash of the content
 	 */

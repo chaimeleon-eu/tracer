@@ -1,7 +1,5 @@
 package es.upv.grycap.tracer.service;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +48,7 @@ public class TraceHandler {
 
 	public TraceBase fromRequest(final ReqDTO request, String callerId) {
 		Trace ds = null; 
-		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET) {
+		if (request.getUserAction() == UserAction.CREATE_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
 			TraceCreateDataset dsTmp = new TraceCreateDataset();
@@ -61,9 +59,9 @@ public class TraceHandler {
 			final ReqUpdateDataset req = (ReqUpdateDataset) request;
 			TraceUpdateDataset dsTmp = new TraceUpdateDataset();
 			dsTmp.setDatasetId(req.getDatasetId());
-			dsTmp.setUpdateDetails(req.getUpdateDetails());
+			dsTmp.setDetails(req.getDetails());
 			ds = dsTmp;
-		} else if (request.getUserAction() == UserAction.USE_DATASETS_POD) {
+		} else if (request.getUserAction() == UserAction.USE_DATASETS) {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
 			TraceUseDatasets dsTmp = new TraceUseDatasets();
 			dsTmp.setDatasetsIds(req.getDatasetsIds());
@@ -99,8 +97,8 @@ public class TraceHandler {
 			ltr.add(TraceResource.builder()
 					.contentHash(Base64.encodeBase64String(hd.getHash()))
 					.contentHashType(hd.getHashType())
-					.nameHash(Base64.encodeBase64String(HashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
-					.nameHashType(defaultHashType)
+					//.nameHash(Base64.encodeBase64String(HashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
+					//.nameHashType(defaultHashType)
 					.id(r.getId())
 //					.pathHash(r.getPath() != null ?
 //							Base64.encodeBase64String(hashingService.getHash(r.getPath().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash())
