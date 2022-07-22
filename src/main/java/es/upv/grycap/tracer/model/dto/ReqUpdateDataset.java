@@ -19,7 +19,6 @@ public class ReqUpdateDataset extends ReqDatasetDTO {
 	 * The details about the updated dataset, such as the performed action 
 	 * or the field that has been changed.
 	 */
-	@NotBlank(message="The update details cannot be blank.")
 	@NotNull(message="The update details cannot be null.")
-	protected TraceUpdateDetails updateDetails; 
+	protected TraceUpdateDetails details; 
 }

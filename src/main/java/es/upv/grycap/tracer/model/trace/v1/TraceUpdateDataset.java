@@ -16,8 +16,6 @@ public class TraceUpdateDataset extends TraceDataset {
 	 * The details about the updated dataset, such as the performed action 
 	 * or the field that has been changed.
 	 */
-	@NotBlank(message="The user action details cannot be blank.")
-	@NotNull(message="The user action details cannot be null.")
-	protected TraceUpdateDetails updateDetails; 
+	protected TraceUpdateDetails details; 
 
 }
