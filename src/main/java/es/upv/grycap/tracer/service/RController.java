@@ -43,6 +43,7 @@ import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
 import es.upv.grycap.tracer.model.dto.RespErrorDTO;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDetails;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.extern.slf4j.Slf4j;
 
@@ -182,6 +183,12 @@ public class RController {
     public ResponseEntity<?> getActions(Authentication authentication) {
     	
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/static/traces/dataset_update_details", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {
+    	
+        return new ResponseEntity<>(TraceUpdateDetails.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/static/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
