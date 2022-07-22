@@ -1,7 +1,10 @@
 package es.upv.grycap.tracer.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.activation.UnsupportedDataTypeException;
@@ -28,14 +31,19 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import es.upv.grycap.tracer.model.FilterParams;
+import es.upv.grycap.tracer.model.IReqCacheEntry;
+import es.upv.grycap.tracer.model.TraceCacheSummary;
 import es.upv.grycap.tracer.model.TracerRoles;
 import es.upv.grycap.tracer.model.dto.AppInfoDTO;
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.DatasetResourceType;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
 import es.upv.grycap.tracer.model.dto.RespErrorDTO;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDetails;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,32 +53,60 @@ import lombok.extern.slf4j.Slf4j;
 */
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:3000/", maxAge = 3600)
-@RequestMapping("/v1")
+//@CrossOrigin(origins = "http://asaserver.i3m.upv.es:3005", maxAge = 3600)
+@RequestMapping("/api/v1")
 public class RController {
 	
-	@Autowired
 	protected AppInfoDTO appInfo;
 	
-	@Autowired
-	protected BlockchainManager bcManager;
-	
-	@Autowired
-	protected HashingService hashingService;
+	protected BlockchainManagerProxy bcManager;
+		
+	public RController(@Autowired AppInfoDTO appInfo, @Autowired BlockchainManagerProxy bcManager) {
+		this.appInfo = appInfo;
+		this.bcManager = bcManager;
+	}
 
 
-    @RequestMapping(value = "/app/info", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getAppInfo(Authentication authentication) throws JsonProcessingException {
+    @RequestMapping(value = {"/", ""}, method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getWebServiceInfo() throws JsonProcessingException {
         return new ResponseEntity<>(appInfo, new HttpHeaders(), HttpStatus.OK);
 
     }
+	
+//    @RequestMapping(value = "/app/info", method = RequestMethod.GET, produces = {"application/json"})
+//    public ResponseEntity<?> getAppInfo(Authentication authentication) throws JsonProcessingException {
+//        return new ResponseEntity<>(appInfo, new HttpHeaders(), HttpStatus.OK);
+//
+//    }
+    
+    @RequestMapping(value = "/login", method = RequestMethod.POST, produces = {"application/json"})
+    public ResponseEntity<?> login(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    		throws UnsupportedDataTypeException {
+    	
+        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.ACCEPTED);
+    }
     
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
-    public ResponseEntity<?> addTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
-    	String id = getCallerUserId(authentication);
-    	bcManager.addEntry(logRequest, id);
-        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.NO_CONTENT);
+    	final Collection<TraceCacheSummary> summaries = bcManager.addTrace(authentication, logRequest);
+        return new ResponseEntity<>(summaries, new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTracesCache(Authentication authentication,
+    		@RequestParam(name = "detailed", required=false) Boolean detailed) 
+    		throws UnsupportedDataTypeException {
+    	List<? extends IReqCacheEntry> result = bcManager.getReqsCache(authentication, detailed == null ? false : detailed);
+        return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/cache/{id}", method = RequestMethod.DELETE, produces = {"application/json"})
+    public ResponseEntity<?> deleteTracesCache(Authentication authentication,
+    		@PathVariable("id") UUID id) 
+    		throws UnsupportedDataTypeException {
+    	IReqCacheEntry result = bcManager.deleteReqCache(authentication, id);
+        return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
@@ -83,21 +119,58 @@ public class RController {
 //        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
 //    }
     
-    @RequestMapping(value = "/traces/{userId}", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getTracesByActionUser(Authentication authentication, 
-    		@PathVariable(name = "userId", required=false) String userId,
-    		@RequestParam(name = "callerUserId", required=false) String callerUserId
+    /**
+     * Search the blockchain(s) for traces with the valid values given the search parameters.
+     * Every parameter can appear multiple times, in which case all traces with a value found in the
+     *     set comprising all values of a given parameter will be considered valid.        
+     *  Be aware that this call will only search through a blockchain and return successfully
+     *     incorporated traces.
+     *     
+     * @param authentication
+     * @param usersIds the IDs of the users that executed the action for which a trace has been generated
+     * @param callerUsersIds the IDs of the users that requested the creation of a trace
+     * @param datasetsIds the IDs of the datasets
+     * @param userActions the user actions for which traces have been created
+     * @param blockchains the blockchains that will be searched
+     * @return
+     * @throws BadRequest
+     * @throws UnsupportedDataTypeException
+     * @throws MissingServletRequestParameterException
+     */
+    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTraces(Authentication authentication, 
+    		@RequestParam(name = "userId", required=false) List<String> usersIds,
+    		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
+    		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
+    		@RequestParam(name = "userAction", required=false) List<UserAction> userActions,
+    		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
-    	Set<String> roles = getAuthenticatedUserRoles(authentication);
-    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
-    		if (userId == null)
-    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
-    	}
-    	if (userId == null || userId.isBlank() || userId.isEmpty()) {
-    		throw new MissingServletRequestParameterException("userId", "String");
-    	}
-    	List<Trace> traces = bcManager.getTraceEntriesByUserId(userId);
-        return new ResponseEntity<>(traces, new HttpHeaders(), HttpStatus.OK);
+//    	Set<String> roles = getAuthenticatedUserRoles(authentication);
+//    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
+////    		if (userId == null)
+////    			return new ResponseEntity<>(new RespErrorDTO("Missing user id path parameter."), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+//        	if (userId == null || userId.isBlank() || userId.isEmpty()) {
+//        		throw new MissingServletRequestParameterException("userId", "String");
+//        	}
+//    	}
+    	final FilterParams fp = new FilterParams();
+    	fp.setBlockchains(blockchains);
+    	fp.setCallerUsersIds(callerUsersIds);
+    	fp.setDatasetsIds(datasetsIds);
+    	fp.setUsersIds(usersIds);
+    	fp.setUserActions(userActions);
+        return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getProviders(Authentication authentication) {
+    	return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/traces/{traceId}", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getTrace(Authentication authentication,
+    		@PathVariable("traceId") String traceId) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
+        return new ResponseEntity<>(bcManager.getTraceById(traceId), new HttpHeaders(), HttpStatus.OK);
     }
     
 //    @RequestMapping(value = "/traces/{userId}/{actionIdName}", method = RequestMethod.GET, produces = {"application/json"})
@@ -106,60 +179,32 @@ public class RController {
 //        return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.OK);
 //    }
     
-    @RequestMapping(value = "/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getActions(Authentication authentication) {
     	
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/dataset_update_details", method = RequestMethod.GET, produces = {"application/json"})
+    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {
+    	
+        return new ResponseEntity<>(TraceUpdateDetails.values(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
+    @RequestMapping(value = "/static/traces/hashes", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getHashTypes(Authentication authentication) {
         return new ResponseEntity<>(HashType.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/dataset_resources", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/dataset_resources", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getDatasetResources(Authentication authentication) {
         return new ResponseEntity<>(DatasetResourceType.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/traces/request_resource_contents", method = RequestMethod.GET, produces = {"application/json"})
+    @RequestMapping(value = "/static/traces/request_resource_contents", method = RequestMethod.GET, produces = {"application/json"})
     public ResponseEntity<?> getRequestResourceContentTypes(Authentication authentication) {
         return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
     }
-    
-    @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getTracesCache() {
-        return new ResponseEntity<>(ReqResContentType.values(), new HttpHeaders(), HttpStatus.OK);
-    }
-    
-    protected Set<String> getAuthenticatedUserRoles(Authentication authentication) throws UnsupportedDataTypeException {
-    	Object principal = authentication.getPrincipal();
-    	if (principal instanceof User) {
-    		User user = (User) principal;
-    		return user.getAuthorities().stream().map(authority -> authority.getAuthority()).collect(Collectors.toSet());
-    	} else if (principal instanceof KeycloakPrincipal) {
-    		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;
-    		Set<String> roleNames = pr.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles();
-    		return roleNames;
-    	} else {
-    		throw new UnsupportedDataTypeException("The user authentication type is unsupported");
-    	}
-    }
 
-    protected String getCallerUserId(Authentication authentication) throws UnsupportedDataTypeException {
-    	Object principal = authentication.getPrincipal();
-    	if (principal instanceof User) {
-    		User user = (User) principal;
-    		String id = Hex.encodeHexString(hashingService.getHash(user.getUsername().getBytes(), HashType.SHA3_512).getHash());
-    		return id;
-    	} else if (principal instanceof KeycloakPrincipal) {
-    		KeycloakPrincipal<KeycloakSecurityContext> pr = (KeycloakPrincipal<KeycloakSecurityContext>)principal;
-    		Set<String> roleNames = pr.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles();
-
-    		return null;
-    	} else {
-    		throw new UnsupportedDataTypeException("The user authentication type is unsupported");
-    	}
-    }
 	
 }

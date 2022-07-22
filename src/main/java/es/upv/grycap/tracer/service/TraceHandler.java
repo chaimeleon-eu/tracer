@@ -1,13 +1,10 @@
 package es.upv.grycap.tracer.service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Validator;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,21 +12,21 @@ import org.springframework.stereotype.Service;
 import es.upv.grycap.tracer.model.DataHash;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqCreateDatasetDTO;
-import es.upv.grycap.tracer.model.dto.ReqCreateVersionDatasetDTO;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqDatasetDTO;
 import es.upv.grycap.tracer.model.dto.ReqCreateModelDTO;
 import es.upv.grycap.tracer.model.dto.ReqResDTO;
+import es.upv.grycap.tracer.model.dto.ReqUpdateDataset;
 import es.upv.grycap.tracer.model.dto.ReqUseDatasetsDTO;
 import es.upv.grycap.tracer.model.dto.ReqUseModelsDTO;
 import es.upv.grycap.tracer.exceptions.UserActionNotSupported;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;
-import es.upv.grycap.tracer.model.trace.v1.TraceCreateVersionDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceDataset;
-import es.upv.grycap.tracer.model.trace.v1.TraceModel;
 import es.upv.grycap.tracer.model.trace.v1.TraceResource;
+import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseDatasets;
 import es.upv.grycap.tracer.model.trace.v1.TraceUseModels;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
@@ -37,57 +34,52 @@ import es.upv.grycap.tracer.model.trace.v1.UserAction;
 @Service
 public class TraceHandler {
 
-	@Autowired
-    private Validator validator;
-
-	@Autowired
-	protected HashingService hashingService;
+	//protected HashingService hashingService;
 
 	protected HashType defaultHashType;
 
 	@Autowired
-	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId) {
+	public TraceHandler(@Value("${tracer.hashAlgorithm}") String defaultHashAlgorithmId
+			//@Autowired HashingService hashingService
+			) {
 		this.defaultHashType = HashType.fromAlgorithmId(defaultHashAlgorithmId);
+		//this.hashingService = hashingService;
 	}
 
-	public Trace fromRequest(final ReqDTO request, String callerId) {
+	public TraceBase fromRequest(final ReqDTO request, String callerId) {
 		Trace ds = null; 
-		if (request.getUserAction() == UserAction.CREATE_NEW_DATASET) {
+		if (request.getUserAction() == UserAction.CREATE_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
-			ds = TraceCreateDataset.builder()
-				.datasetId(req.getDatasetId())
-				.traceResources(ltr).build();
-		} else if (request.getUserAction() == UserAction.CREATE_VERSION_DATASET) {
-			final ReqCreateVersionDatasetDTO req = (ReqCreateVersionDatasetDTO) request;
-			List<TraceResource> ltr = getTraceResources(req.getResources());
-			ds = TraceCreateVersionDataset.builder()
-			.datasetId(req.getDatasetId())
-			.traceResources(ltr)
-			.previousId(req.getPreviousId()).build();
-		} else if (request.getUserAction() == UserAction.VISUALIZE_VERSION_DATASET) {
-			final ReqDatasetDTO req = (ReqDatasetDTO) request;
-			ds = TraceDataset.builder()
-			.datasetId(req.getDatasetId()).build();
-		} else if (request.getUserAction() == UserAction.USE_DATASETS_POD) {
+			TraceCreateDataset dsTmp = new TraceCreateDataset();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setTraceResources(ltr);
+			ds = dsTmp;
+		} else if (request.getUserAction() == UserAction.UPDATE_DATASET) {
+			final ReqUpdateDataset req = (ReqUpdateDataset) request;
+			TraceUpdateDataset dsTmp = new TraceUpdateDataset();
+			dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setDetails(req.getDetails());
+			ds = dsTmp;
+		} else if (request.getUserAction() == UserAction.USE_DATASETS) {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
-			ds = TraceUseDatasets.builder()
-					.datasetsIds(req.getDatasetsIds()).build();
-			return ds;
+			TraceUseDatasets dsTmp = new TraceUseDatasets();
+			dsTmp.setDatasetsIds(req.getDatasetsIds());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.CREATE_MODEL) {
 			final ReqCreateModelDTO req = (ReqCreateModelDTO) request;
-			ds = TraceCreateModel.builder()
-				.datasetId(req.getDatasetId())
-				.applicationId(req.getApplicationId())
-				.modelId(req.getModelId())
-					.build();
+			TraceCreateModel dsTmp = new TraceCreateModel();
+			dsTmp.setDatasetsIds(req.getDatasetsIds());
+			dsTmp.setApplicationId(req.getApplicationId());
+			dsTmp.setModelId(req.getModelId());
+			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_MODELS) {
 			final ReqUseModelsDTO req = (ReqUseModelsDTO) request;
-			ds = TraceUseModels.builder()
-					.datasetId(req.getDatasetId())
-					.applicationId(req.getApplicationId())
-					.modelsIds(req.getModelsIds())
-					.build();
+			TraceUseModels dsTmp = new TraceUseModels();
+			//dsTmp.setDatasetId(req.getDatasetId());
+			dsTmp.setApplicationId(req.getApplicationId());
+			dsTmp.setModelsIds(req.getModelsIds());
+			ds = dsTmp;
 		} else
 			throw new UserActionNotSupported("User action " + request.getUserAction() + " not supported when creating traces from a request.");
 
@@ -101,12 +93,12 @@ public class TraceHandler {
 	protected List<TraceResource> getTraceResources(final List<ReqResDTO> resReq) {
 		List<TraceResource> ltr = new ArrayList<>();
 		resReq.forEach(r -> {
-			DataHash hd = hashingService.getHashReqResource(r, defaultHashType);
+			DataHash hd = HashingService.getHashReqResource(r, defaultHashType);
 			ltr.add(TraceResource.builder()
 					.contentHash(Base64.encodeBase64String(hd.getHash()))
 					.contentHashType(hd.getHashType())
-					.nameHash(Base64.encodeBase64String(hashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
-					.nameHashType(defaultHashType)
+					//.nameHash(Base64.encodeBase64String(HashingService.getHash(r.getName().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash()))
+					//.nameHashType(defaultHashType)
 					.id(r.getId())
 //					.pathHash(r.getPath() != null ?
 //							Base64.encodeBase64String(hashingService.getHash(r.getPath().getBytes(StandardCharsets.UTF_8), defaultHashType).getHash())

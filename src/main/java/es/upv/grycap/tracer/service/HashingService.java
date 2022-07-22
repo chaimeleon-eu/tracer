@@ -29,10 +29,9 @@ import es.upv.grycap.tracer.exceptions.UncheckedMalformedURLException;
 import es.upv.grycap.tracer.exceptions.UncheckedNoSuchAlgorithmException;
 import es.upv.grycap.tracer.exceptions.UnknownReqResType;
 
-@Service
 public class HashingService {
 	
-	public DataHash getHashReqResource(final ReqResDTO reqResource, HashType hashType) {
+	public static DataHash getHashReqResource(final ReqResDTO reqResource, HashType hashType) {
 		if (reqResource instanceof ReqResFileDataDTO)
 			return getHashReqResourceImpl((ReqResFileDataDTO)reqResource, hashType);
 		else if (reqResource instanceof ReqResHttpDTO) 
@@ -43,12 +42,12 @@ public class HashingService {
 			throw new UnknownReqResType("Unknown request resource type " + reqResource.getContentType());
 	}
 	
-	protected DataHash getHashReqResourceImpl(final ReqResFileDataDTO reqResource, HashType hashType)  {
+	protected static DataHash getHashReqResourceImpl(final ReqResFileDataDTO reqResource, HashType hashType)  {
 		byte[] fData = Base64.decode(reqResource.getData());
 		return getHash(fData, hashType);
 	}
 	
-	protected DataHash getHashReqResourceImpl(final ReqResHttpDTO reqResource, HashType hashType) {
+	protected static DataHash getHashReqResourceImpl(final ReqResHttpDTO reqResource, HashType hashType) {
 		BufferedInputStream btc;
 		try {
 			btc = new BufferedInputStream(new URL(reqResource.getUrl()).openStream());
@@ -67,12 +66,12 @@ public class HashingService {
 		}
 	}
 	
-	protected DataHash getHashReqResourceImpl(final ReqResHashDTO reqResource) {
+	protected static DataHash getHashReqResourceImpl(final ReqResHashDTO reqResource) {
 		byte[] fData = Base64.decode(reqResource.getHash());
 		return DataHash.builder().hash(fData).originalData(null).hashType(reqResource.getHashType()).build();
 	}
 	
-	public DataHash getHashFile(Path file, HashType hashType) {
+	public static DataHash getHashFile(Path file, HashType hashType) {
 		try {
 			return getHash(Files.readAllBytes(file), hashType); 
 		} catch (IOException ex) {
@@ -80,7 +79,7 @@ public class HashingService {
 		}
 	}
 	
-	public DataHash getHash(byte[] content, HashType hashType) {
+	public static DataHash getHash(byte[] content, HashType hashType) {
 		try {
 			final MessageDigest digest = MessageDigest.getInstance(hashType.algorithmId);//"SHA3-256");
 			return DataHash.builder().hash(digest.digest(content)).originalData(content).hashType(hashType).build();

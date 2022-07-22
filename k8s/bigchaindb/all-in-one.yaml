@@ -175,9 +175,10 @@ spec:
       labels:
         app: bigchaindb
     spec:
+      priorityClassName: core-services
       replicas: 1
       containers:
-      - image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-all-in-one:2.2.2-211025-1
+      - image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-all-in-one:2.2.2-220204
         imagePullPolicy: Always
         name: bigchaindb
         env:
@@ -190,15 +191,22 @@ spec:
           name: mongodb
         - containerPort: 26657
           name: tendermint-rpc
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "2"
         volumeMounts:
         - name: bigchaindb-persistent-storage
-          mountPath: /data/db
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/db
           subPath: data/db
         - name: bigchaindb-persistent-storage
-          mountPath: /data/configdb
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/configdb
           subPath: data/configdb
         - name: bigchaindb-persistent-storage
-          mountPath: /tendermint
+          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/tendermint
           subPath: tendermint
       volumes:
       - name: bigchaindb-persistent-storage
@@ -257,10 +265,12 @@ spec:
       labels:
         app: bigchaindb-proxy-dep
     spec:
+      replicas: 1
+      priorityClassName: core-services
       terminationGracePeriodSeconds: 10
       containers:
       - name: nginx
-        image: chaimeleon-eu.i3m.upv.es:10443/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
+        image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-proxy:2.2.2-211028-1
         imagePullPolicy: Always
         terminationMessagePolicy: FallbackToLogsOnError
         env:
@@ -334,6 +344,13 @@ spec:
             configMapKeyRef:
               name: blochaindb-all-in-one-config
               key: authorization-mode
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
         ports:
         # return a pretty error message on port 80, since we are expecting
         # HTTPS traffic.
@@ -358,10 +375,6 @@ spec:
           periodSeconds: 15
           failureThreshold: 3
           timeoutSeconds: 10
-        resources:
-          limits:
-            cpu: 200m
-            memory: 768Mi
         volumeMounts:
         - name: https-certs
           mountPath: /etc/nginx/ssl/

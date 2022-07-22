@@ -202,7 +202,7 @@ For the available user actions, please check the API call to list the supported 
 ```
 
 
-#### Create a new dataset ( _CREATE_DATASET_ )
+#### Create a new dataset ( _CREATE_NEW_DATASET_ )
 
 This action traces the creation of a new dataset.
 The POST data has to include a list of resources traced by the system.
@@ -249,7 +249,7 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 }
 ```
 
-#### Create a new model in a Kubernetes Application ( _CREATE_MODEL_ )
+#### Create a new model in a Kubernetes Application ( _CREATE_MODEL_POD_ )
 
 ```
 {
@@ -260,7 +260,7 @@ The IDs are for either the original version of a dataset, or any ulterior versio
 }
 ```
 
-#### Use one or more models in a Kubernetes Application ( _USE_MODELS_ )
+#### Use one or more models in a Kubernetes Application ( _USE_MODEL_POD_ )
 
 ```
 {

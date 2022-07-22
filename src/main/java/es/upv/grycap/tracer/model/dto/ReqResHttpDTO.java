@@ -10,9 +10,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 
+@Getter
+@Setter
 @NoArgsConstructor
+@SuperBuilder
 public class ReqResHttpDTO  extends ReqResDTO {
 	@JsonIgnore
 	private static final long serialVersionUID = 1537637024883221490L;
