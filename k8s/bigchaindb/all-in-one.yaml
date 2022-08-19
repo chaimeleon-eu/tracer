@@ -179,6 +179,10 @@ spec:
       replicas: 1
       containers:
       - image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/bigchaindb-all-in-one:2.2.2-220204
+#        command:
+#          - /bin/sh
+#          - '-ec'
+#          - sleep 1000
         imagePullPolicy: Always
         name: bigchaindb
         env:
@@ -200,13 +204,13 @@ spec:
             cpu: "2"
         volumeMounts:
         - name: bigchaindb-persistent-storage
-          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/db
+          mountPath: /data/db
           subPath: data/db
         - name: bigchaindb-persistent-storage
-          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/configdb
+          mountPath: /data/configdb
           subPath: data/configdb
         - name: bigchaindb-persistent-storage
-          mountPath: /mnt/bigchaindb-pvc/bigchaindb-all-in-one/tendermint
+          mountPath: /tendermint
           subPath: tendermint
       volumes:
       - name: bigchaindb-persistent-storage

@@ -31,7 +31,6 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IReqCacheEntry;
 import es.upv.grycap.tracer.model.TraceCacheSummary;
 import es.upv.grycap.tracer.model.TracerRoles;
@@ -42,6 +41,7 @@ import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
 import es.upv.grycap.tracer.model.dto.RespErrorDTO;
+import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDetails;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;

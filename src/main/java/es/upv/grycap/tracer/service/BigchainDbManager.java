@@ -55,7 +55,6 @@ import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.UncheckedKeyManagementException;
 import es.upv.grycap.tracer.model.BigchainDbProperties;
 import es.upv.grycap.tracer.model.BlockchainProperties;
-import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IFilterParams;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
@@ -85,6 +84,7 @@ import es.upv.grycap.tracer.exceptions.UncheckedSignatureException;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.TraceVersion;
+import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import lombok.extern.slf4j.Slf4j;
 import net.i2p.crypto.eddsa.EdDSAEngine;
@@ -148,22 +148,16 @@ public class BigchainDbManager implements BlockchainManager {
 //		wb = WebClient.create(blockchaindbBaseUrl);
 //	}
 	
-	public ITransaction<?> generateTransaction(final TraceBase trace, String callerUserId) {
-		//final TraceBase trace = traceHandler.fromRequest(entry, callerUserId);
-		try {
-			return buildTransaction(trace);
-		} catch (JsonProcessingException | InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
-			log.error(Util.getFullStackTrace(e));
-			throw UncheckedExceptionFactory.get(e);
-		}
-	}
 
 	@Override
-	public TraceCacheOpResult submitTransaction(final ITransaction<?> transaction) {
+	public TraceCacheOpResult submitTrace(final TraceBase trace, String callerUserId) {
+		ITransaction<?> transaction = null;
+		
 		String resultMsg = null;
 		ReqCacheStatus resultStatus = null;
 		String tId = null;
 		try {
+			transaction = buildTransaction(trace); 
 			
 			tId = transaction.getId();
 //			traceCacheRepository.saveAndFlush(TraceCacheEntry.builder()
@@ -202,29 +196,6 @@ public class BigchainDbManager implements BlockchainManager {
 			resultMsg = Util.getFullStackTrace(e);
 			resultStatus = ReqCacheStatus.ERROR;
 		}
-//		} catch (JsonProcessingException ex) {
-//			log.error(ex.getMessage(), ex);
-//			
-//			//throw new UncheckedJsonProcessingException(ex);
-//		} catch (InvalidKeyException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedInvalidKeyException(ex);
-//		} catch (NoSuchAlgorithmException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedNoSuchAlgorithmException(ex);
-//		} catch (SignatureException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedSignatureException(ex);
-//		} catch (IOException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedIOException(ex);
-//		} catch (InterruptedException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedInterruptedException(ex);
-//		} catch (KeyManagementException ex) {
-//			log.error(ex.getMessage(), ex);
-//			//throw new UncheckedKeyManagementException(ex);
-//		}
 		return new TraceCacheOpResult(resultMsg, resultStatus, tId);
 	}
 	

@@ -26,7 +26,7 @@ public class BlockchainManagersRepo {
 	@PostConstruct
 	public void init() {
 		allManagers = Map.of(BlockchainType.BIGCHAINDB_PRIVATE, context.getBean(BigchainDbManager.class)
-				, BlockchainType.BESU_PRIVATE, context.getBean(BesuManager.class));
+				, BlockchainType.BESU_PRIVATE, context.getBean(BesuManagerV1.class));
 		activeManagers = allManagers.entrySet().stream().filter(e -> e.getValue().getBlockchainProperties().isEnabled())
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 	}
