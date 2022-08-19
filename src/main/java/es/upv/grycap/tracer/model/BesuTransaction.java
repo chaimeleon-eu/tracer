@@ -1,23 +1,29 @@
 package es.upv.grycap.tracer.model;
 
 import es.upv.grycap.tracer.model.dto.ITransaction;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
 
 import org.web3j.protocol.core.methods.request.Transaction;
 
 
-public class BesuTransaction implements ITransaction {
+public class BesuTransaction implements ITransaction<TraceBase> {
 	
 	@Getter
-	protected Transaction transaction;
+	protected TraceBase trace;
 	
-	public BesuTransaction(Transaction transaction) {
-		this.transaction = transaction;
+	public BesuTransaction(final TraceBase trace) {
+		this.trace = trace;
 	}
 
 	@Override
 	public String getId() {
-		return transaction.getValue();
+		return trace.getId();
+	}
+
+	@Override
+	public TraceBase getTransaction() {
+		return trace;
 	}
 
 

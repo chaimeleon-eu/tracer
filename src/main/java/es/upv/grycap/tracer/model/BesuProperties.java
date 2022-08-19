@@ -17,11 +17,22 @@ public class BesuProperties extends BlockchainProperties {
 	@Getter
 	@Setter
 	@NoArgsConstructor
-	public static class Wallet {
+	public static class WalletInfo {
 		
 		protected String password;
 		protected String path;
 	}
+	
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	public static class ContractInfo {
+		
+		protected String code;
+		protected String deployed;
+	}
 
-	protected Wallet wallet;
+	
+	protected ContractInfo contract;
+	protected WalletInfo wallet;
 }
