@@ -116,20 +116,21 @@ contract ChaimeleonTracingV1 {
 //        }
 //    }
     
-    function getTracesSubarray(uint startPos, uint maxNumElems) public view returns (string[] memory) {
-        
+    function getTracesSubarray(uint startPos, uint maxNumElems) public view returns (string[] memory) {       
         uint len = traces.length;
-        uint numElems = maxNumElems;
-        if (startPos + maxNumElems >= len) {
-            numElems = len - startPos;
-        }
-        string[] memory result = new string[](numElems);
-        if (startPos < len - 1) {
-            for (uint128 i=0; i<numElems; i++) {
-                result[i] = traces[startPos + i].trace;
+        if (startPos < len) {
+            uint numElems = maxNumElems;
+            if ((startPos + maxNumElems - 1) > len) {
+                numElems = len - startPos + 1;
             }
+            string[] memory r = new string[](numElems);
+            for (uint i=0; i<numElems; i++) {
+                r[i] = traces[startPos + i].trace;
+            }
+            return r;
+        } else {
+            return new string[](0);
         }
-        return result;
     }
     
 //    function getTracesByDatasetId(string memory datasetId) public view returns (string[] memory) {

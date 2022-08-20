@@ -84,9 +84,9 @@ blockchain:
     tmpHashDownFolder: ${base-dir}/tmp-hash
     besu:
         private:
-            enabled: false
+            enabled: true
             name: "Besu Private"
-            url: http://127.0.0.1:38755/rpc
+            url: http://127.0.0.1:45111/rpc
             contract:
                 code: ""
                 deployed: ${base-dir}/besu/contract/chaimeleon_tracer_v1.json

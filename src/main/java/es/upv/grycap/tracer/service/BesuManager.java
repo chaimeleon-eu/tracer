@@ -29,6 +29,7 @@ import org.web3j.tx.gas.StaticGasProvider;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -133,9 +134,11 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 		BesuDeployedContract dc = null;
 		T contract = null;
 		EthGetCode code = null;
-		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
+		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule())
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		if (Files.exists(p)) {
 			String dcs = Files.readString(p);
+			log.info("Existing deployed contract: " + dcs);
 			dc = om.readValue(dcs, BesuDeployedContract.class);
 			code = web3j.ethGetCode(dc.getAddress(), DefaultBlockParameterName.LATEST).send();
 			if (!code.getCode().equals(dc.getCode())) {
@@ -151,9 +154,11 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 				Files.delete(p);
 				log.info("Reload contract code from address : " + contract.getContractAddress());
 				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
-				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode());
+				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(), 
+						getContractClass().getCanonicalName());
 				om.writeValue(p.toFile(), dc);
 			} else {
+				log.info("Loading contract from address " + dc.getAddress());
 				contract = loadContract(dc.getAddress());
 			}
 		} else {
@@ -161,7 +166,8 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 			contract = deployContract();
 			log.info("Reload contract code from address : " + contract.getContractAddress());
 			code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
-			dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode());
+			dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(),
+					getContractClass().getCanonicalName());
 			p.toFile().getParentFile().mkdirs();
 			om.writeValue(p.toFile(), dc);
 			log.info("Contract written on " + p.toAbsolutePath().toString());
@@ -184,6 +190,8 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 	protected abstract T deployContract();
 	
 	protected abstract T loadContract(String address);
+	
+	protected abstract Class<T> getContractClass();
 //	{
 //		EthGetTransactionCount nonceResp = web3j
 //	            .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.LATEST)

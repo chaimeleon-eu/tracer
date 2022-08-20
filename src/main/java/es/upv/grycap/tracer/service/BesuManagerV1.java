@@ -117,11 +117,13 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 		try {
 			BigInteger tracesCount = contract.getTracesCount().send();
 			List<TraceBase> traces = new ArrayList<>();
-			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(tracesCount) == -1; idx.add(idx)) {
-				traces.addAll(getTracesSubArray(idx, idx.add(PG_SIZE)));
+			BigInteger steps = tracesCount.divide(PG_SIZE);
+			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
+				traces.addAll(getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE));
 			}
 			BigInteger numEls = tracesCount.mod(PG_SIZE);
-			traces.addAll(getTracesSubArray(tracesCount.subtract(numEls), numEls));
+			if (numEls.compareTo(BigInteger.ZERO) == 1)
+				traces.addAll(getTracesSubArray(tracesCount.subtract(numEls), numEls));
 			return traces.stream().map(e -> e.toSummary()).toList();
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
@@ -135,18 +137,21 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 
 		try {
 			BigInteger tracesCount = contract.getTracesCount().send();
-			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(tracesCount) == -1; idx.add(idx)) {
-				trace = getTracesSubArray(idx, idx.add(PG_SIZE)).stream().filter(t -> t.getId().equals(traceId))
-					.findFirst().orElse(null);
+			BigInteger steps = tracesCount.divide(PG_SIZE);
+			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
+				trace = getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE)
+						.stream().filter(t -> t.getId().equals(traceId))
+						.findFirst().orElse(null);
 				if (trace != null) {
 					break;
 				}
 			}
-			if (trace != null) {
-			BigInteger numEls = tracesCount.mod(PG_SIZE);
-			trace = getTracesSubArray(tracesCount.subtract(numEls), numEls)
-					.stream().filter(t -> t.getId().equals(traceId))
-					.findFirst().orElse(null);
+			if (trace == null) {
+				BigInteger numEls = tracesCount.mod(PG_SIZE);
+				if (numEls.compareTo(BigInteger.ZERO) == 1)
+					trace = getTracesSubArray(tracesCount.subtract(numEls), numEls)
+							.stream().filter(t -> t.getId().equals(traceId))
+							.findFirst().orElse(null);
 			}
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
@@ -168,6 +173,11 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 				})
 				.collect(Collectors.toList());
 		return traces;
+	}
+
+	@Override
+	protected Class<ChaimeleonTracingV1> getContractClass() {
+		return ChaimeleonTracingV1.class;
 	}
 
 
