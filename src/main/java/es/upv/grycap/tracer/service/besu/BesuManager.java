@@ -159,7 +159,7 @@ public class BesuManager implements BlockchainManager {
 		HandlerBesuContract<?> hbs = handlersByContractName.values().iterator().next();
 
 		log.info("traces count: " + hbs.getTracesCount());
-		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(1), BigInteger.valueOf(1))
+		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(0), BigInteger.valueOf(0))
 		.forEach(tsb -> log.info(tsb.getId()));
 		
 //		// load contracts
