@@ -1,15 +1,31 @@
-package es.upv.grycap.tracer.service;
+package es.upv.grycap.tracer.service.besu;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.RemoteCall;
+import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tx.Contract;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.gas.ContractGasProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,41 +34,29 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.BesuException;
 import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
-import es.upv.grycap.tracer.model.BesuProperties;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
-import es.upv.grycap.tracer.model.besu.ChaimeleonTracingV1;
+import es.upv.grycap.tracer.model.besu.BesuProperties;
+import es.upv.grycap.tracer.model.besu.ChaimeleonTracer_V1;
+import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfo;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
+import es.upv.grycap.tracer.service.TraceFiltering;
 import lombok.extern.slf4j.Slf4j;
 
-@Service
 @Slf4j
-public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
+public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTracer_V1> {
 	
 	protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
 
-	@Autowired
-	public BesuManagerV1(@Autowired TraceFiltering traceFiltering,
-			@Autowired final BesuProperties props) {
-		super(props);
+	public HandlerChaimeleonTracer_V1(String url, final BesuProperties props, final Credentials credentials) {
+		super(url, props, credentials);
 	}
 
 	@Override
-	protected ChaimeleonTracingV1 deployContract() {
-		try {
-			return ChaimeleonTracingV1.deploy(
-					web3j, credentials, getGasProvider()).send();
-		} catch (Exception e) {
-			log.error(Util.getFullStackTrace(e));
-			throw new BesuException(e);
-		}
-	}
-
-	@Override
-	protected ChaimeleonTracingV1 loadContract(String address) {
-		return ChaimeleonTracingV1.load(address, web3j, credentials, getGasProvider());
+	protected ChaimeleonTracer_V1 loadContract(String address) {
+		return ChaimeleonTracer_V1.load(address, web3j, credentials, getGasProvider());
 	}
 
 	@Override
@@ -87,7 +91,11 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 		try {
 			EthGetTransactionReceipt transactionReceipt = 
 				    web3j.ethGetTransactionReceipt(tId).send();
-			if (transactionReceipt.hasError()) {
+			if (!transactionReceipt.getTransactionReceipt().isPresent()) {
+				resultMsg = "Transaction with hash '" 
+						+ tId + "' not found on the blockchain";
+				resultStatus = ReqCacheStatus.BLOCKCHAIN_NOT_FOUND;
+			} else if (transactionReceipt.hasError()) {
 				resultMsg = "Message: '" 
 						+ transactionReceipt.getError().getMessage()
 						+ "', data: '"
@@ -159,6 +167,17 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 		return trace;
 	}
 	
+	@Override
+	protected ChaimeleonTracer_V1 deployContract() {
+		try {
+			return ChaimeleonTracer_V1.deploy(
+					web3j, credentials, getGasProvider()).send();
+		} catch (Exception e) {
+			log.error(Util.getFullStackTrace(e));
+			throw new BesuException(e);
+		}
+	}
+	
 	protected List<TraceBase> getTracesSubArray(BigInteger startPos, BigInteger maxNumElems) throws Exception {
 		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 		List<String> tracesStr = contract.getTracesSubarray(startPos, maxNumElems).send();
@@ -176,8 +195,41 @@ public class BesuManagerV1 extends BesuManager<ChaimeleonTracingV1> {
 	}
 
 	@Override
-	protected Class<ChaimeleonTracingV1> getContractClass() {
-		return ChaimeleonTracingV1.class;
+	protected Class<ChaimeleonTracer_V1> getContractClass() {
+		return ChaimeleonTracer_V1.class;
+	}
+
+	@Override
+	public List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos) {
+		try {
+			List<String> tracesStr = contract.getTracesByValue(value, startPos, endPos).send();
+			ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
+			List<TraceSummaryBase> traces = tracesStr.stream()
+					.map(ts -> {
+						try {
+							TraceBase tb = om.readValue(ts, TraceBase.class);
+							return tb.toSummary();
+						} catch (JsonProcessingException e) {
+							log.error(Util.getFullStackTrace(e));
+							throw UncheckedExceptionFactory.get(e);
+						}
+					})
+					.collect(Collectors.toList());
+			return traces;
+		} catch (Exception e) {
+			log.error(Util.getFullStackTrace(e));
+			return List.of();
+		}
+	}
+
+	@Override
+	public BigInteger getTracesCount() {
+		try {
+			return contract.getTracesCount().send();
+		} catch (Exception e) {
+			log.error(Util.getFullStackTrace(e));
+			return null;
+		}
 	}
 
 

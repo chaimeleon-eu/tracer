@@ -10,6 +10,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import es.upv.grycap.tracer.model.dto.BlockchainType;
+import es.upv.grycap.tracer.service.besu.BesuManager;
+import es.upv.grycap.tracer.service.besu.HandlerChaimeleonTracer_V1;
 import lombok.Getter;
 
 @Service
@@ -26,7 +28,7 @@ public class BlockchainManagersRepo {
 	@PostConstruct
 	public void init() {
 		allManagers = Map.of(BlockchainType.BIGCHAINDB_PRIVATE, context.getBean(BigchainDbManager.class)
-				, BlockchainType.BESU_PRIVATE, context.getBean(BesuManagerV1.class));
+				, BlockchainType.BESU_PRIVATE, context.getBean(BesuManager.class));
 		activeManagers = allManagers.entrySet().stream().filter(e -> e.getValue().getBlockchainProperties().isEnabled())
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 	}

@@ -1,4 +1,5 @@
 base-dir: ${HOME}/tmp/tracer
+cache-db-name: tracer.db
 
 server:
     port: 8090
@@ -23,7 +24,7 @@ keycloak:
 spring:
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:${base-dir}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${base-dir}/${cache-db-name};DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
@@ -86,10 +87,13 @@ blockchain:
         private:
             enabled: true
             name: "Besu Private"
-            url: http://127.0.0.1:45111/rpc
-            contract:
-                code: ""
-                deployed: ${base-dir}/besu/contract/chaimeleon_tracer_v1.json
+            url: http://127.0.0.1:39499/rpc
+            contracts:
+                - name: ChaimeleonTracer_V1
+                  enable: 
+                    add: true
+                    read:  true              
+                  deployed: ${base-dir}/besu/contract/ChaimeleonTracer_V1.json
             wallet:
                 password: eth-test
                 path: ${base-dir}/besu/wallet

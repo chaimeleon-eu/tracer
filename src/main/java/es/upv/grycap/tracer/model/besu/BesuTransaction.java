@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.besu;
 
 import es.upv.grycap.tracer.model.dto.ITransaction;
 import es.upv.grycap.tracer.model.trace.TraceBase;

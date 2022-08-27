@@ -1,13 +1,20 @@
-package es.upv.grycap.tracer.service;
+package es.upv.grycap.tracer.service.besu;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +47,7 @@ import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
+import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,34 +55,35 @@ import org.springframework.stereotype.Service;
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.BesuException;
 import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
-import es.upv.grycap.tracer.model.BesuProperties;
-import es.upv.grycap.tracer.model.BesuTransaction;
 import es.upv.grycap.tracer.model.BlockchainProperties;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.besu.BesuDeployedContract;
+import es.upv.grycap.tracer.model.besu.BesuProperties;
+import es.upv.grycap.tracer.model.besu.BesuTransaction;
+import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfo;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ITransaction;
+import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
+import es.upv.grycap.tracer.service.BlockchainManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BesuManager<T extends Contract> implements BlockchainManager {
-	
-	public static final BigInteger GAS_LIMIT = BigInteger.valueOf(3000000);
+@Service
+public class BesuManager implements BlockchainManager {
 	
 	protected final BesuProperties props;
 	
 	protected Credentials credentials;
 	
 	//protected String walletAddress;
+	protected List<HandlerBesuContract<? extends Contract>> enabledContracts;
 	
-	protected T contract;
-	
-	protected Web3j web3j;
+	protected Map<String, HandlerBesuContract<? extends Contract>> handlersByContractName;
 	
 	@Autowired
 	public BesuManager(@Autowired final BesuProperties props) {
@@ -85,8 +94,8 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 	
 	@PostConstruct
 	public void init() {
-		web3j = Web3j.build(new HttpService(props.getUrl()));
-		
+
+		enabledContracts = new ArrayList<>();
 		try {
 			File[] files = new File(props.getWallet().getPath()).listFiles(new FileFilter() {
 
@@ -121,77 +130,51 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 			throw new BesuException("Unable to load credentials");
 		}
 		
-		try {
-			contract = getDeployedContract();
-		} catch (IOException e) {
-			log.error(Util.getFullStackTrace(e));
-			throw UncheckedExceptionFactory.get(e);
-		}
+		Reflections reflections = new Reflections(this.getClass().getPackageName());    
+		//Set<Class<? extends HandlerBesuContract>> classes 
+		handlersByContractName = reflections.getSubTypesOf(HandlerBesuContract.class).stream()
+				.map(cl -> {
+					Constructor<? extends HandlerBesuContract> cons;
+					try {
+						cons = cl.getConstructor(String.class, 
+								BesuProperties.class, Credentials.class);
+						HandlerBesuContract<?> obj = cons.newInstance(props.getUrl(), props, credentials);
+						if (obj.isEnabled()) {
+							log.info("Contract " + obj.getContractName() 
+									+ " initialized with "
+									+ (obj.canAdd() ? (obj.canRead() ? "add/read" : "add") 
+											     : (obj.canRead() ? "read" : "no ops") )
+									+ " support");
+							return obj;
+						} else
+							return null;
+					} catch (Exception e) {
+						log.error(Util.getFullStackTrace(e));						
+						return null;
+					}
+					
+				})
+				.filter(handler -> handler != null)
+				.collect(Collectors.toUnmodifiableMap(HandlerBesuContract::getContractName, Function.identity()));
+		HandlerBesuContract<?> hbs = handlersByContractName.values().iterator().next();
+
+		log.info("traces count: " + hbs.getTracesCount());
+		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(1), BigInteger.valueOf(1))
+		.forEach(tsb -> log.info(tsb.getId()));
+		
+//		// load contracts
+//		props.getContracts().forEach(c -> {
+//			if (c.isEnabled()) {
+//				enabledContracts.add(handlersByContractName.get(c.getName()));
+//				log.info("Contract " + c.getName() + " has been enabled");
+//			} else
+//				log.info("Contract " + c.getName() + " is disabled");
+//		});
 	}
 	
-	protected T getDeployedContract() throws StreamReadException, DatabindException, IOException {
-		Path p = Paths.get(props.getContract().getDeployed());
-		BesuDeployedContract dc = null;
-		T contract = null;
-		EthGetCode code = null;
-		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule())
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		if (Files.exists(p)) {
-			String dcs = Files.readString(p);
-			log.info("Existing deployed contract: " + dcs);
-			dc = om.readValue(dcs, BesuDeployedContract.class);
-			code = web3j.ethGetCode(dc.getAddress(), DefaultBlockParameterName.LATEST).send();
-			if (!code.getCode().equals(dc.getCode())) {
-				log.warn("Code in deployed contract ' "
-						+ dcs
-						+ " ' loaded from "
-						+ p.toAbsolutePath().toString()
-						+ " differs from what was found at deployed contract's address: "
-						+  code.getCode());
-				log.info("Deploying contract " + dcs);
-				contract = deployContract();
-				log.info("Replace old contract at " + p.toAbsolutePath().toString());
-				Files.delete(p);
-				log.info("Reload contract code from address : " + contract.getContractAddress());
-				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
-				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(), 
-						getContractClass().getCanonicalName());
-				om.writeValue(p.toFile(), dc);
-			} else {
-				log.info("Loading contract from address " + dc.getAddress());
-				contract = loadContract(dc.getAddress());
-			}
-		} else {
-			log.info("No contract found at " + p.toAbsolutePath().toString());
-			contract = deployContract();
-			log.info("Reload contract code from address : " + contract.getContractAddress());
-			code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
-			dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(),
-					getContractClass().getCanonicalName());
-			p.toFile().getParentFile().mkdirs();
-			om.writeValue(p.toFile(), dc);
-			log.info("Contract written on " + p.toAbsolutePath().toString());
-		}
-		return contract;
-	}
 	
-	protected ContractGasProvider getGasProvider() {
-		return new StaticGasProvider(BigInteger.ZERO, GAS_LIMIT);
-	}
 	
-//	protected BigInteger getGasPrice() {
-//		return BigInteger.ZERO;
-//	}
-//	
-//	protected BigInteger getGasLimit() {
-//		return BigInteger.valueOf(Integer.MAX_VALUE);
-//	}
 	
-	protected abstract T deployContract();
-	
-	protected abstract T loadContract(String address);
-	
-	protected abstract Class<T> getContractClass();
 //	{
 //		EthGetTransactionCount nonceResp = web3j
 //	            .ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.LATEST)
@@ -241,6 +224,76 @@ public abstract class BesuManager<T extends Contract> implements BlockchainManag
 	@Override
 	public BlockchainProperties getBlockchainProperties() {
 		return props;
+	}
+
+
+
+	@Override
+	public TraceCacheOpResult submitTrace(TraceBase entry, String callerUserId) {
+		TraceCacheOpResult result = null;
+		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
+			if (handler.canAdd()) {
+				log.info("Add trace to contract " + handler.getContractName());
+				result = handler.submitTrace(entry, callerUserId);
+			}
+		}
+		return result;
+	}
+
+
+
+	@Override
+	public TraceCacheOpResult getTransactionStatusById(String transactionId) {
+		TraceCacheOpResult result = null;
+		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
+			if (handler.canRead()) {
+				log.info("Searching transaction with ID '" 
+						+ transactionId
+						+ "' on contract " + handler.getContractName());
+				result = handler.getTransactionStatusById(transactionId);
+				if (result.getStatus() != ReqCacheStatus.BLOCKCHAIN_NOT_FOUND) {
+					break;
+				}
+			}
+		}
+		if (result == null) {
+			result = new TraceCacheOpResult("Transaction not found on the blockchain",
+					ReqCacheStatus.BLOCKCHAIN_NOT_FOUND, transactionId);
+		}
+		return result;
+	}
+
+
+
+	@Override
+	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
+		List<TraceSummaryBase> result = new ArrayList<>();
+		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
+			if (handler.canRead()) {
+				log.info("Searching traces on contract " + handler.getContractName());
+				List<TraceSummaryBase> partialResult = handler.getTraces(filterParams);
+				result.addAll(partialResult);
+			}
+		}
+		return result;
+	}
+
+
+
+	@Override
+	public TraceBase getTraceById(String traceId) {
+		TraceBase trace = null;
+		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
+			if (handler.canRead()) {
+				log.info("Searching trace ID '" + traceId
+						+ "' on contract " + handler.getContractName());
+				trace = handler.getTraceById(traceId);
+				if (trace != null) {
+					break;
+				}
+			}
+		}
+		return trace;
 	}
 
 }
