@@ -70,6 +70,13 @@ tracer:
         name: admin
         password: change_me
     hashAlgorithm: SHA3-256
+    time:
+        useLocal: false
+        timeServers: 
+            - time-e-g.nist.gov
+            - time-a-g.nist.gov
+            - time-e-wwv.nist.gov
+        retries: 3
     info:
         yearMin: 2021
         yearMax: 2024

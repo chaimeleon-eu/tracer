@@ -5,7 +5,9 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +17,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 //@SuperBuilder
-@NoArgsConstructor
+//@NoArgsConstructor
 public class TraceUseDatasets extends Trace {
-
-	@JsonIgnore
-	private static final long serialVersionUID = 4774388914989813495L;
+	
+	@JsonCreator
+	public TraceUseDatasets(@JsonProperty("id") String id) {
+		super(id);
+	}
 	
 	/**
 	 * The list of IDs used by the traced action

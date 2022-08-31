@@ -3,7 +3,9 @@ package es.upv.grycap.tracer.model.trace.v1;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
@@ -14,11 +16,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 //@SuperBuilder
-@NoArgsConstructor
+//@NoArgsConstructor
 public class TraceModel extends Trace {
 	
-	@JsonIgnore
-	private static final long serialVersionUID = 1632046976434313965L;
+	@JsonCreator
+	public TraceModel(@JsonProperty("id") String id) {
+		super(id);
+	}
 	
 	/**
 	 * The ID of the application using the model

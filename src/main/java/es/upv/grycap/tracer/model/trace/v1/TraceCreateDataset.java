@@ -2,7 +2,9 @@ package es.upv.grycap.tracer.model.trace.v1;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
@@ -13,12 +15,14 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 //@SuperBuilder
-@NoArgsConstructor
+//@NoArgsConstructor
 public class TraceCreateDataset extends TraceDataset {
 	
-	@JsonIgnore
-	private static final long serialVersionUID = 554105358293232533L;
-
+	@JsonCreator
+	public TraceCreateDataset(@JsonProperty("id") String id) {
+		super(id);
+	}
+	
 	/**
 	 * The resources' information
 	 */

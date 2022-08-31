@@ -5,25 +5,51 @@ error ParamsError(string msg);
 
 contract ChaimeleonTracer_V1 {
     
-    TraceEntry[] private traces;
+    TraceEntry[] internal traces;
     
-    string private name = "ChaimeleonTracer_V1";
+    string internal name = "ChaimeleonTracer_V1";
+    
+    /**
+     * Resize the array returned by getTracesPossByValue
+     */
+    bool internal rTPBV;
     
    // mapping(string => uint128[]) private tracesPosByDatasetId;
     //mapping(string => uint128[]) private tracesPosByUserId;
     
    // uint128 tracesCount;
     
-    address owner;
+    address internal owner;
     
     modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
     
+    struct FoundTracesPoss {
+        
+        uint[] poss;
+        
+        uint rc;
+        
+    }
+    
     struct TraceEntry {
-        uint256 _id;
-        uint256 _timestamp;
+        /**
+         * Internal time of the block where this trace entry has been stored in, represented in seconds since the epoch of 1970-01-01T00:00:00Z 
+         */
+        uint256 bTime;
+        /**
+         * Time received with the add trace call as the number of milliseconds from the epoch of 1970-01-01T00:00:00Z. 
+         */
+        uint64 eTime;
+        /**
+         * The address of the external entity that requested the storing of this trace
+         */
+        address sender;
+        /**
+         * The JSON string representation of the trace
+         */
         string trace;
     }
     
@@ -34,6 +60,7 @@ contract ChaimeleonTracer_V1 {
     
     constructor() {
         owner = msg.sender;
+        rTPBV = false;
     }
     
 //     Returns the memory address of the first byte after the last occurrence of
@@ -104,8 +131,8 @@ contract ChaimeleonTracer_V1 {
     
 
     
-    function addTrace(string memory trace) public onlyOwner{
-        traces.push(TraceEntry(block.timestamp, block.timestamp, trace));
+    function addTrace(uint64 eTime, string memory trace) public {//onlyOwner{
+        traces.push(TraceEntry(block.timestamp, eTime, msg.sender, trace));
         //uint256 len = traces.push();
         //traces[len-1] = t;
         //tracesCount += 1; 
@@ -115,13 +142,13 @@ contract ChaimeleonTracer_V1 {
         return traces.length;
     }
     
-    function getTracesByValue(string memory value, uint sP, uint eP)  public view returns (string[] memory) {
+    function getTracesPossByValue(string memory value, uint sP, uint eP)  public view returns (uint[] memory, uint) {
         uint len = traces.length;
         if (sP > eP) {
-            revert ParamsError("start position greater than the end one");
+            revert ParamsError("start position greater than end position");
         }
         if (eP >= len) {
-            revert ParamsError("end position must be less than number of traces");            
+            revert ParamsError("end position higher/equal than/to traces count");            
         }
         uint n = eP - sP + 1;
         slice memory vS = toSlice(value);
@@ -134,13 +161,38 @@ contract ChaimeleonTracer_V1 {
                 ps[e] = i;
                 ++e;
             }
-        } 
-        string[] memory rs = new string[](e);
-        for (uint i=0; i<e; i++) {
-            rs[i] = traces[ps[i]].trace;
+        }
+        if (rTPBV) {
+            if (ps.length > 0) {
+                uint redSize = n - e;
+                assembly { mstore(ps, sub(mload(ps),  redSize)) }
+            }
+        }
+        return (ps, e);//FoundTracesPoss(ps, e);
+    }
+    
+    function getTracesByValue(string memory value, uint sP, uint eP)  public view returns (string[] memory) {        
+        //FoundTracesPoss fTP
+        uint[] memory poss;
+        uint rc;
+        (poss, rc) = getTracesPossByValue(value, sP, eP);        
+        string[] memory rs = new string[](rc);
+        for (uint i=0; i<rc; i++) {
+            rs[i] = traces[poss[i]].trace;
         }
         return rs;
-        //return new string[](0);
+    }
+    
+    function getFullTracesByValue(string memory value, uint sP, uint eP)  public view returns (TraceEntry[] memory) {        
+        //FoundTracesPoss fTP 
+        uint[] memory poss;
+        uint rc;
+        (poss, rc) = getTracesPossByValue(value, sP, eP);        
+        TraceEntry[] memory rs = new TraceEntry[](rc);
+        for (uint i=0; i<rc; i++) {
+            rs[i] = traces[poss[i]];//.trace;
+        }
+        return rs;
     }
     
     function getTracesSubarray(uint startPos, uint maxNumElems) public view returns (string[] memory) {       
@@ -150,18 +202,32 @@ contract ChaimeleonTracer_V1 {
             if ((startPos + maxNumElems - 1) > len) {
                 numElems = len - startPos + 1;
             }
+            //TraceEntry[] memory r = new TraceEntry[](numElems);
             string[] memory r = new string[](numElems);
             for (uint i=0; i<numElems; i++) {
                 r[i] = traces[startPos + i].trace;
             }
             return r;
         } else {
+            //return new TraceEntry[](0);
             return new string[](0);
         }
     }
     
     function getContractName() public view returns(string memory){
          return name;
+    }
+    
+    function getOwner() public view returns(address){
+         return owner;
+    }
+    
+    function getTracesPossByValueResize() public view returns(bool){
+        return rTPBV;
+    }
+    
+    function setTracesPossByValueResize(bool newVal) public {
+        rTPBV = newVal;
     }
     
 //    function getTracesByDatasetId(string memory datasetId) public view returns (string[] memory) {

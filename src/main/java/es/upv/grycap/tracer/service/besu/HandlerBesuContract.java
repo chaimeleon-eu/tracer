@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfoEnable;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
+import es.upv.grycap.tracer.service.TimeManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -45,15 +47,18 @@ public abstract class HandlerBesuContract<T extends Contract> {
 	
 	protected final Credentials credentials;
 	
+	protected final TimeManager timeManager;
+	
 	protected ContractInfo contractInfo;
 	
 	protected Web3j web3j;
 	
 	protected T contract;
 	
-	public HandlerBesuContract(String url, final BesuProperties props, final Credentials credentials) {
+	public HandlerBesuContract(String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
 		this.url = url;
 		this.credentials = credentials;
+		this.timeManager = timeManager;
 		for (ContractInfo ci: props.getContracts()) {
 			if (ci.getName().equalsIgnoreCase(getContractName())) {
 				this.contractInfo = ci;
@@ -123,7 +128,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 				log.info("Reload contract code from address : " + contract.getContractAddress());
 				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
 				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(), 
-						getContractClass().getCanonicalName());
+						getContractClass().getCanonicalName(), Instant.ofEpochMilli(timeManager.getTime()));
 				om.writeValue(p.toFile(), dc);
 			} else {
 				log.info("Loading contract from address " + dc.getAddress());
@@ -137,7 +142,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 				log.info("Reload contract code from address : " + contract.getContractAddress());
 				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
 				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(),
-						getContractClass().getCanonicalName());
+						getContractClass().getCanonicalName(), Instant.ofEpochMilli(timeManager.getTime()));
 				p.toFile().getParentFile().mkdirs();
 				om.writeValue(p.toFile(), dc);
 				log.info("Contract written on " + p.toAbsolutePath().toString());

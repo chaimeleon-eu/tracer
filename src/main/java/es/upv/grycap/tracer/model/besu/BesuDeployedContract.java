@@ -14,17 +14,9 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@NoArgsConstructor
-
+//@NoArgsConstructor
 @AllArgsConstructor
 public class BesuDeployedContract {
-	
-	public BesuDeployedContract(String address, String code, String contractClass) {
-		this.address = address;
-		this.code = code;
-		this.contractClass = contractClass;
-		deployDate = Instant.now();
-	}
 	
 	protected String address;
 	

@@ -42,6 +42,7 @@ import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
+import es.upv.grycap.tracer.service.TimeManager;
 import es.upv.grycap.tracer.service.TraceFiltering;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,8 +51,8 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	
 	protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
 
-	public HandlerChaimeleonTracer_V1(String url, final BesuProperties props, final Credentials credentials) {
-		super(url, props, credentials);
+	public HandlerChaimeleonTracer_V1(String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
+		super(url, props, credentials, timeManager);
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		ReqCacheStatus resultStatus = null;
 		String tId = null;
 		try {
-			TransactionReceipt receipt = contract.addTrace(om.writeValueAsString(entry)).send();
+			TransactionReceipt receipt = contract.addTrace(BigInteger.valueOf(timeManager.getTime()), om.writeValueAsString(entry)).send();
 			tId = receipt.getTransactionHash();
 			if (!receipt.isStatusOK()) {
 				resultMsg = receipt.getStatus();
