@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.binary.Base64;
@@ -64,35 +65,36 @@ public class TraceHandler {
 
 	public TraceBase fromRequest(final ReqDTO request, String callerId) {
 		Trace ds = null;
-		String id = generateId();
+		String id = UUID.randomUUID().toString();
+		String timestamp = Long.toString(timeManager.getTime());;
 		if (request.getUserAction() == UserAction.CREATE_DATASET) {
 			final ReqCreateDatasetDTO req = (ReqCreateDatasetDTO) request;
 			List<TraceResource> ltr = getTraceResources(req.getResources());
-			TraceCreateDataset dsTmp = new TraceCreateDataset(id);
+			TraceCreateDataset dsTmp = new TraceCreateDataset(id, timestamp);
 			dsTmp.setDatasetId(req.getDatasetId());
 			dsTmp.setTraceResources(ltr);
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.UPDATE_DATASET) {
 			final ReqUpdateDataset req = (ReqUpdateDataset) request;
-			TraceUpdateDataset dsTmp = new TraceUpdateDataset(id);
+			TraceUpdateDataset dsTmp = new TraceUpdateDataset(id, timestamp);
 			dsTmp.setDatasetId(req.getDatasetId());
 			dsTmp.setDetails(req.getDetails());
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_DATASETS) {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
-			TraceUseDatasets dsTmp = new TraceUseDatasets(id);
+			TraceUseDatasets dsTmp = new TraceUseDatasets(id, timestamp);
 			dsTmp.setDatasetsIds(req.getDatasetsIds());
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.CREATE_MODEL) {
 			final ReqCreateModelDTO req = (ReqCreateModelDTO) request;
-			TraceCreateModel dsTmp = new TraceCreateModel(id);
+			TraceCreateModel dsTmp = new TraceCreateModel(id, timestamp);
 			dsTmp.setDatasetsIds(req.getDatasetsIds());
 			dsTmp.setApplicationId(req.getApplicationId());
 			dsTmp.setModelId(req.getModelId());
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.USE_MODELS) {
 			final ReqUseModelsDTO req = (ReqUseModelsDTO) request;
-			TraceUseModels dsTmp = new TraceUseModels(id);
+			TraceUseModels dsTmp = new TraceUseModels(id, timestamp);
 			//dsTmp.setDatasetId(req.getDatasetId());
 			dsTmp.setApplicationId(req.getApplicationId());
 			dsTmp.setModelsIds(req.getModelsIds());
@@ -127,8 +129,8 @@ public class TraceHandler {
 		return ltr;
 	}
 	
-	protected synchronized String generateId() {
-		return Long.toString(timeManager.getTime());
-	}
+//	protected synchronized String generateId() {
+//		return Long.toString(timeManager.getTime());
+//	}
 
 }
