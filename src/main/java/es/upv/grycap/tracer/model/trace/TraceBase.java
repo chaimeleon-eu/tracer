@@ -52,6 +52,12 @@ public abstract class TraceBase implements ITraceResponse {
 	@Getter	@Setter
 	protected String id;
 	
+	/**
+	 * The creation date/time of the trace
+	 */
+	@Getter	@Setter
+	protected String timestamp;
+	
 	public TraceBase(TraceVersion version) {
 		this.version = version;
 	}

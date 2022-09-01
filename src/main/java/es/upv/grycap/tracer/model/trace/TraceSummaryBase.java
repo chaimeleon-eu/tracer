@@ -33,6 +33,12 @@ public abstract class TraceSummaryBase implements ITraceResponse {
 	@Setter
 	protected String id;
 	
+	/**
+	 * The creation date of the trace
+	 */
+	@Getter	@Setter
+	protected String timestamp;
+	
 	public TraceSummaryBase(TraceVersion version) {
 		this.version = version;
 	}

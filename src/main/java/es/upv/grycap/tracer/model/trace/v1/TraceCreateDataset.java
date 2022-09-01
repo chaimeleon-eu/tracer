@@ -19,8 +19,8 @@ import lombok.experimental.SuperBuilder;
 public class TraceCreateDataset extends TraceDataset {
 	
 	@JsonCreator
-	public TraceCreateDataset(@JsonProperty("id") String id) {
-		super(id);
+	public TraceCreateDataset(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
+		super(id, timestamp);
 	}
 	
 	/**

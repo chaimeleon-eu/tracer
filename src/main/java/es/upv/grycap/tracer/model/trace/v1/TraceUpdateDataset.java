@@ -16,8 +16,8 @@ import lombok.Setter;
 public class TraceUpdateDataset extends TraceDataset {
 	
 	@JsonCreator
-	public TraceUpdateDataset(@JsonProperty("id") String id) {
-		super(id);
+	public TraceUpdateDataset(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
+		super(id, timestamp);
 	}
 	
 	/**

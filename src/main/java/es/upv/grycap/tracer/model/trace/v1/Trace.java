@@ -51,10 +51,11 @@ public class Trace extends TraceBase {
 	public static final TraceVersion VERSION = TraceVersion.V1;
 	
 	@JsonCreator
-	public Trace(@JsonProperty("id") String id) {
+	public Trace(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
 		super(VERSION);
 		//id = generateId();
 		this.id = id;
+		this.timestamp = timestamp;
 	}
 
 	
@@ -83,6 +84,7 @@ public class Trace extends TraceBase {
 		trs.setCallerId(callerId);
 		trs.setCreationDate(Instant.ofEpochMilli(Long.parseLong(id)));
 		trs.setId(id);
+		trs.setTimestamp(timestamp);
 		trs.setUserAction(userAction);
 		trs.setUserId(userId);
 		return trs;

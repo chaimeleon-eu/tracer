@@ -25,8 +25,8 @@ import lombok.experimental.SuperBuilder;
 public class TraceUseModels extends TraceModel {
 	
 	@JsonCreator
-	public TraceUseModels(@JsonProperty("id") String id) {
-		super(id);
+	public TraceUseModels(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
+		super(id, timestamp);
 	}
 	
 	/**
