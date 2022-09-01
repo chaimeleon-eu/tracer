@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.web3j.crypto.Credentials;
@@ -37,6 +38,7 @@ import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.service.TimeManager;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
 @Slf4j
 public abstract class HandlerBesuContract<T extends Contract> {
@@ -69,7 +71,12 @@ public abstract class HandlerBesuContract<T extends Contract> {
 			contractInfo = new ContractInfo();
 			contractInfo.setEnable(new ContractInfoEnable(false, false));
 		} else {
-			web3j = Web3j.build(new HttpService(url));
+			OkHttpClient.Builder builder = new OkHttpClient.Builder();
+	        builder.connectTimeout(20, TimeUnit.SECONDS);
+	        builder.readTimeout(20, TimeUnit.SECONDS);
+	        HttpService service = new HttpService(url, builder.build(), false);
+	        
+			web3j = Web3j.build(service);
 			try {
 				contract = getDeployedContract();
 			} catch (IOException e) {
@@ -123,8 +130,9 @@ public abstract class HandlerBesuContract<T extends Contract> {
 						+  code.getCode());
 				log.info("Deploying contract " + dcs);
 				contract = deployContract();
-				log.info("Replace old contract at " + p.toAbsolutePath().toString());
-				Files.delete(p);
+				Path newPath = Paths.get(p.toAbsolutePath().toString() + "." + timeManager.getTime() + ".bak");
+				log.info("Store old contract at " + p.toAbsolutePath().toString() + "  in " + newPath.toAbsolutePath().toString());
+				Files.move(p, newPath);
 				log.info("Reload contract code from address : " + contract.getContractAddress());
 				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();
 				dc = new BesuDeployedContract(contract.getContractAddress(), code.getCode(), 
@@ -145,7 +153,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 						getContractClass().getCanonicalName(), Instant.ofEpochMilli(timeManager.getTime()));
 				p.toFile().getParentFile().mkdirs();
 				om.writeValue(p.toFile(), dc);
-				log.info("Contract written on " + p.toAbsolutePath().toString());
+				log.info("Contract stored on " + p.toAbsolutePath().toString());
 			} else {
 				log.info("Contract is not allowed to add new traces (from app's properties), don't deploy it on the blockchain");				
 			}

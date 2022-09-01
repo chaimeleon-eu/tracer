@@ -70,6 +70,7 @@ import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.service.BlockchainManager;
+import es.upv.grycap.tracer.service.TimeManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -77,6 +78,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BesuManager implements BlockchainManager {
 	
 	protected final BesuProperties props;
+	
+	protected final TimeManager timeManager;
 	
 	protected Credentials credentials;
 	
@@ -86,8 +89,9 @@ public class BesuManager implements BlockchainManager {
 	protected Map<String, HandlerBesuContract<? extends Contract>> handlersByContractName;
 	
 	@Autowired
-	public BesuManager(@Autowired final BesuProperties props) {
+	public BesuManager(@Autowired final BesuProperties props, @Autowired final TimeManager timeManager) {
 		this.props = props;
+		this.timeManager = timeManager;
 	}
 	
 	
@@ -137,8 +141,8 @@ public class BesuManager implements BlockchainManager {
 					Constructor<? extends HandlerBesuContract> cons;
 					try {
 						cons = cl.getConstructor(String.class, 
-								BesuProperties.class, Credentials.class);
-						HandlerBesuContract<?> obj = cons.newInstance(props.getUrl(), props, credentials);
+								BesuProperties.class, Credentials.class, TimeManager.class);
+						HandlerBesuContract<?> obj = cons.newInstance(props.getUrl(), props, credentials, timeManager);
 						if (obj.isEnabled()) {
 							log.info("Contract " + obj.getContractName() 
 									+ " initialized with "
@@ -158,9 +162,9 @@ public class BesuManager implements BlockchainManager {
 				.collect(Collectors.toUnmodifiableMap(HandlerBesuContract::getContractName, Function.identity()));
 		HandlerBesuContract<?> hbs = handlersByContractName.values().iterator().next();
 
-		log.info("traces count: " + hbs.getTracesCount());
-		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(0), BigInteger.valueOf(0))
-		.forEach(tsb -> log.info(tsb.getId()));
+//		log.info("traces count: " + hbs.getTracesCount());
+//		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(0), BigInteger.valueOf(0))
+//		.forEach(tsb -> log.info(tsb.getId()));
 		
 //		// load contracts
 //		props.getContracts().forEach(c -> {

@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-//@NoArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 public class BesuDeployedContract {
 	

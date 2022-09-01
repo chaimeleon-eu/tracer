@@ -23,6 +23,7 @@ import org.web3j.protocol.core.RemoteCall;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.BesuException;
 import es.upv.grycap.tracer.exceptions.UncheckedExceptionFactory;
+import es.upv.grycap.tracer.exceptions.UnhandledException;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.besu.BesuProperties;
 import es.upv.grycap.tracer.model.besu.ChaimeleonTracer_V1;
@@ -44,10 +46,31 @@ import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.service.TimeManager;
 import es.upv.grycap.tracer.service.TraceFiltering;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTracer_V1> {
+	
+	public static enum ResultCode {
+		SUCCESS(0), PARAMS_ERROR(1);
+		
+		@Getter
+		protected long id;
+		
+		private ResultCode(long id) {
+			this.id = id;
+		}
+		
+		public static ResultCode fromId(BigInteger id) {
+			long idL = id.longValueExact();
+			for (ResultCode v: ResultCode.values()) {
+				if (idL == v.getId())
+					return v;
+			}
+			throw new UnhandledException("Unhandled result code received from contract " + id);
+		}
+	}
 	
 	protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
 
@@ -124,7 +147,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
 		try {
-			BigInteger tracesCount = contract.getTracesCount().send();
+			BigInteger tracesCount = contract.getTracesCount().send().component1();
 			List<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
@@ -139,34 +162,68 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 			return List.of();
 		}
 	}
-
+	
 	@Override
 	public TraceBase getTraceById(String traceId) {
 		TraceBase trace = null;
 
 		try {
-			BigInteger tracesCount = contract.getTracesCount().send();
-			BigInteger steps = tracesCount.divide(PG_SIZE);
-			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
-				trace = getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE)
-						.stream().filter(t -> t.getId().equals(traceId))
+			BigInteger tracesCount = contract.getTracesCount().send().component1();
+			ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
+			Tuple3<List<String>, BigInteger, String> result = 
+					contract.getTracesByValue(traceId, BigInteger.ZERO, tracesCount.subtract(BigInteger.ONE)).send();
+			ResultCode rc = ResultCode.fromId(result.component2());
+			if (rc == ResultCode.SUCCESS) {
+				List<String> tracesStr = result.component1();
+				trace = tracesStr.stream()
+						.map(ts -> {
+							try {
+								return om.readValue(ts, TraceBase.class);
+							} catch (JsonProcessingException e) {
+								log.error(Util.getFullStackTrace(e));
+								throw UncheckedExceptionFactory.get(e);
+							}
+						})
+						.filter(t -> t.getId().equals(traceId))
 						.findFirst().orElse(null);
-				if (trace != null) {
-					break;
-				}
-			}
-			if (trace == null) {
-				BigInteger numEls = tracesCount.mod(PG_SIZE);
-				if (numEls.compareTo(BigInteger.ZERO) == 1)
-					trace = getTracesSubArray(tracesCount.subtract(numEls), numEls)
-							.stream().filter(t -> t.getId().equals(traceId))
-							.findFirst().orElse(null);
+			} else {
+				String msg = result.component3();
+				log.error("Error from the blockchain code " + rc.name() 
+					+ " with message '" + msg + "'");
 			}
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 		}
 		return trace;
 	}
+
+//	@Override
+//	public TraceBase getTraceById(String traceId) {
+//		TraceBase trace = null;
+//
+//		try {
+//			BigInteger tracesCount = contract.getTracesCount().send();
+//			BigInteger steps = tracesCount.divide(PG_SIZE);
+//			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
+//				trace = getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE)
+//						.stream().filter(t -> t.getId().equals(traceId))
+//						.findFirst().orElse(null);
+//				if (trace != null) {
+//					break;
+//				}
+//			}
+//			if (trace == null) {
+//				BigInteger numEls = tracesCount.mod(PG_SIZE);
+//				if (numEls.compareTo(BigInteger.ZERO) == 1)
+//					trace = getTracesSubArray(tracesCount.subtract(numEls), numEls)
+//							.stream().filter(t -> t.getId().equals(traceId))
+//							.findFirst().orElse(null);
+//			}
+//		} catch (Exception e) {
+//			log.error(Util.getFullStackTrace(e));
+//		}
+//		return trace;
+//	}
 	
 	@Override
 	protected ChaimeleonTracer_V1 deployContract() {
@@ -181,18 +238,28 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	
 	protected List<TraceBase> getTracesSubArray(BigInteger startPos, BigInteger maxNumElems) throws Exception {
 		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
-		List<String> tracesStr = contract.getTracesSubarray(startPos, maxNumElems).send();
-		List<TraceBase> traces = tracesStr.stream()
-				.map(ts -> {
-					try {
-						return om.readValue(ts, TraceBase.class);
-					} catch (JsonProcessingException e) {
-						log.error(Util.getFullStackTrace(e));
-						throw UncheckedExceptionFactory.get(e);
-					}
-				})
-				.collect(Collectors.toList());
-		return traces;
+		Tuple3<List<String>,BigInteger,String> result = contract.getTracesSubarray(startPos, maxNumElems).send();
+		ResultCode rc = ResultCode.fromId(result.component2());
+		if (rc == ResultCode.SUCCESS) {
+			List<String> tracesStr = result.component1();
+			List<TraceBase> traces = tracesStr.stream()
+					.map(ts -> {
+						try {
+							return om.readValue(ts, TraceBase.class);
+						} catch (JsonProcessingException e) {
+							log.error(Util.getFullStackTrace(e));
+							throw UncheckedExceptionFactory.get(e);
+						}
+					})
+					.collect(Collectors.toList());
+			return traces;
+		} else {
+			String msg = result.component3();
+			log.error("Error from the blockchain code " + rc.name() 
+				+ " with message '" + msg + "'");
+			return List.of();
+			
+		}
 	}
 
 	@Override
@@ -203,20 +270,31 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos) {
 		try {
-			List<String> tracesStr = contract.getTracesByValue(value, startPos, endPos).send();
-			ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
-			List<TraceSummaryBase> traces = tracesStr.stream()
-					.map(ts -> {
-						try {
-							TraceBase tb = om.readValue(ts, TraceBase.class);
-							return tb.toSummary();
-						} catch (JsonProcessingException e) {
-							log.error(Util.getFullStackTrace(e));
-							throw UncheckedExceptionFactory.get(e);
-						}
-					})
-					.collect(Collectors.toList());
-			return traces;
+			Tuple3<List<String>,BigInteger,String> result = contract.getTracesByValue(value, startPos, endPos).send();
+			ResultCode rc = ResultCode.fromId(result.component2());
+			if (rc == ResultCode.SUCCESS) {
+				List<String> tracesStr = result.component1();
+				ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
+				List<TraceSummaryBase> traces = tracesStr.stream()
+						.map(ts -> {
+							try {
+								TraceBase tb = om.readValue(ts, TraceBase.class);
+								return tb.toSummary();
+							} catch (JsonProcessingException e) {
+								log.error(Util.getFullStackTrace(e));
+								throw UncheckedExceptionFactory.get(e);
+							}
+						})
+						.collect(Collectors.toList());
+				return traces;
+			} else {
+				String msg = result.component3();
+				log.error("Error from the blockchain code " + rc.name() 
+					+ " with message '" + msg + "'");
+				return null;
+				
+			}
+				
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 			return List.of();
@@ -226,7 +304,17 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public BigInteger getTracesCount() {
 		try {
-			return contract.getTracesCount().send();
+			Tuple3<BigInteger,BigInteger,String> result = contract.getTracesCount().send();
+			ResultCode rc = ResultCode.fromId(result.component2());
+			if (rc == ResultCode.SUCCESS) {
+				return result.component1();
+			} else {
+				String msg = result.component3();
+				log.error("Error from the blockchain code " + rc.name() 
+					+ " with message '" + msg + "'");
+				return null;
+				
+			}
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 			return null;

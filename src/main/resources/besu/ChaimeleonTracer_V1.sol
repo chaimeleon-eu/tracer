@@ -5,6 +5,12 @@ error ParamsError(string msg);
 
 contract ChaimeleonTracer_V1 {
     
+    /**
+     * Maintains the codes returned by the contract.
+     * Starts with 0, always leave SUCCESS as the first item
+     */
+    enum ReturnCode { SUCCESS, PARAMS_ERROR } 
+    
     TraceEntry[] internal traces;
     
     string internal name = "ChaimeleonTracer_V1";
@@ -131,24 +137,30 @@ contract ChaimeleonTracer_V1 {
     
 
     
-    function addTrace(uint64 eTime, string memory trace) public {//onlyOwner{
+    function addTrace(uint64 eTime, string memory trace) public 
+            returns (ReturnCode, string memory) {//onlyOwner{
         traces.push(TraceEntry(block.timestamp, eTime, msg.sender, trace));
+        return (ReturnCode.SUCCESS, "");
         //uint256 len = traces.push();
         //traces[len-1] = t;
         //tracesCount += 1; 
     }
     
-    function getTracesCount() public view returns (uint256) {
-        return traces.length;
+    function getTracesCount() public view 
+            returns (uint256, ReturnCode, string memory) {
+        return (traces.length, ReturnCode.SUCCESS, "");
     }
     
-    function getTracesPossByValue(string memory value, uint sP, uint eP)  public view returns (uint[] memory, uint) {
+    function getTracesPossByValue(string memory value, uint sP, uint eP)  internal view 
+            returns (uint[] memory, uint, ReturnCode, string memory) {
         uint len = traces.length;
         if (sP > eP) {
-            revert ParamsError("start position greater than end position");
+            //revert ParamsError("start position greater than end position");
+            return (new uint[](0), 0, ReturnCode.PARAMS_ERROR, "start position greater than end position");
         }
         if (eP >= len) {
-            revert ParamsError("end position higher/equal than/to traces count");            
+            //revert ParamsError("end position higher/equal than/to traces count");
+            return (new uint[](0), 0, ReturnCode.PARAMS_ERROR, "end position higher/equal than/to traces count");   
         }
         uint n = eP - sP + 1;
         slice memory vS = toSlice(value);
@@ -168,66 +180,100 @@ contract ChaimeleonTracer_V1 {
                 assembly { mstore(ps, sub(mload(ps),  redSize)) }
             }
         }
-        return (ps, e);//FoundTracesPoss(ps, e);
+        return (ps, e, ReturnCode.SUCCESS, "");//FoundTracesPoss(ps, e);
     }
     
-    function getTracesByValue(string memory value, uint sP, uint eP)  public view returns (string[] memory) {        
+    function getTracesByValue(string memory value, uint sP, uint eP)  public view 
+            returns (string[] memory, ReturnCode, string memory) {        
         //FoundTracesPoss fTP
-        uint[] memory poss;
-        uint rc;
-        (poss, rc) = getTracesPossByValue(value, sP, eP);        
-        string[] memory rs = new string[](rc);
-        for (uint i=0; i<rc; i++) {
-            rs[i] = traces[poss[i]].trace;
+        (uint[] memory poss, uint rc, ReturnCode code, string memory message) = getTracesPossByValue(value, sP, eP);
+        if (code == ReturnCode.SUCCESS) {  
+            string[] memory rs = new string[](rc);
+            for (uint i=0; i<rc; i++) {
+                rs[i] = traces[poss[i]].trace;
+            }
+            return (rs, code, message);        
+        } else {
+            return (new string[](0), code, message);
         }
-        return rs;
     }
     
-    function getFullTracesByValue(string memory value, uint sP, uint eP)  public view returns (TraceEntry[] memory) {        
+    function getFullTracesByValue(string memory value, uint sP, uint eP)  public view 
+            returns (TraceEntry[] memory, ReturnCode, string memory) {        
         //FoundTracesPoss fTP 
-        uint[] memory poss;
-        uint rc;
-        (poss, rc) = getTracesPossByValue(value, sP, eP);        
-        TraceEntry[] memory rs = new TraceEntry[](rc);
-        for (uint i=0; i<rc; i++) {
-            rs[i] = traces[poss[i]];//.trace;
+        (uint[] memory poss, uint rc, ReturnCode code, string memory message) = getTracesPossByValue(value, sP, eP);   
+        if (code == ReturnCode.SUCCESS) {       
+            TraceEntry[] memory rs = new TraceEntry[](rc);
+            for (uint i=0; i<rc; i++) {
+                rs[i] = traces[poss[i]];//.trace;
+            }
+            return (rs, code, message);
+            
+        } else {
+            return (new TraceEntry[](0), code, message);
         }
-        return rs;
     }
     
-    function getTracesSubarray(uint startPos, uint maxNumElems) public view returns (string[] memory) {       
+    function getFullTracesSubarray(uint startPos, uint maxNumElems) public view 
+            returns (TraceEntry[] memory, ReturnCode, string memory) {       
         uint len = traces.length;
         if (startPos < len) {
             uint numElems = maxNumElems;
-            if ((startPos + maxNumElems - 1) > len) {
-                numElems = len - startPos + 1;
+            if (startPos + maxNumElems > len) {
+                numElems = len - startPos;
+            }
+            //TraceEntry[] memory r = new TraceEntry[](numElems);
+            TraceEntry[] memory r = new TraceEntry[](numElems);
+            for (uint i=0; i<numElems; i++) {
+                r[i] = traces[startPos + i];//.trace;
+            }
+            return (r, ReturnCode.SUCCESS, "");
+        } else {
+            //return new TraceEntry[](0);
+            return (new TraceEntry[](0), ReturnCode.PARAMS_ERROR, "start position greater or equal to the number of traces");
+        }
+        
+    }
+    
+    function getTracesSubarray(uint startPos, uint maxNumElems) public view 
+            returns (string[] memory, ReturnCode, string memory) {       
+        uint len = traces.length;
+        if (startPos < len) {
+            uint numElems = maxNumElems;
+            if (startPos + maxNumElems > len) {
+                numElems = len - startPos;
             }
             //TraceEntry[] memory r = new TraceEntry[](numElems);
             string[] memory r = new string[](numElems);
             for (uint i=0; i<numElems; i++) {
                 r[i] = traces[startPos + i].trace;
             }
-            return r;
+            return (r, ReturnCode.SUCCESS, "");
         } else {
             //return new TraceEntry[](0);
-            return new string[](0);
+            return (new string[](0), ReturnCode.PARAMS_ERROR, "start position greater or equal to the number of traces");
         }
     }
     
-    function getContractName() public view returns(string memory){
-         return name;
+    function getContractName() public view 
+            returns(string memory, ReturnCode, string memory){
+         return (name, ReturnCode.SUCCESS, "");
     }
     
-    function getOwner() public view returns(address){
-         return owner;
+    function getOwner() public view
+            returns(address, ReturnCode, string memory){
+         return (owner, ReturnCode.SUCCESS, "");
     }
     
-    function getTracesPossByValueResize() public view returns(bool){
-        return rTPBV;
+    function getTracesPossByValueResize() public view 
+            returns(bool, ReturnCode, string memory){
+        return (rTPBV, ReturnCode.SUCCESS, "");
     }
     
-    function setTracesPossByValueResize(bool newVal) public {
+    function setTracesPossByValueResize(bool newVal) public 
+            returns (ReturnCode, string memory) {
         rTPBV = newVal;
+        return (ReturnCode.SUCCESS, "");
     }
     
 //    function getTracesByDatasetId(string memory datasetId) public view returns (string[] memory) {
