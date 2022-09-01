@@ -72,10 +72,24 @@ tracer:
     hashAlgorithm: SHA3-256
     time:
         useLocal: false
+        ntpTimeout: 5000
         timeServers: 
-            - time-e-g.nist.gov
+            - pool.ntp.org
+            - time.nist.gov
             - time-a-g.nist.gov
+            - time-b-g.nist.gov
+            - time-c-g.nist.gov
+            - time-d-g.nist.gov
+            - time-e-g.nist.gov
+            - time-a-wwv.nist.gov
+            - time-b-wwv.nist.gov
+            - time-c-wwv.nist.gov
+            - time-d-wwv.nist.gov
             - time-e-wwv.nist.gov
+            - time-a-b.nist.gov
+            - time-b-b.nist.gov
+            - utcnist.colorado.edu
+            - utcnist2.colorado.edu
         retries: 3
     info:
         yearMin: 2021
@@ -94,7 +108,7 @@ blockchain:
         private:
             enabled: true
             name: "Besu Private"
-            url: http://127.0.0.1:39499/rpc
+            url: http://127.0.0.1:35395/rpc
             contracts:
                 - name: ChaimeleonTracer_V1
                   enable: 

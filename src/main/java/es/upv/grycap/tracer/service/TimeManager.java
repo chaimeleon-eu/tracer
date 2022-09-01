@@ -2,11 +2,13 @@ package es.upv.grycap.tracer.service;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class TimeManager {
+	
 	protected TracerTime tracerTime;
 	
-	public TimeManager(@Value("${tracer.time}") TracerTime tracerTime) {
+	public TimeManager(@Autowired final TracerTime tracerTime) {
 		this.tracerTime = tracerTime;
 		
 	}
@@ -35,6 +38,7 @@ public class TimeManager {
 			return Instant.now().toEpochMilli();
 		} else { 
 	        NTPUDPClient timeClient = new NTPUDPClient();
+	        timeClient.setDefaultTimeout(tracerTime.getNtpTimeout());
 	        InetAddress inetAddress;
 	        Long id = null;
 	        for (String timeServer: tracerTime.getTimeServers()) {
@@ -45,6 +49,9 @@ public class TimeManager {
 				        TimeInfo timeInfo = timeClient.getTime(inetAddress);
 				        id =  timeInfo.getMessage().getTransmitTimeStamp().getTime();
 						TimeUnit.MILLISECONDS.sleep(2);
+					} catch (SocketTimeoutException e) {
+						log.error("Error getting the timespamp: " + e.getLocalizedMessage());
+						--retries;
 					} catch (IOException | InterruptedException e) {
 						log.error("Error getting the timespamp", e);
 						--retries;
