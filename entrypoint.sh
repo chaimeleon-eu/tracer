@@ -13,7 +13,8 @@ if [ -f $FILE ]; then
     DATE=`date -u +"%Y-%m-%dT%H-%M-%SZ"`
     NEW_FILE=$FILE.$DATE.tar.gz
     echo "Cache DB $FILE exists, create backup $NEW_FILE"
-    env GZIP=-9  tar -czvf $NEW_FILE $FILE
+    env GZIP=-9  tar -czvf $NEW_FILE -C ${BASE_DIR} $FILE
+    ls -al ${BASE_DIR}
 else
     echo  echo "Cache DB $FILE doesn't exists"
 fi
