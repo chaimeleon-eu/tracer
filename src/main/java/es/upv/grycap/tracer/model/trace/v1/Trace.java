@@ -82,9 +82,9 @@ public class Trace extends TraceBase {
 	public TraceSummaryBase toSummary() {
 		TraceSummary trs = new TraceSummary();
 		trs.setCallerId(callerId);
-		trs.setCreationDate(Instant.ofEpochMilli(Long.parseLong(id)));
+		//trs.setCreationDate(Instant.ofEpochMilli(Long.parseLong(timestamp)));
 		trs.setId(id);
-		trs.setTimestamp(timestamp);
+		trs.setTimestamp(Instant.ofEpochMilli(Long.parseLong(timestamp)));
 		trs.setUserAction(userAction);
 		trs.setUserId(userId);
 		return trs;

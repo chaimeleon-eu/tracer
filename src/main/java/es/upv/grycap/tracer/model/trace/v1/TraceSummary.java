@@ -30,11 +30,7 @@ public class TraceSummary extends TraceSummaryBase {
 	 * The ID of the trace, independent of any storage solutions
 	 */
 	protected String id;
-	
-	/**
-	 * The moment where this trace was created at
-	 */
-	protected Instant creationDate;
+
 	
 	public TraceSummary() {
 		super(VERSION);
