@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -27,6 +28,7 @@ import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.Contract;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
+import org.web3j.tx.gas.StaticGasProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +42,7 @@ import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.besu.BesuProperties;
 import es.upv.grycap.tracer.model.besu.ChaimeleonTracer_V1;
 import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfo;
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
@@ -74,8 +77,8 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	
 	protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
 
-	public HandlerChaimeleonTracer_V1(String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
-		super(url, props, credentials, timeManager);
+	public HandlerChaimeleonTracer_V1( BlockchainType btype, String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
+		super(btype, url, props, credentials, timeManager);
 	}
 
 	@Override
@@ -90,6 +93,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		String resultMsg = null;
 		ReqCacheStatus resultStatus = null;
 		String tId = null;
+		
 		try {
 			TransactionReceipt receipt = contract.addTrace(BigInteger.valueOf(timeManager.getTime()), om.writeValueAsString(entry)).send();
 			tId = receipt.getTransactionHash();
@@ -148,7 +152,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
 		try {
 			BigInteger tracesCount = contract.getTracesCount().send().component1();
-			List<TraceBase> traces = new ArrayList<>();
+			Collection<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
 				traces.addAll(getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE));
@@ -156,6 +160,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 			BigInteger numEls = tracesCount.mod(PG_SIZE);
 			if (numEls.compareTo(BigInteger.ZERO) == 1)
 				traces.addAll(getTracesSubArray(tracesCount.subtract(numEls), numEls));
+			traces = filterParams.filterTraces(btype, traces);
 			return traces.stream().map(e -> e.toSummary()).toList();
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));

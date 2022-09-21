@@ -3,6 +3,10 @@ cache-db-name: tracer.db
 
 server:
     port: 8090
+    max-http-header-size: 20MB
+    tomcat:
+        max-swallow-size: 150MB
+        max-http-post-size: 150MB
     ssl:
         key-store-type: PKCS12
         key-store: ${HOME}/cert/tracer.p12
@@ -22,6 +26,14 @@ keycloak:
     bearer-only: true
     
 spring:
+    servlet:
+        multipart: 
+            max-file-size: 100MB
+            max-request-size: 100MB
+    http:
+        multipart:
+            max-file-size: 100MB
+            max-request-size: 100MB
     h2.console.enabled: true
     datasource:
         url: jdbc:h2:file:${base-dir}/${cache-db-name};DB_CLOSE_ON_EXIT=FALSE
@@ -71,7 +83,7 @@ tracer:
         password: change_me
     hashAlgorithm: SHA3-256
     time:
-        useLocal: false
+        useLocal: true
         ntpTimeout: 5000
         timeServers: 
             - pool.ntp.org
@@ -108,7 +120,7 @@ blockchain:
         private:
             enabled: true
             name: "Besu Private"
-            url: http://127.0.0.1:35395/rpc
+            url: http://127.0.0.1/rpc
             contracts:
                 - name: ChaimeleonTracer_V1
                   enable: 

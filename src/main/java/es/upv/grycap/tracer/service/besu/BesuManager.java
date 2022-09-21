@@ -1,6 +1,7 @@
 package es.upv.grycap.tracer.service.besu;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +68,7 @@ import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
+import es.upv.grycap.tracer.model.trace.TraceVersion;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.service.BlockchainManager;
@@ -140,9 +142,9 @@ public class BesuManager implements BlockchainManager {
 				.map(cl -> {
 					Constructor<? extends HandlerBesuContract> cons;
 					try {
-						cons = cl.getConstructor(String.class, 
+						cons = cl.getConstructor(BlockchainType.class, String.class, 
 								BesuProperties.class, Credentials.class, TimeManager.class);
-						HandlerBesuContract<?> obj = cons.newInstance(props.getUrl(), props, credentials, timeManager);
+						HandlerBesuContract<?> obj = cons.newInstance(getType(), props.getUrl(), props, credentials, timeManager);
 						if (obj.isEnabled()) {
 							log.info("Contract " + obj.getContractName() 
 									+ " initialized with "
@@ -274,6 +276,8 @@ public class BesuManager implements BlockchainManager {
 		List<TraceSummaryBase> result = new ArrayList<>();
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
 			if (handler.canRead()) {
+//				if (filterParams.hasBlockchains() && !filterParams.containsBlockchain(getType()))
+//					continue;
 				log.info("Searching traces on contract " + handler.getContractName());
 				List<TraceSummaryBase> partialResult = handler.getTraces(filterParams);
 				result.addAll(partialResult);

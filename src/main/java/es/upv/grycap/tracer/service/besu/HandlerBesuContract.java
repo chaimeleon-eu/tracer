@@ -33,6 +33,7 @@ import es.upv.grycap.tracer.model.besu.BesuDeployedContract;
 import es.upv.grycap.tracer.model.besu.BesuProperties;
 import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfo;
 import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfoEnable;
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
@@ -57,10 +58,13 @@ public abstract class HandlerBesuContract<T extends Contract> {
 	
 	protected T contract;
 	
-	public HandlerBesuContract(String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
+	protected BlockchainType btype;
+	
+	public HandlerBesuContract( BlockchainType btype, String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
 		this.url = url;
 		this.credentials = credentials;
 		this.timeManager = timeManager;
+		this.btype = btype;
 		for (ContractInfo ci: props.getContracts()) {
 			if (ci.getName().equalsIgnoreCase(getContractName())) {
 				this.contractInfo = ci;
