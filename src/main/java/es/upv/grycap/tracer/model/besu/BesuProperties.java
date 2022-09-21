@@ -1,5 +1,6 @@
 package es.upv.grycap.tracer.model.besu;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,6 +18,16 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 public class BesuProperties extends BlockchainProperties {
+	
+	@Getter
+	@Setter
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Gas {
+		
+		protected BigInteger price;
+		protected BigInteger limit;
+	}
 	
 	@Getter
 	@Setter
@@ -41,6 +52,7 @@ public class BesuProperties extends BlockchainProperties {
 		protected String name;		
 		protected ContractInfoEnable enable;
 		protected String deployed;
+		protected Gas gas;
 	}
 	
 	/**
@@ -64,6 +76,14 @@ public class BesuProperties extends BlockchainProperties {
 		 * Contract allows reading of the existing traces
 		 */
 		protected boolean read;
+		
+		/**
+		 * 
+		 * @return if the contract allows at least one operation
+		 */
+		public boolean isEnabled() {
+			return add || read;
+		}
 	}
 
 	

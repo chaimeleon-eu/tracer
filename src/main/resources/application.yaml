@@ -127,6 +127,9 @@ blockchain:
                     add: true
                     read:  true              
                   deployed: ${base-dir}/besu/contract/ChaimeleonTracer_V1.json
+                  gas:
+                    price: 0
+                    limit: 9007199254740990
             wallet:
                 password: eth-test
                 path: ${base-dir}/besu/wallet
