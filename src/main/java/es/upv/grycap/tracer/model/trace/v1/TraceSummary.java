@@ -24,12 +24,9 @@ public class TraceSummary extends TraceSummaryBase {
 	/**
 	 * The action of a user (person, application, service etc.) represented by this trace
 	 */
-	protected UserAction userAction;
+	protected UserAction userAction;	
 	
-	/**
-	 * The ID of the trace, independent of any storage solutions
-	 */
-	protected String id;
+	protected String details;
 
 	
 	public TraceSummary() {
