@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -145,6 +146,7 @@ public class BesuManager implements BlockchainManager {
 						cons = cl.getConstructor(BlockchainType.class, String.class, 
 								BesuProperties.class, Credentials.class, TimeManager.class);
 						HandlerBesuContract<?> obj = cons.newInstance(getType(), props.getUrl(), props, credentials, timeManager);
+						obj.init();
 						if (obj.isEnabled()) {
 							log.info("Contract " + obj.getContractName() 
 									+ " initialized with "
@@ -162,7 +164,7 @@ public class BesuManager implements BlockchainManager {
 				})
 				.filter(handler -> handler != null)
 				.collect(Collectors.toUnmodifiableMap(HandlerBesuContract::getContractName, Function.identity()));
-		HandlerBesuContract<?> hbs = handlersByContractName.values().iterator().next();
+		//HandlerBesuContract<?> hbs = handlersByContractName.values().iterator().next();
 
 //		log.info("traces count: " + hbs.getTracesCount());
 //		hbs.getTracesByValue("CREATE_DATASET", BigInteger.valueOf(0), BigInteger.valueOf(0))
@@ -236,12 +238,17 @@ public class BesuManager implements BlockchainManager {
 
 	@Override
 	public TraceCacheOpResult submitTrace(TraceBase entry, String callerUserId) {
-		TraceCacheOpResult result = null;
+		TraceCacheOpResult result = checkContractsInited();
+		if (result != null)
+			return result;
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
-			if (handler.canAdd()) {
-				log.info("Add trace to contract " + handler.getContractName());
-				result = handler.submitTrace(entry, callerUserId);
-			}
+				if (handler.canAdd()) {
+					log.info("Add trace to contract " + handler.getContractName());
+					result = handler.submitTrace(entry, callerUserId);
+				} else {
+					log.info("Contract " + handler.getContractName() + " cannot add traces.");
+				} 
+			
 		}
 		return result;
 	}
@@ -252,14 +259,18 @@ public class BesuManager implements BlockchainManager {
 	public TraceCacheOpResult getTransactionStatusById(String transactionId) {
 		TraceCacheOpResult result = null;
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
-			if (handler.canRead()) {
-				log.info("Searching transaction with ID '" 
-						+ transactionId
-						+ "' on contract " + handler.getContractName());
-				result = handler.getTransactionStatusById(transactionId);
-				if (result.getStatus() != ReqCacheStatus.BLOCKCHAIN_NOT_FOUND) {
-					break;
+			if (handler.isInited()) {
+				if (handler.canRead()) {
+					log.info("Searching transaction with ID '" 
+							+ transactionId
+							+ "' on contract " + handler.getContractName());
+					result = handler.getTransactionStatusById(transactionId);
+					if (result.getStatus() != ReqCacheStatus.BLOCKCHAIN_NOT_FOUND) {
+						break;
+					}
 				}
+			} else {
+				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
 			}
 		}
 		if (result == null) {
@@ -275,12 +286,16 @@ public class BesuManager implements BlockchainManager {
 	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
 		List<TraceSummaryBase> result = new ArrayList<>();
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
-			if (handler.canRead()) {
-//				if (filterParams.hasBlockchains() && !filterParams.containsBlockchain(getType()))
-//					continue;
-				log.info("Searching traces on contract " + handler.getContractName());
-				List<TraceSummaryBase> partialResult = handler.getTraces(filterParams);
-				result.addAll(partialResult);
+			if (handler.isInited()) {
+				if (handler.canRead()) {
+	//				if (filterParams.hasBlockchains() && !filterParams.containsBlockchain(getType()))
+	//					continue;
+					log.info("Searching traces on contract " + handler.getContractName());
+					List<TraceSummaryBase> partialResult = handler.getTraces(filterParams);
+					result.addAll(partialResult);
+				}
+			} else {
+				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
 			}
 		}
 		return result;
@@ -292,16 +307,32 @@ public class BesuManager implements BlockchainManager {
 	public TraceBase getTraceById(String traceId) {
 		TraceBase trace = null;
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
-			if (handler.canRead()) {
-				log.info("Searching trace ID '" + traceId
-						+ "' on contract " + handler.getContractName());
-				trace = handler.getTraceById(traceId);
-				if (trace != null) {
-					break;
+			if (handler.isInited()) {
+				if (handler.canRead()) {
+					log.info("Searching trace ID '" + traceId
+							+ "' on contract " + handler.getContractName());
+					trace = handler.getTraceById(traceId);
+					if (trace != null) {
+						break;
+					}
 				}
+			} else {
+				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
 			}
 		}
 		return trace;
+	}
+	
+	protected TraceCacheOpResult checkContractsInited() {
+
+		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
+			if (!handler.isInited()) {
+				return new TraceCacheOpResult("Contract " + handler.getContractName() 
+					+ " is not inited. Cannot continue untill all enabled contracts are inited.",
+						ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE, null);
+			}
+		}
+		return null;
 	}
 
 }

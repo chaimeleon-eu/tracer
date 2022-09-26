@@ -25,7 +25,9 @@ public class TraceSummary extends TraceSummaryBase {
 	 * The action of a user (person, application, service etc.) represented by this trace
 	 */
 	protected UserAction userAction;	
-	
+	/**
+	 * Additional details for a trace, such as the update operation info
+	 */
 	protected String details;
 
 	

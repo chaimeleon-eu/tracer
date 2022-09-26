@@ -83,7 +83,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 
 	@Override
 	protected ChaimeleonTracer_V1 loadContract(String address) {
-		return ChaimeleonTracer_V1.load(address, web3j, credentials, getGasProvider());
+		return ChaimeleonTracer_V1.load(address, web3j, credentials, gasProvider);
 	}
 
 	@Override
@@ -95,7 +95,8 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		String tId = null;
 		
 		try {
-			TransactionReceipt receipt = contract.addTrace(BigInteger.valueOf(timeManager.getTime()), om.writeValueAsString(entry)).send();
+			contract.get().setGasProvider(gasProvider);
+			TransactionReceipt receipt = contract.get().addTrace(BigInteger.valueOf(timeManager.getTime()), om.writeValueAsString(entry)).send();
 			tId = receipt.getTransactionHash();
 			if (!receipt.isStatusOK()) {
 				resultMsg = receipt.getStatus();
@@ -151,7 +152,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
 		try {
-			BigInteger tracesCount = contract.getTracesCount().send().component1();
+			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
 			Collection<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
@@ -173,10 +174,10 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		TraceBase trace = null;
 
 		try {
-			BigInteger tracesCount = contract.getTracesCount().send().component1();
+			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
 			ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 			Tuple3<List<String>, BigInteger, String> result = 
-					contract.getTracesByValue(traceId, BigInteger.ZERO, tracesCount.subtract(BigInteger.ONE)).send();
+					contract.get().getTracesByValue(traceId, BigInteger.ZERO, tracesCount.subtract(BigInteger.ONE)).send();
 			ResultCode rc = ResultCode.fromId(result.component2());
 			if (rc == ResultCode.SUCCESS) {
 				List<String> tracesStr = result.component1();
@@ -234,7 +235,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	protected ChaimeleonTracer_V1 deployContract() {
 		try {
 			return ChaimeleonTracer_V1.deploy(
-					web3j, credentials, getGasProvider()).send();
+					web3j, credentials, gasProvider).send();
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 			throw new BesuException(e);
@@ -243,7 +244,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	
 	protected List<TraceBase> getTracesSubArray(BigInteger startPos, BigInteger maxNumElems) throws Exception {
 		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
-		Tuple3<List<String>,BigInteger,String> result = contract.getTracesSubarray(startPos, maxNumElems).send();
+		Tuple3<List<String>,BigInteger,String> result = contract.get().getTracesSubarray(startPos, maxNumElems).send();
 		ResultCode rc = ResultCode.fromId(result.component2());
 		if (rc == ResultCode.SUCCESS) {
 			List<String> tracesStr = result.component1();
@@ -275,7 +276,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos) {
 		try {
-			Tuple3<List<String>,BigInteger,String> result = contract.getTracesByValue(value, startPos, endPos).send();
+			Tuple3<List<String>,BigInteger,String> result = contract.get().getTracesByValue(value, startPos, endPos).send();
 			ResultCode rc = ResultCode.fromId(result.component2());
 			if (rc == ResultCode.SUCCESS) {
 				List<String> tracesStr = result.component1();
@@ -309,7 +310,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public BigInteger getTracesCount() {
 		try {
-			Tuple3<BigInteger,BigInteger,String> result = contract.getTracesCount().send();
+			Tuple3<BigInteger,BigInteger,String> result = contract.get().getTracesCount().send();
 			ResultCode rc = ResultCode.fromId(result.component2());
 			if (rc == ResultCode.SUCCESS) {
 				return result.component1();

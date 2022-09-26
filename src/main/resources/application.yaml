@@ -121,6 +121,8 @@ blockchain:
             enabled: true
             name: "Besu Private"
             url: http://127.0.0.1/rpc
+            # in seconds, when the network is not reachable
+            retryConnect: 20
             contracts:
                 - name: ChaimeleonTracer_V1
                   enable: 

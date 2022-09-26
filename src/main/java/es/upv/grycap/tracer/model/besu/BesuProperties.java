@@ -86,7 +86,7 @@ public class BesuProperties extends BlockchainProperties {
 		}
 	}
 
-	
+	protected int retryConnect;
 	protected List<ContractInfo> contracts;
 	protected WalletInfo wallet;
 }
