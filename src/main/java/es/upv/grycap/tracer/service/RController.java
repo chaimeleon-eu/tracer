@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.activation.UnsupportedDataTypeException;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 
 import org.apache.commons.codec.binary.Hex;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -87,6 +89,10 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
+	//@RolesAllowed({"ROLE_TRACE_WRITER", "ROLE_ADMIN"})
+    @PreAuthorize("isAuthenticated()" 
+    		+ " && ( hasRole(T(es.upv.grycap.tracer.model.TracerRoles).TRACE_WRITER.toRole())"
+    		+ " ||   hasRole(T(es.upv.grycap.tracer.model.TracerRoles).ADMIN.toRole()) )")
     public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
     	final Collection<TraceCacheSummary> summaries = bcManager.addTrace(authentication, logRequest);
@@ -94,6 +100,7 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTracesCache(Authentication authentication,
     		@RequestParam(name = "detailed", required=false) Boolean detailed) 
     		throws UnsupportedDataTypeException {
@@ -102,6 +109,8 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces/cache/{id}", method = RequestMethod.DELETE, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("#username == authentication.principal.username")
     public ResponseEntity<?> deleteTracesCache(Authentication authentication,
     		@PathVariable("id") UUID id) 
     		throws UnsupportedDataTypeException {
@@ -138,6 +147,7 @@ public class RController {
      * @throws MissingServletRequestParameterException
      */
     @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTraces(Authentication authentication, 
     		@RequestParam(name = "userId", required=false) List<String> usersIds,
     		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
@@ -163,11 +173,13 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getProviders(Authentication authentication) {
     	return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/{traceId}", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTrace(Authentication authentication,
     		@PathVariable("traceId") String traceId) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
         return new ResponseEntity<>(bcManager.getTraceById(traceId), new HttpHeaders(), HttpStatus.OK);
@@ -180,14 +192,12 @@ public class RController {
 //    }
     
     @RequestMapping(value = "/static/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getActions(Authentication authentication) {
-    	
+    public ResponseEntity<?> getActions(Authentication authentication) {    	
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/static/traces/dataset_update_details", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {
-    	
+    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {    	
         return new ResponseEntity<>(TraceUpdateDetails.values(), new HttpHeaders(), HttpStatus.OK);
     }
     

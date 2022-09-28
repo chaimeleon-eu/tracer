@@ -88,7 +88,7 @@ public class UserManager {
     }
     
     public boolean isAdmin(Authentication authentication) {
-    		return getAuthenticatedUserRoles(authentication).contains("ROLE_" + TracerRoles.TRACER_ADMIN);
+    		return getAuthenticatedUserRoles(authentication).contains(TracerRoles.ADMIN.toRole());
     }
     
 }

@@ -111,7 +111,7 @@ public class SecurityConfig {
 	                configurer = configurer.withDefaultSchema()
 	                		.withUser(User.withUsername(adminName)
 	    			        .password(passwordEncoder().encode(adminPassword))
-	    			        .roles(TracerRoles.TRACER_ADMIN.name()));
+	    			        .roles(TracerRoles.ADMIN.name()));
 	            }			      
 	        }
 
@@ -152,7 +152,7 @@ public class SecurityConfig {
 		@Autowired
 		public void configureGlobal(AuthenticationManagerBuilder auth) {
 		    SimpleAuthorityMapper grantedAuthorityMapper = new SimpleAuthorityMapper();
-		    grantedAuthorityMapper.setPrefix("ROLE_");
+		    grantedAuthorityMapper.setPrefix(TracerRoles.PREFIX);
 
 		    KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
 		    keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(grantedAuthorityMapper);
