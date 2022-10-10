@@ -89,10 +89,8 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
-	//@RolesAllowed({"ROLE_TRACE_WRITER", "ROLE_ADMIN"})
-    @PreAuthorize("isAuthenticated()" 
-    		+ " && ( hasRole(T(es.upv.grycap.tracer.model.TracerRoles).TRACE_WRITER.toRole())"
-    		+ " ||   hasRole(T(es.upv.grycap.tracer.model.TracerRoles).ADMIN.toRole()) )")
+	//@RolesAllowed({"TRACE_WRITER", "ADMIN"})
+    @PreAuthorize("hasAnyAuthority(T(es.upv.grycap.tracer.model.TracerRoles).trace_writer.toRole(), T(es.upv.grycap.tracer.model.TracerRoles).admin.toRole())")
     public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
     	final Collection<TraceCacheSummary> summaries = bcManager.addTrace(authentication, logRequest);

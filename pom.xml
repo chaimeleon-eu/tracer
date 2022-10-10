@@ -36,7 +36,7 @@
         <dep.ver.plugin.jar>2.6</dep.ver.plugin.jar>
         <dep.ver.plugin.checkstyle>3.0.0</dep.ver.plugin.checkstyle>
         <dep.ver.plugin.com.puppycrawl.tools.checkstyle>8.14</dep.ver.plugin.com.puppycrawl.tools.checkstyle>
-        <dep.ver.web3j>4.8.7</dep.ver.web3j>
+        <dep.ver.web3j>4.9.4</dep.ver.web3j>
         <v.org.apache.maven.plugins.maven-compiler-plugin>2.3.2</v.org.apache.maven.plugins.maven-compiler-plugin>
 
     </properties>

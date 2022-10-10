@@ -111,7 +111,7 @@ public class SecurityConfig {
 	                configurer = configurer.withDefaultSchema()
 	                		.withUser(User.withUsername(adminName)
 	    			        .password(passwordEncoder().encode(adminPassword))
-	    			        .roles(TracerRoles.ADMIN.name()));
+	    			        .roles(TracerRoles.admin.toRole()));
 	            }			      
 	        }
 
@@ -158,6 +158,12 @@ public class SecurityConfig {
 		    keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(grantedAuthorityMapper);
 		    auth.authenticationProvider(keycloakAuthenticationProvider);
 		}
+		
+	    @Bean
+	    public KeycloakConfigResolver KeycloakConfigResolver() {
+	        return new KeycloakSpringBootConfigResolver();
+	    }
+
 
 	    @Bean
 	    @Override
