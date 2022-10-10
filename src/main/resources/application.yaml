@@ -24,6 +24,7 @@ keycloak:
     resource: tracer-service
     public-client: true
     bearer-only: true
+    use-resource-role-mappings: true
     
 spring:
     servlet:
@@ -49,26 +50,27 @@ spring:
             hibernate:
                 enable_lazy_load_no_trans: true
         show-sql: true
-    security:
-        oauth2:
-            client:
-                registration:
-                    keycloak:
-                        client-id: tracer-service
-#                        client-secret: 
-                        authorization-grant-type: authorization_code
-                        redirect-uri: http://localhost:8090/api/v1
-                        scope: profile
-#                        realm: CHAIMELEON
-#                        public-client: true
-#                        provider: keycloak
-                provider:
-                    keycloak:
-                        authorization-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/auth
-#                        jwk-set-uri:  https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/certs
-#                        issuer-uri: https://localhost:20000/auth/realms/CHAIMELEON
-                        token-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/token
-                        user-name-attribute: preferred_username
+#     security:
+#         oauth2:
+#             client:
+#                 registration:
+#                     keycloak:
+#                         client-id: tracer-service
+# #                        client-secret: 
+#                         authorization-grant-type: authorization_code
+#                         redirect-uri: http://localhost:8090/api/v1
+#                         scope: profile
+# #                        realm: CHAIMELEON
+# #                        public-client: true
+# #                        provider: keycloak
+#                 provider:
+#                     keycloak:
+#                         authorization-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/auth
+# #                        jwk-set-uri:  https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/certs
+# #                        issuer-uri: https://localhost:20000/auth/realms/CHAIMELEON
+#                         token-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/token
+#                         user-name-attribute: preferred_username
+#                         use-resource-role-mappings: true
                         
 tracer:
     # in KB
@@ -120,7 +122,7 @@ blockchain:
         private:
             enabled: true
             name: "Besu Private"
-            url: http://127.0.0.1/rpc
+            url: http://asaserver.i3m.upv.es:8545
             # in seconds, when the network is not reachable
             retryConnect: 20
             contracts:
@@ -131,7 +133,7 @@ blockchain:
                   deployed: ${base-dir}/besu/contract/ChaimeleonTracer_V1.json
                   gas:
                     price: 0
-                    limit: 9007199254740990
+                    limit: 6700000 #9007199254740990
             wallet:
                 password: eth-test
                 path: ${base-dir}/besu/wallet

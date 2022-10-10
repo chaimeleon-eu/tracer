@@ -31,6 +31,7 @@ import es.upv.grycap.tracer.exceptions.TraceException;
 import es.upv.grycap.tracer.exceptions.UncheckedInterruptedException;
 import es.upv.grycap.tracer.exceptions.UserActionNotSupported;
 import es.upv.grycap.tracer.model.trace.TraceBase;
+import es.upv.grycap.tracer.model.trace.v1.DatasetTool;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateDataset;
 import es.upv.grycap.tracer.model.trace.v1.TraceCreateModel;
@@ -84,6 +85,7 @@ public class TraceHandler {
 			final ReqUseDatasetsDTO req = (ReqUseDatasetsDTO) request;
 			TraceUseDatasets dsTmp = new TraceUseDatasets(id, timestamp);
 			dsTmp.setDatasetsIds(req.getDatasetsIds());
+			dsTmp.setTool(new DatasetTool(req.getToolName(), req.getToolVersion()));
 			ds = dsTmp;
 		} else if (request.getUserAction() == UserAction.CREATE_MODEL) {
 			final ReqCreateModelDTO req = (ReqCreateModelDTO) request;

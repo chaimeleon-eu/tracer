@@ -98,12 +98,13 @@ public abstract class HandlerBesuContract<T extends Contract> {
 			contractInfo.setGas(new Gas(GAS_PRICE, GAS_LIMIT));
 		} else {
 			OkHttpClient.Builder builder = new OkHttpClient.Builder();
-	        builder.connectTimeout(20, TimeUnit.SECONDS);
-	        builder.readTimeout(20, TimeUnit.SECONDS);
+	        builder.connectTimeout(100, TimeUnit.SECONDS);
+	        builder.readTimeout(100, TimeUnit.SECONDS);
 	        HttpService service = new HttpService(url, builder.build(), false);
 			web3j = Web3j.build(service);
 			
 		}
+		log.info("Init gas provider with price " + contractInfo.getGas().getPrice() + " and limit " + contractInfo.getGas().getLimit());
 		gasProvider = new StaticGasProvider(contractInfo.getGas().getPrice(), contractInfo.getGas().getLimit());
 	}
 	
@@ -196,7 +197,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 						+ p.toAbsolutePath().toString()
 						+ " differs from what was found at deployed contract's address: "
 						+  code.getCode());
-				log.info("Deploying contract " + dcs);
+				log.info("Deploying contract " + dcs +  " @ " + url);
 				contract = deployContract();
 				Path newPath = Paths.get(p.toAbsolutePath().toString() + "." + timeManager.getTime() + ".bak");
 				log.info("Store old contract at " + p.toAbsolutePath().toString() + "  in " + newPath.toAbsolutePath().toString());
@@ -207,13 +208,13 @@ public abstract class HandlerBesuContract<T extends Contract> {
 						getContractClass().getCanonicalName(), Instant.ofEpochMilli(timeManager.getTime()));
 				om.writeValue(p.toFile(), dc);
 			} else {
-				log.info("Loading contract from address " + dc.getAddress());
+				log.info("Loading contract from address " + dc.getAddress() + " @ " +  url);
 				contract = loadContract(dc.getAddress());
 			}
 		} else {
 			log.info("No contract found at " + p.toAbsolutePath().toString());
 			if (canAdd()) {
-				log.info("Contract is allowed to add new traces (from app's properties), deploy it on the blockchain");
+				log.info("Contract is allowed to add new traces (from app's properties), deploy it on the blockchain @ " + url);
 				contract = deployContract();
 				log.info("Reload contract code from address : " + contract.getContractAddress());
 				code = web3j.ethGetCode(contract.getContractAddress(), DefaultBlockParameterName.LATEST).send();

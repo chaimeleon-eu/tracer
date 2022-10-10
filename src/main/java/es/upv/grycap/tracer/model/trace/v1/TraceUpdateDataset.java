@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @Setter
-@Slf4j
 //@NoArgsConstructor
 public class TraceUpdateDataset extends TraceDataset {
 	
@@ -35,7 +34,6 @@ public class TraceUpdateDataset extends TraceDataset {
 	public TraceSummaryBase toSummary() {
 		TraceSummary trs = (TraceSummary) super.toSummary();
 		trs.setDetails(details.name());
-		log.info("Show details: " + details.name());
 		return trs;
 	}
 
