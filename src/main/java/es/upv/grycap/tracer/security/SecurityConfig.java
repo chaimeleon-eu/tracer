@@ -13,6 +13,8 @@ import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcess
 import org.keycloak.adapters.springsecurity.filter.QueryParamPresenceRequestMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -53,6 +55,7 @@ public class SecurityConfig {
 	    }
 	}
 	
+	@ConditionalOnProperty(prefix = "tracer.admin", name="enabled", havingValue = "true")
 	@Configuration
 	@Order(1)
 	public class BasicJDBCAuthConf extends WebSecurityConfigurerAdapter {

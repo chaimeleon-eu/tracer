@@ -21,10 +21,11 @@ logging.level.org.springframework.web:
 keycloak:
     auth-server-url: "https://asaserver.i3m.upv.es:20000/auth"
     realm: CHAIMELEON
-    resource: tracer-service
-    public-client: true
+    resource: tracer-webservice
     bearer-only: true
     use-resource-role-mappings: true
+    credentials:
+        secret: secret
     
 spring:
     servlet:
@@ -83,6 +84,7 @@ tracer:
     admin:
         name: admin
         password: change_me
+        enabled: false
     hashAlgorithm: SHA3-256
     time:
         useLocal: true
