@@ -1,5 +1,8 @@
 package es.upv.grycap.tracer.service.caching;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -8,8 +11,10 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import es.upv.grycap.tracer.exceptions.UncheckedJsonMappingException;
 import es.upv.grycap.tracer.exceptions.UncheckedJsonProcessingException;
 import es.upv.grycap.tracer.model.TraceCacheDetailed;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
@@ -55,24 +60,13 @@ public class TraceCacheOpSubmitter implements Supplier<TraceCacheOpResult> {
 	@Override
 	public TraceCacheOpResult get() {
 		//final ReqCacheEntryDetailed rce = reqCacheDetailedRepo.getById(reqCacheEntryId);
-		ITransaction<?> tr = null;
 		try {
 			ObjectMapper om = new ObjectMapper();
 			TraceBase request = om.readValue(trace, TraceBase.class);
-			tr = manager.generateTransaction(request, callerUserId);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			String trId = tr == null ? null : tr.getId();
-			return new TraceCacheOpResult(ExceptionUtils.getStackTrace(e), ReqCacheStatus.ERROR, trId);
-		}
-
-		try {
-			return manager.submitTransaction(tr);
+			return manager.submitTrace(request, callerUserId);
 		} catch(Exception e) {
 			log.error(e.getMessage(), e);
-			String trId = tr == null ? null : tr.getId();
-			return new TraceCacheOpResult(ExceptionUtils.getStackTrace(e), ReqCacheStatus.BLOCKCHAIN_ERROR, trId);
-			
+			return new TraceCacheOpResult(ExceptionUtils.getStackTrace(e), ReqCacheStatus.ERROR, null);
 		}
 //		if (request.getBlockchains() == null) {
 //			managers.values().forEach(mgr -> mgr.addTrace(request, callerUserId));

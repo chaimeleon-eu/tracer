@@ -20,6 +20,8 @@ events {
 }
 
 http {
+  client_max_body_size 1000M;
+
   access_log /dev/stdout combined buffer=16k flush=5s;
 
   # Allow 10 req/sec from the same IP address, and store the counters in a
@@ -61,6 +63,7 @@ http {
 
   # Frontend server for the external clients; acts as HTTPS termination point.
   server {
+    client_max_body_size 1000M;
     listen NODE_FRONTEND_PORT ssl;
     server_name "NODE_FQDN";
 
@@ -92,7 +95,7 @@ http {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
       # max client request body size: avg transaction size.
-      client_max_body_size 15k;
+      client_max_body_size 1000M;
 
       if ($request_method = 'OPTIONS') {
           add_header 'Access-Control-Allow-Origin' '*';

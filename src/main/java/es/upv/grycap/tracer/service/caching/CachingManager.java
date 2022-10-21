@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -103,7 +104,8 @@ public class CachingManager {
     	executorCache.shutdown();
     }
     
-    public TraceCacheSummary addTraceCache(final Authentication authentication, final TraceBase req, final BlockchainManager mgr) {
+    public TraceCacheSummary addTraceCache(final Authentication authentication, 
+    		final TraceBase req, final BlockchainManager mgr) {
 		final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 		String reqStr;
 		try {
@@ -158,7 +160,16 @@ public class CachingManager {
 	public IReqCacheEntry deleteReqCache(final Authentication authentication, UUID id) {
 		// TODO: Careful with removing entity while a thread updates its status 
 		Optional<TraceCacheDetailed> rce = reqCacheDetailedRepo.findById(id);
-		rce.ifPresentOrElse(e -> {reqCacheDetailedRepo.delete(e); reqCacheDetailedRepo.flush();}, 
+		
+		rce.ifPresentOrElse(e -> {
+				if (e.getCallerId().equals(userManager.getCallerUserId(authentication)) 
+						|| userManager.isAdmin(authentication)) {
+					reqCacheDetailedRepo.delete(e); 
+					reqCacheDetailedRepo.flush();
+				} else {
+					throw new AccessDeniedException("You are not authorized to delete this resource.");
+				}
+			}, 
 				() -> {throw new EntityNotFoundException("Request cache with id "+ id + " not found.");});
 		
 		return rce.orElse(null);

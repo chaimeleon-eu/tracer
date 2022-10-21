@@ -5,7 +5,9 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +17,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 //@SuperBuilder
-@NoArgsConstructor
+//@NoArgsConstructor
 public class TraceCreateModel extends TraceModel {
-
-	@JsonIgnore
-	private static final long serialVersionUID = -6536948640006655142L;
+	
+	@JsonCreator
+	public TraceCreateModel(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
+		super(id, timestamp);
+	}
 	
 	/**
 	 * The ID of the created model

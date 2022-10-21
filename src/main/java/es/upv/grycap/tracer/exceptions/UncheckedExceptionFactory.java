@@ -1,5 +1,7 @@
 package es.upv.grycap.tracer.exceptions;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -21,6 +23,8 @@ public class UncheckedExceptionFactory {
 			return new UncheckedSignatureException((SignatureException)ex);
 		else if (ex instanceof UnsupportedDataTypeException)
 			return new UncheckedUnsupportedDataTypeException((UnsupportedDataTypeException)ex);
+		else if (ex instanceof IOException) 
+			return new UncheckedIOException((IOException) ex);
 		else 
 			throw new UnhandledException("Exception of type " + ex.getClass().getCanonicalName() + " not handled");
 	}
