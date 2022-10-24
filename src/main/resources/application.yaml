@@ -1,4 +1,4 @@
-base-dir: ${HOME}/tmp/tracer
+base-dir: ${user.home}/tmp/tracer
 cache-db-name: tracer.db
 
 server:
@@ -9,14 +9,18 @@ server:
         max-http-post-size: 150MB
     ssl:
         key-store-type: PKCS12
-        key-store: ${HOME}/cert/tracer.p12
+        key-store: ${user.home}/cert/tracer.p12
         key-store-password: change_me_key
         key-alias: tracer-service
         enabled: true
       
-logging.level.org.springframework.web:
-    filter.CommonsRequestLoggingFilter: DEBUG
-    reactive.function.client.ExchangeFunctions: DEBUG
+logging:
+    file:
+        path: ${base-dir}/data/logs
+        name: tracer-^project.version^.log
+    level.org.springframework.web:
+        filter.CommonsRequestLoggingFilter: INFO
+        reactive.function.client.ExchangeFunctions: INFO
 
 keycloak:
     auth-server-url: "https://asaserver.i3m.upv.es:20000/auth"
@@ -38,7 +42,7 @@ spring:
             max-request-size: 100MB
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:${base-dir}/${cache-db-name};DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${base-dir}/data/${cache-db-name};DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
@@ -132,7 +136,7 @@ blockchain:
                   enable: 
                     add: true
                     read:  true              
-                  deployed: ${base-dir}/besu/contract/ChaimeleonTracer_V1.json
+                  deployed: ${base-dir}/data/besu/contract/ChaimeleonTracer_V1.json
                   gas:
                     price: 0
                     limit: 6700000 #9007199254740990
@@ -146,5 +150,5 @@ blockchain:
             url: http://asaserver.i3m.upv.es:9984/api/v1
             transactionModePost: commit
             defaultAmountTransaction: 1
-            keypairPrivate: ${base-dir}/bigchaindb/keys/ed25519
-            keypairPublic: ${base-dir}/bigchaindb/keys/ed25519.pub
+            keypairPrivate: ${base-dir}/data/bigchaindb/keys/ed25519
+            keypairPublic: ${base-dir}/data/bigchaindb/keys/ed25519.pub
