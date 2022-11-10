@@ -27,7 +27,7 @@ public interface BlockchainManager {
 	//public ITransaction getTransactionById(final String transactionId);
 	public TraceCacheOpResult getTransactionStatusById(final String transactionId);
 	//public List<Trace> getTraceEntriesByUserId(final String userId);
-	public List<TraceSummaryBase> getTraces(final FilterParams filterParams);
+	public List<TraceSummaryBase> getTraces(final FilterParams filterParams, Integer offset, Integer limit);
 	public TraceBase getTraceById(String traceId);
 	public BlockchainProperties getBlockchainProperties();
 	public BlockchainType getType();

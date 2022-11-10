@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 */
 @Slf4j
 @RestController
-//@CrossOrigin(origins = "http://asaserver.i3m.upv.es:3005", maxAge = 3600)
+@CrossOrigin
 @RequestMapping("/api/v1")
 public class RController {
 	
@@ -82,7 +82,7 @@ public class RController {
 //    }
     
     @RequestMapping(value = "/login", method = RequestMethod.POST, produces = {"application/json"})
-    public ResponseEntity<?> login(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    public ResponseEntity<?> login(Authentication authentication) 
     		throws UnsupportedDataTypeException {
     	
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.ACCEPTED);
@@ -151,7 +151,9 @@ public class RController {
     		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
     		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
     		@RequestParam(name = "userAction", required=false) List<UserAction> userActions,
-    		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains
+    		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains,
+            @RequestParam(name = "offset", required=false) Integer offset, 
+            @RequestParam(name = "limit", required=false) Integer limit
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
 //    	Set<String> roles = getAuthenticatedUserRoles(authentication);
 //    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
@@ -167,7 +169,7 @@ public class RController {
     	fp.setDatasetsIds(datasetsIds);
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
-        return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(bcManager.getTraces(fp, offset, limit), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})

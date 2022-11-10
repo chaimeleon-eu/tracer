@@ -107,17 +107,18 @@ public class BlockchainManagerProxy {
 		return cachingManager.deleteReqCache(authentication, id);
 	}
 
-	public RespTracesDTO<?> getTraces(FilterParams filterParams) {
+	public RespTracesDTO<?> getTraces(FilterParams filterParams, Integer offset, Integer limit) {
 		if (filterParams.getBlockchains() == null) {
 			return new RespTracesDTO<TraceSummaryBase>(blockchainManagersRepo.getActiveManagers().entrySet().stream()
 					.filter(e -> e.getValue().getBlockchainProperties().isEnabled())
-				.map(e -> new RespTraceDTO<TraceSummaryBase>(e.getKey(), e.getValue().getTraces(filterParams)))
+				.map(e -> new RespTraceDTO<TraceSummaryBase>(e.getKey(), e.getValue().getTraces(filterParams, offset, limit)))
 				.collect(Collectors.toList()));
 		} else {
 			return new RespTracesDTO<TraceSummaryBase>(filterParams.getBlockchains().stream()
 					.filter(bc -> blockchainManagersRepo.getActiveManagers().containsKey(bc) && 
 							blockchainManagersRepo.getActiveManagers().get(bc).getBlockchainProperties().isEnabled())
-				.map(bc -> new RespTraceDTO<TraceSummaryBase>(bc, blockchainManagersRepo.getActiveManagers().get(bc).getTraces(filterParams)))
+				.map(bc -> new RespTraceDTO<TraceSummaryBase>(bc, blockchainManagersRepo.getActiveManagers().get(bc)
+				            .getTraces(filterParams, offset, limit)))
 				.collect(Collectors.toList()));
 		}				
 	}

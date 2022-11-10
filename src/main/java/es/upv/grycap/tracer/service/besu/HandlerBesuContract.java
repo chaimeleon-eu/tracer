@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -121,9 +122,10 @@ public abstract class HandlerBesuContract<T extends Contract> {
 							Thread.sleep(retryConnect * 1000);
 							contracTmpt = getDeployedContract();
 							getContract = true;
-						}  catch (ConnectException | NoRouteToHostException e) {
+						}  catch (ConnectException | NoRouteToHostException | UnknownHostException e) {
 							if (unableToConnectMsg) {
-								log.warn("Unable to connect to besu network (retry until connected every " + retryConnect + " seconds): " + e.getMessage());
+								log.warn("Unable to connect to besu network (retry until connected every " 
+								        + retryConnect + " seconds): " + e.getMessage());
 								unableToConnectMsg = false;
 							}
 						} catch (IOException e) {
@@ -173,7 +175,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 	
 	public abstract TraceCacheOpResult submitTrace(final TraceBase entry, String callerUserId);
 	public abstract TraceCacheOpResult getTransactionStatusById(String tId);
-	public abstract List<TraceSummaryBase> getTraces(FilterParams filterParams);
+	public abstract List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit);
 	public abstract TraceBase getTraceById(String traceId);
 	public abstract List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos);
 	public abstract BigInteger getTracesCount();

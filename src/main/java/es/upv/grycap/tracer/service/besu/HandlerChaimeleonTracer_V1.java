@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
@@ -152,20 +155,54 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	}
 
 	@Override
-	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
+	public List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit) {
 		try {
 			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
+			int tracesCnt = tracesCount.intValueExact();
+	        if (offset == null) {
+	            offset = 0;
+	        } else if (offset > tracesCnt) {
+	            throw new HttpClientErrorException(org.springframework.http.HttpStatus.BAD_REQUEST, "Offset " + offset 
+	                    + " greater than the  number of elements in the blockchain ("
+	                    + tracesCnt + ").");
+	        }
+	        if (limit == null) {
+	            limit = tracesCnt;
+	        } else if (limit > tracesCnt) {
+//                throw new HttpClientErrorException(org.springframework.http.HttpStatus.BAD_REQUEST, "Limit " + limit 
+//                        + " greater than the  number of elements in the blockchain ("
+//                        + tracesCnt + ").");
+	            limit = tracesCnt;
+            }
 			Collection<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
-				traces.addAll(getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE));
+			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
+				traces.addAll(filterParams.filterTraces(btype, tracesTmp));
 			}
 			BigInteger numEls = tracesCount.mod(PG_SIZE);
-			if (numEls.compareTo(BigInteger.ZERO) == 1)
-				traces.addAll(getTracesSubArray(tracesCount.subtract(numEls), numEls));
-			traces = filterParams.filterTraces(btype, traces);
-			return traces.stream().map(e -> e.toSummary()).toList();
-		} catch (Exception e) {
+			if (numEls.compareTo(BigInteger.ZERO) == 1) {
+                Collection<TraceBase> tracesTmp = getTracesSubArray(tracesCount.subtract(numEls), numEls);
+				traces.addAll(filterParams.filterTraces(btype, tracesTmp));
+			}
+			int posRev = traces.size() - offset - 1;
+			if (posRev < 0) {
+			    posRev = 0;
+			}
+            int posEnd = posRev - limit;
+            if (posEnd < 0) {
+                posEnd = 0; 
+            }
+            
+            
+			List<TraceSummaryBase> result = traces.stream().skip(posEnd).limit(posRev - posEnd).map(e -> e.toSummary())
+			        .collect(Collectors.toList());
+			Collections.reverse(result);
+			return result;
+		}  catch (HttpClientErrorException e) {
+            log.error(Util.getFullStackTrace(e));
+            throw e;
+        } catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 			return List.of();
 		}

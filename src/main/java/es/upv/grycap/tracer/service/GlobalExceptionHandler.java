@@ -14,11 +14,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import es.upv.grycap.tracer.exceptions.BesuException;
 import es.upv.grycap.tracer.exceptions.BigchaindbException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,17 +35,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	public static final String ERROR_MSG = "There's been an internal error. That's all we know";
 	
-	@ExceptionHandler({BigchaindbException.class})
-    public ResponseEntity<?> handleExternalDirectMessageException(BigchaindbException e, HttpServletResponse response) throws IOException {
+	@ExceptionHandler({BesuException.class, BigchaindbException.class})
+    public ResponseEntity<?> handleExternalBlockchainException(Exception e, HttpServletResponse response) throws IOException {
 		log.error(e.getMessage(), e);
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
+	
 
-	@ExceptionHandler({EntityNotFoundException.class, BadRequest.class, UnsupportedDataTypeException.class})
+	@ExceptionHandler({HttpClientErrorException.class, EntityNotFoundException.class, BadRequest.class, UnsupportedDataTypeException.class})
     public ResponseEntity<?> handleExternalDirectMessageException(Exception e, HttpServletResponse response) throws IOException {
 		log.error(e.getMessage(), e);
 		HttpStatus status = HttpStatus.NOT_IMPLEMENTED;
-		if (e instanceof EntityNotFoundException || e instanceof BadRequest || e instanceof UnsupportedDataTypeException) { 
+		if (e instanceof HttpClientErrorException || e instanceof EntityNotFoundException || e instanceof BadRequest || e instanceof UnsupportedDataTypeException) { 
 			status = HttpStatus.BAD_REQUEST;
 		}
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), status);

@@ -283,7 +283,7 @@ public class BesuManager implements BlockchainManager {
 
 
 	@Override
-	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
+	public List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit) {
 		List<TraceSummaryBase> result = new ArrayList<>();
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
 			if (handler.isInited()) {
@@ -291,7 +291,7 @@ public class BesuManager implements BlockchainManager {
 	//				if (filterParams.hasBlockchains() && !filterParams.containsBlockchain(getType()))
 	//					continue;
 					log.info("Searching traces on contract " + handler.getContractName());
-					List<TraceSummaryBase> partialResult = handler.getTraces(filterParams);
+					List<TraceSummaryBase> partialResult = handler.getTraces(filterParams, offset, limit);
 					result.addAll(partialResult);
 				}
 			} else {
