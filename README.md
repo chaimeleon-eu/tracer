@@ -9,31 +9,29 @@ Its main purposes are:
 
 ## Functionality
 
-**Tracer** uses a blockchain system (BigchainDB) to store the data it records.
-Blockchain represents the perfect technology, because of its resilience to data modification and its distributed nature.
-Once a trace gets inserted into the blockchain, it cannot be modified without compromising the whole chain.
-Furthermore, since the nodes containing the full copy of the data are distributed in various locations, the automatic redundancy adds another layer of protection to the saved data.
-An instance of **Tracer** can connect to its own stand-alone instance of BigchainDB, or it can use a shared deployment.
-We strongly recommend the former approach, since the idea of blockchain is that of each node having a copy of the whole chain.
+**Tracer** uses blockchains to store the data it records.
+The blockchain technology is used because of its resilience to data modification and its distributed nature.
+Once a trace gets inserted into the blockchain, it cannot be modified without destroying the integrity of the whole chain.
+Furthermore, since the nodes containing the full copy of the chain are distributed in various locations, the automatic redundancy adds another layer of protection to the saved data.
+An instance of **Tracer** can connect to its own private instance of a blockchain system, or it can use a shared deployment.
 
 ### Caching
 
 Blockchains can reject blocks for various reasons e.g. invalid format.
-Due to the distributed nature of the system, the fate of a block stay unknown for quite a while.
-On the other hand, our tracing applications **must** respond immediately when it is called.
-As a result, we added a trace caching feature that stores all traces before sending them to the blockchain.
-This way the application can respond immediately, and preserve all traces regardless of their status in the blockchain.
-Once a trace has been successfully added, it is removed from the cache.
+Due to the distributed nature of the system, the fate of a block can remain unknown for some time.
+In order to avoid waiting times for the caller user, Tracer has a trace caching feature that stores all traces before sending them to the blockchain.
+This way, the response of a call to submit a trace is very fast.
+The caller user has the possibility to check the status of a submitted trace through the API.
+Once a submitted trace has been successfully added to the blockchain, it is removed from the cache.
 
 ## User actions
 
 The application traces the following user actions:
 - Create a new dataset
-- Create new version of an existing dataset
-- Visualize a certain version of a dataset
-- Launch a Kubernetes pod with mounted datasets
-- Create a new model in a Kubernetes Application
-- Use one or more models in a Kubernetes Application
+- Update the metadata of an existing dataset
+- use one or more datasets in an application on a cluster
+- Create a new model in an application
+- Use one or more models in an application
 
 ## Tracing resources
 
