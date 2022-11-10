@@ -88,7 +88,7 @@ tracer:
     admin:
         name: admin
         password: change_me
-        enabled: false
+        enabled: true
     hashAlgorithm: SHA3-256
     time:
         useLocal: true
