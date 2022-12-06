@@ -42,7 +42,7 @@ import es.upv.grycap.tracer.model.dto.DatasetResourceType;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
-import es.upv.grycap.tracer.model.dto.RespErrorDTO;
+import es.upv.grycap.tracer.model.dto.response.RespErrorDTO;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDetails;
@@ -152,8 +152,8 @@ public class RController {
     		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
     		@RequestParam(name = "userAction", required=false) List<UserAction> userActions,
     		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains,
-            @RequestParam(name = "offset", required=false) Integer offset, 
-            @RequestParam(name = "limit", required=false) Integer limit
+            @RequestParam(name = "skipTraces", required=false) Integer skip, 
+            @RequestParam(name = "limitTraces", required=false) Integer limit
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
 //    	Set<String> roles = getAuthenticatedUserRoles(authentication);
 //    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
@@ -169,7 +169,7 @@ public class RController {
     	fp.setDatasetsIds(datasetsIds);
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
-        return new ResponseEntity<>(bcManager.getTraces(fp, offset, limit), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(bcManager.getTraces(fp, skip, limit), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})

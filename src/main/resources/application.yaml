@@ -129,6 +129,7 @@ blockchain:
             enabled: true
             name: "Besu Private"
             url: http://localhost:8545
+            defaultLimit: 5
             # in seconds, when the network is not reachable
             retryConnect: 20
             contracts:
@@ -148,6 +149,7 @@ blockchain:
             enabled: false
             name: "BigchainDB Private"
             url: http://asaserver.i3m.upv.es:9984/api/v1
+            defaultLimit: 15
             transactionModePost: commit
             defaultAmountTransaction: 1
             keypairPrivate: ${base-dir}/data/bigchaindb/keys/ed25519

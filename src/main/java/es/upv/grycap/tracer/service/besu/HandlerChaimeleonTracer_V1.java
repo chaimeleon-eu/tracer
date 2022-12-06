@@ -50,6 +50,7 @@ import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.service.TimeManager;
 import es.upv.grycap.tracer.service.TraceFiltering;
@@ -155,26 +156,12 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	}
 
 	@Override
-	public List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit) {
+	public TracesFilteredPagination getTraces(FilterParams filterParams, Integer skip, Integer limit) {
+	    int tracesCnt = 0;
 		try {
 			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
-			int tracesCnt = tracesCount.intValueExact();
-	        if (offset == null) {
-	            offset = 0;
-	        } else if (offset > tracesCnt) {
-	            throw new HttpClientErrorException(org.springframework.http.HttpStatus.BAD_REQUEST, "Offset " + offset 
-	                    + " greater than the  number of elements in the blockchain ("
-	                    + tracesCnt + ").");
-	        }
-	        if (limit == null) {
-	            limit = tracesCnt;
-	        } else if (limit > tracesCnt) {
-//                throw new HttpClientErrorException(org.springframework.http.HttpStatus.BAD_REQUEST, "Limit " + limit 
-//                        + " greater than the  number of elements in the blockchain ("
-//                        + tracesCnt + ").");
-	            limit = tracesCnt;
-            }
-			Collection<TraceBase> traces = new ArrayList<>();
+			tracesCnt = tracesCount.intValueExact();
+			List<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
 			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
@@ -185,7 +172,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
                 Collection<TraceBase> tracesTmp = getTracesSubArray(tracesCount.subtract(numEls), numEls);
 				traces.addAll(filterParams.filterTraces(btype, tracesTmp));
 			}
-			int posRev = traces.size() - offset - 1;
+			int posRev = traces.size() - skip - 1;
 			if (posRev < 0) {
 			    posRev = 0;
 			}
@@ -193,18 +180,18 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
             if (posEnd < 0) {
                 posEnd = 0; 
             }
+            Collections.reverse(traces); 
             
-            
-			List<TraceSummaryBase> result = traces.stream().skip(posEnd).limit(posRev - posEnd).map(e -> e.toSummary())
+			List<TraceSummaryBase> result = traces.stream().skip(skip).limit(limit).map(e -> e.toSummary())
 			        .collect(Collectors.toList());
-			Collections.reverse(result);
-			return result;
+			//Collections.reverse(result);
+			return new TracesFilteredPagination(result, tracesCnt);
 		}  catch (HttpClientErrorException e) {
             log.error(Util.getFullStackTrace(e));
             throw e;
         } catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
-			return List.of();
+			return new TracesFilteredPagination(List.of(), tracesCnt);
 		}
 	}
 	

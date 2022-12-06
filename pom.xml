@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>es.upv.grycap</groupId>
     <artifactId>tracer</artifactId>
-    <version>1.5.1-BETA</version>
+    <version>1.5.2-BETA</version>
     <packaging>war</packaging>
     <name>Traceability Service</name>
 

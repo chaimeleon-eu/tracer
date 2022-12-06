@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model.dto;
+package es.upv.grycap.tracer.model.dto.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

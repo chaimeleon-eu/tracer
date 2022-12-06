@@ -53,6 +53,7 @@ import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import es.upv.grycap.tracer.Util;
 import es.upv.grycap.tracer.exceptions.BesuException;
@@ -70,6 +71,7 @@ import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.TraceVersion;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.service.BlockchainManager;
@@ -283,22 +285,45 @@ public class BesuManager implements BlockchainManager {
 
 
 	@Override
-	public List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit) {
-		List<TraceSummaryBase> result = new ArrayList<>();
+	public TracesFilteredPagination getTraces(FilterParams filterParams, Integer skip, Integer limit) {
+	    TracesFilteredPagination result = null;
+        if (skip == null) {
+            skip = 0;
+        }
+        if (limit == null) {
+            limit = props.getDefaultLimit();
+        }
+		List<HandlerBesuContract<? extends Contract>> enabledHandlers = new ArrayList<>();
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
 			if (handler.isInited()) {
 				if (handler.canRead()) {
 	//				if (filterParams.hasBlockchains() && !filterParams.containsBlockchain(getType()))
 	//					continue;
-					log.info("Searching traces on contract " + handler.getContractName());
-					List<TraceSummaryBase> partialResult = handler.getTraces(filterParams, offset, limit);
-					result.addAll(partialResult);
+				    enabledHandlers.add(handler);	
 				}
 			} else {
 				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
 			}
 		}
-		return result;
+		if (enabledHandlers.size() == 1) {
+		    return enabledHandlers.get(0).getTraces(filterParams, skip, limit);
+		} else {
+		    List<TraceSummaryBase> resultTmp = new ArrayList<>();
+		    int totalCount = 0;
+    		for (HandlerBesuContract<? extends Contract> handler: enabledHandlers) {              
+                log.info("Searching traces on contract " + handler.getContractName());
+                TracesFilteredPagination tmp = handler.getTraces(filterParams, null, null);
+                resultTmp.addAll(tmp.getTraces());
+                totalCount = Math.addExact(tmp.getCountAllTraces(), totalCount);
+    		}
+    		if (skip >= resultTmp.size()) {
+    		    return new TracesFilteredPagination(List.of(), totalCount);
+    		}
+    		
+    		return new TracesFilteredPagination(
+    		        resultTmp.stream().sorted((a, b) -> b.getTimestamp()
+    		                .compareTo(a.getTimestamp()) ).skip(skip).limit(limit).toList(), totalCount);
+    	}
 	}
 
 

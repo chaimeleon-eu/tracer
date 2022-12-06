@@ -46,6 +46,7 @@ import es.upv.grycap.tracer.model.besu.BesuProperties.Gas;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.service.TimeManager;
 import lombok.extern.slf4j.Slf4j;
@@ -175,7 +176,7 @@ public abstract class HandlerBesuContract<T extends Contract> {
 	
 	public abstract TraceCacheOpResult submitTrace(final TraceBase entry, String callerUserId);
 	public abstract TraceCacheOpResult getTransactionStatusById(String tId);
-	public abstract List<TraceSummaryBase> getTraces(FilterParams filterParams, Integer offset, Integer limit);
+	public abstract TracesFilteredPagination getTraces(FilterParams filterParams, Integer skip, Integer limit);
 	public abstract TraceBase getTraceById(String traceId);
 	public abstract List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos);
 	public abstract BigInteger getTracesCount();

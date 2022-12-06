@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model.dto;
+package es.upv.grycap.tracer.model.dto.response;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RespTracesDTO<T extends ITraceResponse> extends RespDTO {
+public class RespTraces extends RespDTO {
 	
-	protected List<RespTraceDTO<T>> traces;
+	protected List<RespTracesBCBase> traces;
 }
