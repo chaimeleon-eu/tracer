@@ -1,4 +1,4 @@
-FROM alpine:3.15
+FROM alpine:3.16
 
 ADD src /opt/tracer-src/src
 ADD pom.xml /opt/tracer-src

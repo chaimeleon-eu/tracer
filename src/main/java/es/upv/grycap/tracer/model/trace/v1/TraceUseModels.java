@@ -8,7 +8,9 @@ import javax.persistence.Entity;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
@@ -19,11 +21,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 //@SuperBuilder
-@NoArgsConstructor
+//@NoArgsConstructor
 public class TraceUseModels extends TraceModel {
-
-	@JsonIgnore
-	private static final long serialVersionUID = 4598094156983695180L;
+	
+	@JsonCreator
+	public TraceUseModels(@JsonProperty("id") String id, @JsonProperty("timestamp") String timestamp) {
+		super(id, timestamp);
+	}
 	
 	/**
 	 * The list of models IDs that were used when this action was executed	

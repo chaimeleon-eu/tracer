@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.activation.UnsupportedDataTypeException;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 
 import org.apache.commons.codec.binary.Hex;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -31,7 +33,6 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IReqCacheEntry;
 import es.upv.grycap.tracer.model.TraceCacheSummary;
 import es.upv.grycap.tracer.model.TracerRoles;
@@ -41,7 +42,8 @@ import es.upv.grycap.tracer.model.dto.DatasetResourceType;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
-import es.upv.grycap.tracer.model.dto.RespErrorDTO;
+import es.upv.grycap.tracer.model.dto.response.RespErrorDTO;
+import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import es.upv.grycap.tracer.model.trace.v1.TraceUpdateDetails;
 import es.upv.grycap.tracer.model.trace.v1.UserAction;
@@ -53,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 */
 @Slf4j
 @RestController
-//@CrossOrigin(origins = "http://asaserver.i3m.upv.es:3005", maxAge = 3600)
+@CrossOrigin
 @RequestMapping("/api/v1")
 public class RController {
 	
@@ -80,13 +82,21 @@ public class RController {
 //    }
     
     @RequestMapping(value = "/login", method = RequestMethod.POST, produces = {"application/json"})
-    public ResponseEntity<?> login(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
+    public ResponseEntity<?> login(Authentication authentication) 
     		throws UnsupportedDataTypeException {
     	
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.ACCEPTED);
     }
     
+    @RequestMapping(value = "/blockchains", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getBlockchains() {
+        return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
+	//@RolesAllowed({"TRACE_WRITER", "ADMIN"})
+    @PreAuthorize("hasAnyAuthority(T(es.upv.grycap.tracer.model.TracerRoles).trace_writer.toRole(), T(es.upv.grycap.tracer.model.TracerRoles).admin.toRole())")
     public ResponseEntity<?> postTrace(Authentication authentication, @Valid @RequestBody ReqDTO logRequest) 
     		throws UnsupportedDataTypeException {
     	final Collection<TraceCacheSummary> summaries = bcManager.addTrace(authentication, logRequest);
@@ -94,6 +104,7 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces/cache", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTracesCache(Authentication authentication,
     		@RequestParam(name = "detailed", required=false) Boolean detailed) 
     		throws UnsupportedDataTypeException {
@@ -102,6 +113,8 @@ public class RController {
     }
     
     @RequestMapping(value = "/traces/cache/{id}", method = RequestMethod.DELETE, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("#username == authentication.principal.username")
     public ResponseEntity<?> deleteTracesCache(Authentication authentication,
     		@PathVariable("id") UUID id) 
     		throws UnsupportedDataTypeException {
@@ -138,12 +151,15 @@ public class RController {
      * @throws MissingServletRequestParameterException
      */
     @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTraces(Authentication authentication, 
     		@RequestParam(name = "userId", required=false) List<String> usersIds,
     		@RequestParam(name = "callerUserId", required=false) List<String> callerUsersIds,
     		@RequestParam(name = "datasetId", required=false) List<String> datasetsIds,
     		@RequestParam(name = "userAction", required=false) List<UserAction> userActions,
-    		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains
+    		@RequestParam(name = "blockchain", required=false) Set<BlockchainType> blockchains,
+            @RequestParam(name = "skipTraces", required=false) Integer skip, 
+            @RequestParam(name = "limitTraces", required=false) Integer limit
     		) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
 //    	Set<String> roles = getAuthenticatedUserRoles(authentication);
 //    	if (!roles.contains(TracerRoles.TRACER_ADMIN.name())) {
@@ -159,15 +175,17 @@ public class RController {
     	fp.setDatasetsIds(datasetsIds);
     	fp.setUsersIds(usersIds);
     	fp.setUserActions(userActions);
-        return new ResponseEntity<>(bcManager.getTraces(fp), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(bcManager.getTraces(fp, skip, limit), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/providers", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getProviders(Authentication authentication) {
     	return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/traces/{traceId}", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getTrace(Authentication authentication,
     		@PathVariable("traceId") String traceId) throws BadRequest, UnsupportedDataTypeException, MissingServletRequestParameterException {
         return new ResponseEntity<>(bcManager.getTraceById(traceId), new HttpHeaders(), HttpStatus.OK);
@@ -180,14 +198,12 @@ public class RController {
 //    }
     
     @RequestMapping(value = "/static/traces/actions", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getActions(Authentication authentication) {
-    	
+    public ResponseEntity<?> getActions(Authentication authentication) {    	
         return new ResponseEntity<>(UserAction.values(), new HttpHeaders(), HttpStatus.OK);
     }
     
     @RequestMapping(value = "/static/traces/dataset_update_details", method = RequestMethod.GET, produces = {"application/json"})
-    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {
-    	
+    public ResponseEntity<?> getDatasetUpdateDetails(Authentication authentication) {    	
         return new ResponseEntity<>(TraceUpdateDetails.values(), new HttpHeaders(), HttpStatus.OK);
     }
     

@@ -7,5 +7,9 @@ public class BesuException extends RuntimeException {
 	public BesuException(String msg) {
 		super(msg);
 	}
+	
+	public BesuException(Exception e) {
+		super(e);
+	}
 
 }

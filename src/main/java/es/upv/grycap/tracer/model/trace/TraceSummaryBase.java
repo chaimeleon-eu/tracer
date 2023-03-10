@@ -1,5 +1,7 @@
 package es.upv.grycap.tracer.model.trace;
 
+import java.time.Instant;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -32,6 +34,12 @@ public abstract class TraceSummaryBase implements ITraceResponse {
 	@Getter
 	@Setter
 	protected String id;
+	
+	/**
+	 * The creation date of the trace
+	 */
+	@Getter	@Setter
+	protected Instant timestamp;
 	
 	public TraceSummaryBase(TraceVersion version) {
 		this.version = version;

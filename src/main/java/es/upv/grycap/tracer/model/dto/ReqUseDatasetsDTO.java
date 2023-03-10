@@ -27,5 +27,14 @@ public class ReqUseDatasetsDTO extends ReqDTO {
 	@NotNull(message="The list of datasets' ids cannot be null.")
 	@NotEmpty(message="The list of datasets' ids cannot be empty.")
 	protected List<String> datasetsIds;
+	/**
+	 * The name of the tool used for this user action
+	 */
+	protected String toolName;
+	/**
+	 * The version of the tool used for this user action
+	 */
+	
+	protected String toolVersion;
 
 }

@@ -32,6 +32,10 @@ public enum ReqCacheStatus {
 	 */
 	BLOCKCHAIN_ERROR,
 	/**
+	 * not found on the blockchain
+	 */
+	BLOCKCHAIN_NOT_FOUND,
+	/**
 	 * Error thrown by blockchain
 	 */
 	BLOCKCHAIN_SUCCESS

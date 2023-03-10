@@ -35,7 +35,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import es.upv.grycap.tracer.exceptions.CaseNotHandledException;
 import es.upv.grycap.tracer.exceptions.UncheckedJsonProcessingException;
 import es.upv.grycap.tracer.exceptions.UncheckedUnsupportedDataTypeException;
-import es.upv.grycap.tracer.model.FilterParams;
 import es.upv.grycap.tracer.model.IReqCacheEntry;
 import es.upv.grycap.tracer.model.TraceCacheDetailed;
 import es.upv.grycap.tracer.model.TraceCacheSummary;
@@ -45,10 +44,13 @@ import es.upv.grycap.tracer.model.dto.BlockchainProvider;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
-import es.upv.grycap.tracer.model.dto.RespTraceDTO;
-import es.upv.grycap.tracer.model.dto.RespTracesDTO;
+import es.upv.grycap.tracer.model.dto.response.RespTracesBCPaginated;
+import es.upv.grycap.tracer.model.dto.response.RespTracesByIdBC;
+import es.upv.grycap.tracer.model.dto.response.RespTraces;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
+import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.persistence.ITraceCacheDetailedRepo;
 import es.upv.grycap.tracer.persistence.ITraceCacheSummaryRepo;
 import es.upv.grycap.tracer.service.caching.CachingManager;
@@ -107,32 +109,49 @@ public class BlockchainManagerProxy {
 		return cachingManager.deleteReqCache(authentication, id);
 	}
 
-	public RespTracesDTO<?> getTraces(FilterParams filterParams) {
+	public RespTraces getTraces(FilterParams filterParams, Integer skip, Integer limit) {
 		if (filterParams.getBlockchains() == null) {
-			return new RespTracesDTO<TraceSummaryBase>(blockchainManagersRepo.getActiveManagers().entrySet().stream()
+			return new RespTraces(blockchainManagersRepo.getActiveManagers().entrySet().stream()
 					.filter(e -> e.getValue().getBlockchainProperties().isEnabled())
-				.map(e -> new RespTraceDTO<TraceSummaryBase>(e.getKey(), e.getValue().getTraces(filterParams)))
+				.map(e -> {
+				    TracesFilteredPagination traces = e.getValue().getTraces(filterParams, skip, limit);
+				        RespTracesBCPaginated<TraceSummaryBase> r = new RespTracesBCPaginated<>();
+				        r.setBlockchain(e.getKey());
+				        r.setTraces(traces.getTraces());
+				        r.setCountAllTraces(traces.getCountAllTraces());
+				     return r;
+				})
 				.collect(Collectors.toList()));
 		} else {
-			return new RespTracesDTO<TraceSummaryBase>(filterParams.getBlockchains().stream()
+			return new RespTraces(filterParams.getBlockchains().stream()
 					.filter(bc -> blockchainManagersRepo.getActiveManagers().containsKey(bc) && 
 							blockchainManagersRepo.getActiveManagers().get(bc).getBlockchainProperties().isEnabled())
-				.map(bc -> new RespTraceDTO<TraceSummaryBase>(bc, blockchainManagersRepo.getActiveManagers().get(bc).getTraces(filterParams)))
+				.map(bc ->  {
+                    TracesFilteredPagination traces = blockchainManagersRepo.getActiveManagers().get(bc)
+                            .getTraces(filterParams, skip, limit);
+                    RespTracesBCPaginated<TraceSummaryBase> r = new RespTracesBCPaginated<>();
+                    r.setBlockchain(bc);
+                    r.setTraces(traces.getTraces());
+                    r.setCountAllTraces(traces.getCountAllTraces());
+                    return r;
+                })
 				.collect(Collectors.toList()));
 		}				
 	}
 	
-	public RespTracesDTO<?> getTraceById(String traceId) {
-			return new RespTracesDTO<TraceBase>(blockchainManagersRepo.getActiveManagers().entrySet().stream()
+	public RespTraces getTraceById(String traceId) {
+			return new RespTraces(blockchainManagersRepo.getActiveManagers().entrySet().stream()
 					.filter(e -> e.getValue().getBlockchainProperties().isEnabled())
-				.map(e -> new RespTraceDTO<TraceBase>(e.getKey(), 
-						Arrays.asList(e.getValue().getTraceById(traceId)).stream().filter(t -> t != null).toList()))
+				.map(e -> RespTracesByIdBC.builder()
+				            .blockchain(e.getKey())
+				            .trace(Arrays.asList(e.getValue().getTraceById(traceId)).stream().filter(t -> t != null).findFirst().orElse(null))
+				            .build())
 				.collect(Collectors.toList()));				
 	}
 	
 	public List<BlockchainProvider> getProviders() {
 		return blockchainManagersRepo.getAllManagers().values().stream().map(bm -> BlockchainProvider.builder().enabled(bm.getBlockchainProperties().isEnabled())
-				.name(bm.getBlockchainProperties().getName()).type(bm.getType()).build()).collect(Collectors.toList());
+				.name(bm.getBlockchainProperties().getName()).type(bm.getType()).properties(bm.getBlockchainProperties()).build()).collect(Collectors.toList());
 	}
 	
 	public BlockchainType[] getAllBlockchainTypes() {

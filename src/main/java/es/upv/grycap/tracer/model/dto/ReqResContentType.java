@@ -14,8 +14,8 @@ public enum ReqResContentType {
 	 * A link to an external server with the resource.
 	 * HTTP(S) or FTP(S) supported.
 	 */
-	@JsonProperty
-	HTTP_FTP,
+//	@JsonProperty
+//	HTTP_FTP,
 	
 	/**
 	 * The actual hash of the file.

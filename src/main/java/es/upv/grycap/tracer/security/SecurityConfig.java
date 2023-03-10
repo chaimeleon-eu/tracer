@@ -13,6 +13,8 @@ import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcess
 import org.keycloak.adapters.springsecurity.filter.QueryParamPresenceRequestMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -53,6 +55,7 @@ public class SecurityConfig {
 	    }
 	}
 	
+	@ConditionalOnProperty(prefix = "tracer.admin", name="enabled", havingValue = "true")
 	@Configuration
 	@Order(1)
 	public class BasicJDBCAuthConf extends WebSecurityConfigurerAdapter {
@@ -111,7 +114,7 @@ public class SecurityConfig {
 	                configurer = configurer.withDefaultSchema()
 	                		.withUser(User.withUsername(adminName)
 	    			        .password(passwordEncoder().encode(adminPassword))
-	    			        .roles(TracerRoles.TRACER_ADMIN.name()));
+	    			        .roles(TracerRoles.admin.toRole()));
 	            }			      
 	        }
 
@@ -152,12 +155,18 @@ public class SecurityConfig {
 		@Autowired
 		public void configureGlobal(AuthenticationManagerBuilder auth) {
 		    SimpleAuthorityMapper grantedAuthorityMapper = new SimpleAuthorityMapper();
-		    grantedAuthorityMapper.setPrefix("ROLE_");
+		    grantedAuthorityMapper.setPrefix(TracerRoles.PREFIX);
 
 		    KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
 		    keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(grantedAuthorityMapper);
 		    auth.authenticationProvider(keycloakAuthenticationProvider);
 		}
+		
+	    @Bean
+	    public KeycloakConfigResolver KeycloakConfigResolver() {
+	        return new KeycloakSpringBootConfigResolver();
+	    }
+
 
 	    @Bean
 	    @Override

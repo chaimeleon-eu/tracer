@@ -1,4 +1,4 @@
-package es.upv.grycap.tracer.model;
+package es.upv.grycap.tracer.model.trace.v1;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,11 +7,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import es.upv.grycap.tracer.exceptions.UnhandledException;
+import es.upv.grycap.tracer.model.IFilterParams;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
-import es.upv.grycap.tracer.model.trace.v1.UserAction;
+import es.upv.grycap.tracer.model.trace.TraceBase;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
+@Slf4j
 public class FilterParams implements IFilterParams {
 	
 	protected Set<BlockchainType> blockchains;
@@ -78,6 +82,61 @@ public class FilterParams implements IFilterParams {
 		}
 		if (hasUsersIds()) {
 			result.addAll(usersIds);
+		}
+		return result;
+	}
+	
+	public Collection<TraceBase> filterTraces(BlockchainType btype, final Collection<TraceBase> traces) {
+
+		if (hasBlockchains()) {
+			if (!blockchains.contains(btype))
+				return List.of();
+		}
+		Collection<TraceBase> result = new ArrayList<>();
+		for (final TraceBase t: traces) {
+			switch (t.getVersion()) {
+			case V1: 
+				if (filterTracesV1(t))
+					result.add(t);
+				break;
+			default: throw new UnhandledException("Trace version " + t.getVersion().name() + " not handled");
+			}
+		}
+		return result;
+	}
+	
+	public boolean filterTracesV1( TraceBase trace) {
+		boolean result = true;
+		if (hasCallerUsersIds()) {
+			Trace t = (Trace) trace;
+			result &= callerUsersIds.contains(t.getCallerId());
+		}
+		if (hasDatasetsIds()) {
+			if (trace instanceof TraceDataset) {
+				log.debug("Trace is TraceDataset");
+				TraceDataset t = (TraceDataset) trace;
+				result &= datasetsIds.contains(t.getDatasetId());
+			} else if (trace instanceof TraceUseDatasets) {
+				log.debug("Trace is TraceUseDatasets");
+				TraceUseDatasets t = (TraceUseDatasets) trace;
+				Set<String> dsIds = new HashSet<>(t.getDatasetsIds());
+				dsIds.retainAll(datasetsIds);
+				result &= !dsIds.isEmpty();
+			} else if (trace instanceof TraceCreateModel) {
+				log.debug("Trace is TraceCreateModel");
+				TraceCreateModel t = (TraceCreateModel) trace;
+				Set<String> dsIds = new HashSet<>(t.getDatasetsIds());
+				dsIds.retainAll(datasetsIds);
+				result &= !dsIds.isEmpty();
+			}
+		}
+		if (hasUserActions()) {
+			Trace t = (Trace) trace;
+			result &= userActions.contains(t.getUserAction());
+		}
+		if (hasUsersIds()) {
+			Trace t = (Trace) trace;
+			result &= usersIds.contains(t.getUserId());
 		}
 		return result;
 	}

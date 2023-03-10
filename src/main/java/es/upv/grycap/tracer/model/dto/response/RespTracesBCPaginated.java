@@ -1,7 +1,8 @@
-package es.upv.grycap.tracer.model.dto;
+package es.upv.grycap.tracer.model.dto.response;
 
 import java.util.List;
 
+import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.trace.ITraceResponse;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
@@ -15,9 +16,10 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class RespTraceDTO<T extends ITraceResponse> {
-
-	protected BlockchainType blockchain;
-	protected List<T> traces;
+@SuperBuilder
+public class RespTracesBCPaginated<T extends ITraceResponse> extends RespTracesBCBase {
+    
+	protected List<T> traces;    
+    protected Integer countAllTraces;
 
 }

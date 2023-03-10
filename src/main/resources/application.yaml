@@ -1,29 +1,48 @@
-base-dir: /tmp/tracer
+base-dir: ${user.home}/tmp/tracer
+cache-db-name: tracer.db
 
 server:
     port: 8090
+    max-http-header-size: 20MB
+    tomcat:
+        max-swallow-size: 150MB
+        max-http-post-size: 150MB
     ssl:
         key-store-type: PKCS12
-        key-store: ${HOME}/cert/tracer.p12
+        key-store: ${user.home}/cert/tracer.p12
         key-store-password: change_me_key
         key-alias: tracer-service
         enabled: true
       
-logging.level.org.springframework.web:
-    filter.CommonsRequestLoggingFilter: DEBUG
-    reactive.function.client.ExchangeFunctions: DEBUG
+logging:
+    file:
+        path: ${base-dir}/data/logs
+        name: tracer-^project.version^.log
+    level.org.springframework.web:
+        filter.CommonsRequestLoggingFilter: INFO
+        reactive.function.client.ExchangeFunctions: INFO
 
 keycloak:
     auth-server-url: "https://asaserver.i3m.upv.es:20000/auth"
     realm: CHAIMELEON
-    resource: tracer-service
-    public-client: true
+    resource: tracer-webservice
     bearer-only: true
+    use-resource-role-mappings: true
+    credentials:
+        secret: secret
     
 spring:
+    servlet:
+        multipart: 
+            max-file-size: 100MB
+            max-request-size: 100MB
+    http:
+        multipart:
+            max-file-size: 100MB
+            max-request-size: 100MB
     h2.console.enabled: true
     datasource:
-        url: jdbc:h2:file:${base-dir}/tracer.db;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:h2:file:${base-dir}/data/${cache-db-name};DB_CLOSE_ON_EXIT=FALSE
         driverClassName: org.h2.Driver
         username: sa
         password: password
@@ -36,26 +55,27 @@ spring:
             hibernate:
                 enable_lazy_load_no_trans: true
         show-sql: true
-    security:
-        oauth2:
-            client:
-                registration:
-                    keycloak:
-                        client-id: tracer-service
-#                        client-secret: 
-                        authorization-grant-type: authorization_code
-                        redirect-uri: http://localhost:8090/api/v1
-                        scope: profile
-#                        realm: CHAIMELEON
-#                        public-client: true
-#                        provider: keycloak
-                provider:
-                    keycloak:
-                        authorization-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/auth
-#                        jwk-set-uri:  https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/certs
-#                        issuer-uri: https://localhost:20000/auth/realms/CHAIMELEON
-                        token-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/token
-                        user-name-attribute: preferred_username
+#     security:
+#         oauth2:
+#             client:
+#                 registration:
+#                     keycloak:
+#                         client-id: tracer-service
+# #                        client-secret: 
+#                         authorization-grant-type: authorization_code
+#                         redirect-uri: http://localhost:8090/api/v1
+#                         scope: profile
+# #                        realm: CHAIMELEON
+# #                        public-client: true
+# #                        provider: keycloak
+#                 provider:
+#                     keycloak:
+#                         authorization-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/auth
+# #                        jwk-set-uri:  https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/certs
+# #                        issuer-uri: https://localhost:20000/auth/realms/CHAIMELEON
+#                         token-uri: https://localhost:20000/auth/realms/CHAIMELEON/protocol/openid-connect/token
+#                         user-name-attribute: preferred_username
+#                         use-resource-role-mappings: true
                         
 tracer:
     # in KB
@@ -68,7 +88,29 @@ tracer:
     admin:
         name: admin
         password: change_me
+        enabled: true
     hashAlgorithm: SHA3-256
+    time:
+        useLocal: true
+        ntpTimeout: 5000
+        timeServers: 
+            - pool.ntp.org
+            - time.nist.gov
+            - time-a-g.nist.gov
+            - time-b-g.nist.gov
+            - time-c-g.nist.gov
+            - time-d-g.nist.gov
+            - time-e-g.nist.gov
+            - time-a-wwv.nist.gov
+            - time-b-wwv.nist.gov
+            - time-c-wwv.nist.gov
+            - time-d-wwv.nist.gov
+            - time-e-wwv.nist.gov
+            - time-a-b.nist.gov
+            - time-b-b.nist.gov
+            - utcnist.colorado.edu
+            - utcnist2.colorado.edu
+        retries: 3
     info:
         yearMin: 2021
         yearMax: 2024
@@ -84,18 +126,31 @@ blockchain:
     tmpHashDownFolder: ${base-dir}/tmp-hash
     besu:
         private:
-            enabled: false
+            enabled: true
             name: "Besu Private"
-            url: https://localhost:1443/
+            url: http://localhost:8545
+            defaultLimit: 5
+            # in seconds, when the network is not reachable
+            retryConnect: 20
+            contracts:
+                - name: ChaimeleonTracer_V1
+                  enable: 
+                    add: true
+                    read:  true              
+                  deployed: ${base-dir}/data/besu/contract/ChaimeleonTracer_V1.json
+                  gas:
+                    price: 0
+                    limit: 6700000 #9007199254740990
             wallet:
                 password: eth-test
                 path: ${base-dir}/besu/wallet
     bigchaindb:
         private:
-            enabled: true
+            enabled: false
             name: "BigchainDB Private"
             url: http://asaserver.i3m.upv.es:9984/api/v1
+            defaultLimit: 15
             transactionModePost: commit
             defaultAmountTransaction: 1
-            keypairPrivate: ${base-dir}/bigchaindb/keys/ed25519
-            keypairPublic: ${base-dir}/bigchaindb/keys/ed25519.pub
+            keypairPrivate: ${base-dir}/data/bigchaindb/keys/ed25519
+            keypairPublic: ${base-dir}/data/bigchaindb/keys/ed25519.pub
