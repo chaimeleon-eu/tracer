@@ -151,7 +151,7 @@ public class BlockchainManagerProxy {
 	
 	public List<BlockchainProvider> getProviders() {
 		return blockchainManagersRepo.getAllManagers().values().stream().map(bm -> BlockchainProvider.builder().enabled(bm.getBlockchainProperties().isEnabled())
-				.name(bm.getBlockchainProperties().getName()).type(bm.getType()).build()).collect(Collectors.toList());
+				.name(bm.getBlockchainProperties().getName()).type(bm.getType()).properties(bm.getBlockchainProperties()).build()).collect(Collectors.toList());
 	}
 	
 	public BlockchainType[] getAllBlockchainTypes() {

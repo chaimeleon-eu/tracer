@@ -165,27 +165,31 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
 			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
-				traces.addAll(filterParams.filterTraces(btype, tracesTmp));
+                Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
+                log.info("[Loop] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
+                traces.addAll(tracesTmpFilt);
 			}
 			BigInteger numEls = tracesCount.mod(PG_SIZE);
 			if (numEls.compareTo(BigInteger.ZERO) == 1) {
                 Collection<TraceBase> tracesTmp = getTracesSubArray(tracesCount.subtract(numEls), numEls);
-				traces.addAll(filterParams.filterTraces(btype, tracesTmp));
+                Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
+                log.info("[Remain] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
+				traces.addAll(tracesTmpFilt);
 			}
-			int posRev = traces.size() - skip - 1;
-			if (posRev < 0) {
-			    posRev = 0;
-			}
-            int posEnd = posRev - limit;
-            if (posEnd < 0) {
-                posEnd = 0; 
-            }
+//			int posRev = traces.size() - skip - 1;
+//			if (posRev < 0) {
+//			    posRev = 0;
+//			}
+//            int posEnd = posRev - limit;
+//            if (posEnd < 0) {
+//                posEnd = 0; 
+//            }
             Collections.reverse(traces); 
             
 			List<TraceSummaryBase> result = traces.stream().skip(skip).limit(limit).map(e -> e.toSummary())
 			        .collect(Collectors.toList());
 			//Collections.reverse(result);
-			return new TracesFilteredPagination(result, tracesCnt);
+			return new TracesFilteredPagination(result, traces.size());
 		}  catch (HttpClientErrorException e) {
             log.error(Util.getFullStackTrace(e));
             throw e;

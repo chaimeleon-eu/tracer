@@ -88,6 +88,12 @@ public class RController {
         return new ResponseEntity<>(null, new HttpHeaders(), HttpStatus.ACCEPTED);
     }
     
+    @RequestMapping(value = "/blockchains", method = RequestMethod.GET, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getBlockchains() {
+        return new ResponseEntity<>(bcManager.getProviders(), new HttpHeaders(), HttpStatus.OK);
+    }
+    
     @RequestMapping(value = "/traces", method = RequestMethod.POST, produces = {"application/json"})
 	//@RolesAllowed({"TRACE_WRITER", "ADMIN"})
     @PreAuthorize("hasAnyAuthority(T(es.upv.grycap.tracer.model.TracerRoles).trace_writer.toRole(), T(es.upv.grycap.tracer.model.TracerRoles).admin.toRole())")
