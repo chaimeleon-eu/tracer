@@ -113,17 +113,17 @@ public class FilterParams implements IFilterParams {
 		}
 		if (hasDatasetsIds()) {
 			if (trace instanceof TraceDataset) {
-				log.info("Trace is TraceDataset");
+				log.debug("Trace is TraceDataset");
 				TraceDataset t = (TraceDataset) trace;
 				result &= datasetsIds.contains(t.getDatasetId());
 			} else if (trace instanceof TraceUseDatasets) {
-				log.info("Trace is TraceUseDatasets");
+				log.debug("Trace is TraceUseDatasets");
 				TraceUseDatasets t = (TraceUseDatasets) trace;
 				Set<String> dsIds = new HashSet<>(t.getDatasetsIds());
 				dsIds.retainAll(datasetsIds);
 				result &= !dsIds.isEmpty();
 			} else if (trace instanceof TraceCreateModel) {
-				log.info("Trace is TraceCreateModel");
+				log.debug("Trace is TraceCreateModel");
 				TraceCreateModel t = (TraceCreateModel) trace;
 				Set<String> dsIds = new HashSet<>(t.getDatasetsIds());
 				dsIds.retainAll(datasetsIds);

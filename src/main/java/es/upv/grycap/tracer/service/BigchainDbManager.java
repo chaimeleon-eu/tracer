@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,6 +85,7 @@ import es.upv.grycap.tracer.exceptions.UncheckedSignatureException;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
 import es.upv.grycap.tracer.model.trace.TraceVersion;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
 import lombok.extern.slf4j.Slf4j;
@@ -270,7 +272,7 @@ public class BigchainDbManager implements BlockchainManager {
 //		}
 //	}
 	@Override
-	public List<TraceSummaryBase> getTraces(final FilterParams fp) {
+	public TracesFilteredPagination getTraces(final FilterParams fp, Integer offset, Integer limit) {
 
 		try {
 			HttpResponse<String> response = null;
@@ -281,13 +283,29 @@ public class BigchainDbManager implements BlockchainManager {
 				response = getAssetsByFieldsValues(vals);
 			}
 			
-	        log.info(response.toString());
 	        ObjectMapper mapper = new ObjectMapper();
 	        List<AssetCreate<TraceBase>> assets = mapper.readValue(response.body(), new TypeReference<List<AssetCreate<TraceBase>>>(){});
+	        int totalCnt = assets.size();
+            if (offset == null) {
+                offset = 0;
+            }
+            if (limit == null) {
+                limit = assets.size();
+            }
+	        if (offset >  assets.size()) {
+	            throw new BigchaindbException("Offset " + offset + " higher or equal than max num of traces which is " + assets.size());
+	        }
+	        int startPos = assets.size() - offset - 1;
+	        if (limit < startPos) {
+	            assets = assets.subList(startPos - limit, startPos + 1);
+	        } else {
+	            assets = assets.subList(0, startPos + 1);
+	        }
+	        Collections.reverse(assets);
 	        //List<AssetCreate<Trace>> assets = getObjectReader().forType(new TypeReference<List<AssetCreate<Trace>>>(){}).<AssetCreate<Trace>>readValues(response.body()).readAll();
 			List<TraceBase>  traces = assets.stream().filter(asset -> asset instanceof AssetCreate).map(asset -> ((AssetCreate<TraceBase>) asset).getData())
 					.collect(Collectors.toList());
-			 return traces.stream().map(e -> e.toSummary()).toList();//traceFiltering.filterTraces(traces, fp);
+			 return new TracesFilteredPagination(traces.stream().map(e -> e.toSummary()).toList(), totalCnt);//traceFiltering.filterTraces(traces, fp);
 		} catch (JsonProcessingException ex) {
 			log.error(ExceptionUtils.getStackTrace(ex));
 			throw new UncheckedJsonProcessingException(ex);

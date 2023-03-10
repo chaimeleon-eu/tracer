@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
@@ -41,11 +44,13 @@ import es.upv.grycap.tracer.exceptions.UnhandledException;
 import es.upv.grycap.tracer.model.TraceCacheOpResult;
 import es.upv.grycap.tracer.model.besu.BesuProperties;
 import es.upv.grycap.tracer.model.besu.ChaimeleonTracer_V1;
+import es.upv.grycap.tracer.model.besu.ChaimeleonTracer_V1.TraceEntry;
 import es.upv.grycap.tracer.model.besu.BesuProperties.ContractInfo;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.trace.TraceBase;
 import es.upv.grycap.tracer.model.trace.TraceSummaryBase;
+import es.upv.grycap.tracer.model.trace.TracesFilteredPagination;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.service.TimeManager;
 import es.upv.grycap.tracer.service.TraceFiltering;
@@ -56,7 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTracer_V1> {
 	
 	public static enum ResultCode {
-		SUCCESS(0), PARAMS_ERROR(1);
+		SUCCESS(0), PARAMS_ERROR(1), DATA_EXISTS_ERROR(3), NOT_FOUND(4);
 		
 		@Getter
 		protected long id;
@@ -96,7 +101,8 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		
 		try {
 			contract.get().setGasProvider(gasProvider);
-			TransactionReceipt receipt = contract.get().addTrace(BigInteger.valueOf(timeManager.getTime()), om.writeValueAsString(entry)).send();
+			TransactionReceipt receipt = contract.get().addTrace(BigInteger.valueOf(timeManager.getTime()), 
+			        entry.getId(),  om.writeValueAsString(entry)).send();
 			tId = receipt.getTransactionHash();
 			if (!receipt.isStatusOK()) {
 				resultMsg = receipt.getStatus();
@@ -150,22 +156,46 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	}
 
 	@Override
-	public List<TraceSummaryBase> getTraces(FilterParams filterParams) {
+	public TracesFilteredPagination getTraces(FilterParams filterParams, Integer skip, Integer limit) {
+	    int tracesCnt = 0;
 		try {
 			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
-			Collection<TraceBase> traces = new ArrayList<>();
+			tracesCnt = tracesCount.intValueExact();
+			List<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
-				traces.addAll(getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE));
+			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
+                Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
+                log.info("[Loop] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
+                traces.addAll(tracesTmpFilt);
 			}
 			BigInteger numEls = tracesCount.mod(PG_SIZE);
-			if (numEls.compareTo(BigInteger.ZERO) == 1)
-				traces.addAll(getTracesSubArray(tracesCount.subtract(numEls), numEls));
-			traces = filterParams.filterTraces(btype, traces);
-			return traces.stream().map(e -> e.toSummary()).toList();
-		} catch (Exception e) {
+			if (numEls.compareTo(BigInteger.ZERO) == 1) {
+                Collection<TraceBase> tracesTmp = getTracesSubArray(tracesCount.subtract(numEls), numEls);
+                Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
+                log.info("[Remain] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
+				traces.addAll(tracesTmpFilt);
+			}
+//			int posRev = traces.size() - skip - 1;
+//			if (posRev < 0) {
+//			    posRev = 0;
+//			}
+//            int posEnd = posRev - limit;
+//            if (posEnd < 0) {
+//                posEnd = 0; 
+//            }
+            Collections.reverse(traces); 
+            
+			List<TraceSummaryBase> result = traces.stream().skip(skip).limit(limit).map(e -> e.toSummary())
+			        .collect(Collectors.toList());
+			//Collections.reverse(result);
+			return new TracesFilteredPagination(result, traces.size());
+		}  catch (HttpClientErrorException e) {
+            log.error(Util.getFullStackTrace(e));
+            throw e;
+        } catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
-			return List.of();
+			return new TracesFilteredPagination(List.of(), tracesCnt);
 		}
 	}
 	
@@ -174,24 +204,12 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		TraceBase trace = null;
 
 		try {
-			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
 			ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
-			Tuple3<List<String>, BigInteger, String> result = 
-					contract.get().getTracesByValue(traceId, BigInteger.ZERO, tracesCount.subtract(BigInteger.ONE)).send();
+			Tuple3<TraceEntry, BigInteger, String> result = 
+					contract.get().getTraceById(traceId).send();
 			ResultCode rc = ResultCode.fromId(result.component2());
 			if (rc == ResultCode.SUCCESS) {
-				List<String> tracesStr = result.component1();
-				trace = tracesStr.stream()
-						.map(ts -> {
-							try {
-								return om.readValue(ts, TraceBase.class);
-							} catch (JsonProcessingException e) {
-								log.error(Util.getFullStackTrace(e));
-								throw UncheckedExceptionFactory.get(e);
-							}
-						})
-						.filter(t -> t.getId().equals(traceId))
-						.findFirst().orElse(null);
+				return om.readValue(result.component1().trace, TraceBase.class);
 			} else {
 				String msg = result.component3();
 				log.error("Error from the blockchain code " + rc.name() 
@@ -244,14 +262,14 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	
 	protected List<TraceBase> getTracesSubArray(BigInteger startPos, BigInteger maxNumElems) throws Exception {
 		ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
-		Tuple3<List<String>,BigInteger,String> result = contract.get().getTracesSubarray(startPos, maxNumElems).send();
+		Tuple3<List<TraceEntry>,BigInteger,String> result = contract.get().getTracesSubarray(startPos, maxNumElems).send();
 		ResultCode rc = ResultCode.fromId(result.component2());
 		if (rc == ResultCode.SUCCESS) {
-			List<String> tracesStr = result.component1();
+			List<TraceEntry> tracesStr = result.component1();
 			List<TraceBase> traces = tracesStr.stream()
 					.map(ts -> {
 						try {
-							return om.readValue(ts, TraceBase.class);
+							return om.readValue(ts.trace, TraceBase.class);
 						} catch (JsonProcessingException e) {
 							log.error(Util.getFullStackTrace(e));
 							throw UncheckedExceptionFactory.get(e);
@@ -276,15 +294,15 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	@Override
 	public List<TraceSummaryBase> getTracesByValue(String value, BigInteger startPos, BigInteger endPos) {
 		try {
-			Tuple3<List<String>,BigInteger,String> result = contract.get().getTracesByValue(value, startPos, endPos).send();
+			Tuple3<List<TraceEntry>,BigInteger,String> result = contract.get().getTracesByValue(value, startPos, endPos).send();
 			ResultCode rc = ResultCode.fromId(result.component2());
 			if (rc == ResultCode.SUCCESS) {
-				List<String> tracesStr = result.component1();
+				List<TraceEntry> tracesStr = result.component1();
 				ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 				List<TraceSummaryBase> traces = tracesStr.stream()
 						.map(ts -> {
 							try {
-								TraceBase tb = om.readValue(ts, TraceBase.class);
+								TraceBase tb = om.readValue(ts.trace, TraceBase.class);
 								return tb.toSummary();
 							} catch (JsonProcessingException e) {
 								log.error(Util.getFullStackTrace(e));

@@ -1,5 +1,6 @@
 package es.upv.grycap.tracer.model.dto;
 
+import es.upv.grycap.tracer.model.BlockchainProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,5 +17,7 @@ public class BlockchainProvider {
 	protected String name;
 	
 	protected boolean enabled;
+	
+	protected BlockchainProperties properties;
 
 }
