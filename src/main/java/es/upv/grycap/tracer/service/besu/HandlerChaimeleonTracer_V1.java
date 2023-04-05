@@ -98,7 +98,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		String resultMsg = null;
 		ReqCacheStatus resultStatus = null;
 		String tId = null;
-		
+		log.info("Submit trace ID " + entry.getId() + " version " + entry.getVersion()  + " timestamp " + entry.getTimestamp());
 		try {
 			contract.get().setGasProvider(gasProvider);
 			TransactionReceipt receipt = contract.get().addTrace(BigInteger.valueOf(timeManager.getTime()), 
@@ -160,10 +160,12 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 	    int tracesCnt = 0;
 		try {
 			BigInteger tracesCount = contract.get().getTracesCount().send().component1();
+            log.info("Get traces retrieved " + tracesCount.longValue() + " traces");
 			tracesCnt = tracesCount.intValueExact();
 			List<TraceBase> traces = new ArrayList<>();
 			BigInteger steps = tracesCount.divide(PG_SIZE);
-			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
+			log.info("Get traces in " + steps.longValue() + " steps");
+			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx = idx.add(BigInteger.ONE)) {
 			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
                 Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
                 log.info("[Loop] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
@@ -228,7 +230,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 //		try {
 //			BigInteger tracesCount = contract.getTracesCount().send();
 //			BigInteger steps = tracesCount.divide(PG_SIZE);
-//			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx.add(BigInteger.ONE)) {
+//			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx = idx.add(BigInteger.ONE)) {
 //				trace = getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE)
 //						.stream().filter(t -> t.getId().equals(traceId))
 //						.findFirst().orElse(null);
