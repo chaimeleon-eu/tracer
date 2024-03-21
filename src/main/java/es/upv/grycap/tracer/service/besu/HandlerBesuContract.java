@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -123,11 +124,11 @@ public abstract class HandlerBesuContract<T extends Contract> {
 							Thread.sleep(retryConnect * 1000);
 							contracTmpt = getDeployedContract();
 							getContract = true;
-						}  catch (ConnectException | NoRouteToHostException | UnknownHostException e) {
+						}  catch (ConnectException | NoRouteToHostException | UnknownHostException | SocketTimeoutException e) {
 							if (unableToConnectMsg) {
 								log.warn("Unable to connect to besu network (retry until connected every " 
 								        + retryConnect + " seconds): " + e.getMessage());
-								unableToConnectMsg = false;
+								//unableToConnectMsg = false;
 							}
 						} catch (IOException e) {
 							log.error(Util.getFullStackTrace(e));
