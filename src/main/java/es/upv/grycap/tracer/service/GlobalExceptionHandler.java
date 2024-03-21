@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import es.upv.grycap.tracer.exceptions.BesuException;
 import es.upv.grycap.tracer.exceptions.BigchaindbException;
+import es.upv.grycap.tracer.exceptions.OperationNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	public static final String ERROR_MSG = "There's been an internal error. That's all we know";
 	
-	@ExceptionHandler({BesuException.class, BigchaindbException.class})
+	@ExceptionHandler({BesuException.class, BigchaindbException.class, OperationNotSupportedException.class})
     public ResponseEntity<?> handleExternalBlockchainException(Exception e, HttpServletResponse response) throws IOException {
 		log.error(e.getMessage(), e);
         return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);

@@ -64,10 +64,18 @@ public class TraceCacheOpConsumer implements Consumer<TraceCacheOpResult> {
 					rce.setTransactionId(result.getTransactionId());
 				}
 				reqCacheDetailedRepo.saveAndFlush(rce);
-				Util.loopRequestFutures(result.getStatus(), retryDelay,
-						manager, rce,reqCacheDetailedRepo, executorCacheSubmitter);
+
+	            try {
+	                TimeUnit.SECONDS.sleep(retryDelay);
+    				Util.loopRequestFutures(result.getStatus(), retryDelay,
+    						manager, rce,reqCacheDetailedRepo, executorCacheSubmitter);
+	            } catch (InterruptedException e) {
+	                log.error(ExceptionUtils.getStackTrace(e));
+	            }
+	            
 			} else {
 				reqCacheDetailedRepo.delete(rce);
+                reqCacheDetailedRepo.flush();
 			}
 		}
 	}

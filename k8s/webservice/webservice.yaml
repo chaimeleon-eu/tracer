@@ -78,6 +78,8 @@ spec:
     spec:
       replicas: 1
       priorityClassName: core-services
+      nodeSelector:
+        chaimeleon.eu/target: core-services
       containers:
       - image: harbor.chaimeleon-eu.i3m.upv.es/chaimeleon-services/tracer-web:1.3.4
         imagePullPolicy: Always

@@ -42,6 +42,7 @@ import es.upv.grycap.tracer.model.dto.DatasetResourceType;
 import es.upv.grycap.tracer.model.dto.HashType;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
 import es.upv.grycap.tracer.model.dto.ReqResContentType;
+import es.upv.grycap.tracer.model.dto.request.cache.UpdateTraceCacheDTO;
 import es.upv.grycap.tracer.model.dto.response.RespErrorDTO;
 import es.upv.grycap.tracer.model.trace.v1.FilterParams;
 import es.upv.grycap.tracer.model.trace.v1.Trace;
@@ -121,6 +122,18 @@ public class RController {
     	IReqCacheEntry result = bcManager.deleteReqCache(authentication, id);
         return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
     }
+    
+    @RequestMapping(value = "/traces/cache/{id}", method = RequestMethod.PUT, produces = {"application/json"})
+    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("#username == authentication.principal.username")
+    public ResponseEntity<?> updateTracesCache(Authentication authentication,
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody UpdateTraceCacheDTO body) 
+            throws UnsupportedDataTypeException {
+        IReqCacheEntry result = bcManager.updateReqCache(authentication, id, body.getFields(), body.isRunBlockchainCommit());
+        return new ResponseEntity<>(result, new HttpHeaders(), HttpStatus.OK);
+    }
+    
     
 //    @RequestMapping(value = "/traces", method = RequestMethod.GET, produces = {"application/json"})
 //    public ResponseEntity<?> getTraces(Authentication authentication, 

@@ -17,7 +17,7 @@ RUN \
     # Install the runtime dependencies
     && apk del build-dependencies  \
     && rm -rf /opt/tracer-src /root/.m2 /var/cache/apk/* \
-    && apk --no-cache add openjdk17-jre-headless
+    && apk --no-cache add openjdk17-jre-headless curl
 
 ENV SERVER_PORT 8443 
 ENV SERVER_SSL_KEY_ALIAS '' 
