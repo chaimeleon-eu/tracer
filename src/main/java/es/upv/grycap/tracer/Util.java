@@ -2,6 +2,8 @@ package es.upv.grycap.tracer;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.Socket;
 import java.net.http.HttpClient;
 import java.security.GeneralSecurityException;
@@ -9,6 +11,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +25,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import es.upv.grycap.tracer.exceptions.CaseNotHandledException;
@@ -72,6 +78,54 @@ public class Util {
 		}
 	}
 	
+	public static <T_CLASS> Collection<Field> getAllFieldsAndAncestors(T_CLASS o, boolean modPrivate, boolean modPublic, boolean modProtected) {
+	    Class<?> currentClass = o.getClass();
+	    Collection<Field> result = new ArrayList<>();
+	    while (currentClass != null) {
+            Field[] fields = currentClass.getDeclaredFields();
+            for (Field field : fields) {
+                if (modProtected && Modifier.isProtected(field.getModifiers())) {
+                    result.add(field);
+                } else if (modPublic && Modifier.isPublic(field.getModifiers())) {
+                    result.add(field);
+                } else if (modPrivate && Modifier.isPrivate(field.getModifiers())) {
+                    result.add(field);
+                } 
+            }
+            currentClass = currentClass.getSuperclass();
+        }
+	    return result;
+	}
+	
+	   public static <T_CLASS> Collection<Field> findFieldsByName(T_CLASS o, String fieldName) {
+	        Class<?> currentClass = o.getClass();
+	        Collection<Field> result = new ArrayList<>();
+	        while (currentClass != null) {
+	            Field[] fields = currentClass.getDeclaredFields();
+	            Field field = Arrays.stream(fields).filter(e-> e.getName().equals(fieldName)).findFirst().orElse(null);
+	            if (field != null) {
+	                result.add(field);
+	            }
+	            currentClass = currentClass.getSuperclass();
+	        }
+	        return result;
+	    }
+	
+	public static <T_CLASS, T_FVALUE> void updateFieldByName(T_CLASS o, String fieldName, T_FVALUE value) 
+	        throws IllegalArgumentException, IllegalAccessException {
+	    Collection<Field> fields = Util.<T_CLASS>findFieldsByName(o, fieldName);
+	    if (fields.size() > 1) {
+	        throw new RuntimeException("Found "+ fields.size() + " fields with name " + fieldName + "in the object's class and its ancestors. Can't update if there are more than one.");
+	    } else if (fields.size() == 0) {
+	        throw new RuntimeException("Field name '" + fieldName + "' not found in the object's class and its ancestors");
+	    } else {
+	        Field f = fields.iterator().next();
+	        f.setAccessible(true);
+	        f.set(o, value);
+	    }
+	    
+	}
+	
 	public static String getFullStackTrace(Throwable t) {
 		  StringWriter sw = new StringWriter();
 //		  if (t.getMessage() != null)
@@ -87,25 +141,20 @@ public class Util {
 			final ITraceCacheDetailedRepo reqCacheDetailedRepo,
 			final Executor executorCache) {
 		if (status == ReqCacheStatus.BLOCKCHAIN_WAITING) {
-			try {
-				TimeUnit.SECONDS.sleep(retryDelay);
+				//TimeUnit.SECONDS.sleep(retryDelay);
 				CompletableFuture.supplyAsync(new TraceCacheOpUpdater(manager, rce.getTransactionId()), 
 						executorCache)
 						.thenAccept(new TraceCacheOpConsumer(manager, rce.getId(), reqCacheDetailedRepo, executorCache, retryDelay));
-			} catch (InterruptedException e) {
-				log.error(ExceptionUtils.getStackTrace(e));
-			}
-			
 		} else if (status == ReqCacheStatus.WAITING 
 				|| status == ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE) {
-			try {
-				TimeUnit.SECONDS.sleep(retryDelay);
-				CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(manager, rce.getTrace(), rce.getCallerId()), 
+//			try {
+				//TimeUnit.SECONDS.sleep(retryDelay);
+				CompletableFuture.supplyAsync(new TraceCacheOpSubmitter(reqCacheDetailedRepo, manager, rce.getId(), rce.getTrace(), rce.getCallerId()), 
 						executorCache)
 						.thenAccept(new TraceCacheOpConsumer(manager, rce.getId(), reqCacheDetailedRepo, executorCache, retryDelay));
-			} catch (InterruptedException e) {
-				log.error(ExceptionUtils.getStackTrace(e));
-			}			
+//			} catch (InterruptedException e) {
+//				log.error(ExceptionUtils.getStackTrace(e));
+//			}			
 		} else {
 			log.info("Status " + status.name() + " not handled by the loop");
 		}

@@ -272,7 +272,7 @@ public class BesuManager implements BlockchainManager {
 					}
 				}
 			} else {
-				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
+				log.warn("Contract " + handler.getContractName() + " not initialized, skipping.");
 			}
 		}
 		if (result == null) {
@@ -302,7 +302,7 @@ public class BesuManager implements BlockchainManager {
 				    enabledHandlers.add(handler);	
 				}
 			} else {
-				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
+				log.warn("Contract " + handler.getContractName() + " not initialized, skipping.");
 			}
 		}
 		if (enabledHandlers.size() == 1) {
@@ -342,7 +342,7 @@ public class BesuManager implements BlockchainManager {
 					}
 				}
 			} else {
-				log.warn("Contract " + handler.getContractName() + " not inited, skipping.");
+				log.warn("Contract " + handler.getContractName() + " not initialized, skipping.");
 			}
 		}
 		return trace;
@@ -353,7 +353,7 @@ public class BesuManager implements BlockchainManager {
 		for (HandlerBesuContract<? extends Contract> handler: handlersByContractName.values()) {
 			if (!handler.isInited()) {
 				return new TraceCacheOpResult("Contract " + handler.getContractName() 
-					+ " is not inited. Cannot continue untill all enabled contracts are inited.",
+					+ " is not initialized. Cannot continue until all enabled contracts are initialized.",
 						ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE, null);
 			}
 		}

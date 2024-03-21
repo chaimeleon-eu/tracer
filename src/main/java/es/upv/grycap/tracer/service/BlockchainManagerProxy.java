@@ -44,6 +44,7 @@ import es.upv.grycap.tracer.model.dto.BlockchainProvider;
 import es.upv.grycap.tracer.model.dto.BlockchainType;
 import es.upv.grycap.tracer.model.dto.ReqCacheStatus;
 import es.upv.grycap.tracer.model.dto.ReqDTO;
+import es.upv.grycap.tracer.model.dto.request.cache.UpdateField;
 import es.upv.grycap.tracer.model.dto.response.RespTracesBCPaginated;
 import es.upv.grycap.tracer.model.dto.response.RespTracesByIdBC;
 import es.upv.grycap.tracer.model.dto.response.RespTraces;
@@ -108,6 +109,10 @@ public class BlockchainManagerProxy {
 	public  IReqCacheEntry deleteReqCache(final Authentication authentication, UUID id) {
 		return cachingManager.deleteReqCache(authentication, id);
 	}
+	
+   public  IReqCacheEntry updateReqCache(final Authentication authentication, UUID id, Collection<UpdateField> fields, boolean runBlockchainCommit) {
+        return cachingManager.updateReqCacheBlockchainCommit(authentication, id, fields, runBlockchainCommit);
+    }
 
 	public RespTraces getTraces(FilterParams filterParams, Integer skip, Integer limit) {
 		if (filterParams.getBlockchains() == null) {

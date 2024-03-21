@@ -29,7 +29,7 @@ keycloak:
     bearer-only: true
     use-resource-role-mappings: true
     credentials:
-        secret: secret
+        secret: lnSB0Iy7AmCCBL6mDKVa7foLGZZxAeGw
     
 spring:
     servlet:

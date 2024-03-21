@@ -2,6 +2,7 @@ package es.upv.grycap.tracer.service.besu;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -110,6 +111,10 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 			} else {
 				resultStatus = ReqCacheStatus.BLOCKCHAIN_SUCCESS;
 			}
+		} catch (ConnectException e) {
+            log.error(Util.getFullStackTrace(e));
+            resultMsg = Util.getFullStackTrace(e);
+            resultStatus = ReqCacheStatus.BLOCKCHAIN_UNAVAILABLE;
 		} catch (Exception e) {
 			log.error(Util.getFullStackTrace(e));
 			resultMsg = Util.getFullStackTrace(e);
