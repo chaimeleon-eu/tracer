@@ -83,7 +83,8 @@ public abstract class HandlerBesuContract<T extends Contract> {
 	protected BesuProperties props;
 	
 	public HandlerBesuContract( BlockchainType btype, String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
-		this.url = url;
+		this.props = props;
+	    this.url = url;
 		this.credentials = credentials;
 		this.timeManager = timeManager;
 		this.btype = btype;

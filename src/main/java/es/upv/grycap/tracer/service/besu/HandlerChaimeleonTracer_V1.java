@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -191,9 +192,9 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 //            if (posEnd < 0) {
 //                posEnd = 0; 
 //            }
-            Collections.reverse(traces); 
-            
-			List<TraceSummaryBase> result = traces.stream().skip(skip).limit(limit).map(e -> e.toSummary())
+            //Collections.reverse(traces); 
+			List<TraceSummaryBase> result = traces.stream().sorted(Comparator.comparing(TraceBase::getTimestamp).reversed())
+			        .skip(skip).limit(limit).map(e -> e.toSummary())
 			        .collect(Collectors.toList());
 			//Collections.reverse(result);
 			return new TracesFilteredPagination(result, traces.size());
