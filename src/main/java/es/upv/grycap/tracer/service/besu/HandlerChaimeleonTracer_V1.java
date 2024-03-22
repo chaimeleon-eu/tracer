@@ -81,7 +81,7 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
 		}
 	}
 	
-	protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
+	//protected final BigInteger PG_SIZE = BigInteger.valueOf(50);
 
 	public HandlerChaimeleonTracer_V1( BlockchainType btype, String url, final BesuProperties props, final Credentials credentials, final TimeManager timeManager) {
 		super(btype, url, props, credentials, timeManager);
@@ -168,15 +168,15 @@ public class HandlerChaimeleonTracer_V1 extends HandlerBesuContract<ChaimeleonTr
             log.info("Get traces retrieved " + tracesCount.longValue() + " traces");
 			tracesCnt = tracesCount.intValueExact();
 			List<TraceBase> traces = new ArrayList<>();
-			BigInteger steps = tracesCount.divide(PG_SIZE);
+			BigInteger steps = tracesCount.divide(props.getGetTracesPageSize());
 			log.info("Get traces in " + steps.longValue() + " steps");
 			for (BigInteger idx=BigInteger.ZERO; idx.compareTo(steps) == -1; idx = idx.add(BigInteger.ONE)) {
-			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(PG_SIZE), PG_SIZE);
+			    Collection<TraceBase> tracesTmp =  getTracesSubArray(idx.multiply(props.getGetTracesPageSize()), props.getGetTracesPageSize());
                 Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
                 log.info("[Loop] Retrieved " + tracesTmp.size() + " traces from the blockchain " + btype.name() + ", after filtering remain " + tracesTmpFilt.size());
                 traces.addAll(tracesTmpFilt);
 			}
-			BigInteger numEls = tracesCount.mod(PG_SIZE);
+			BigInteger numEls = tracesCount.mod(props.getGetTracesPageSize());
 			if (numEls.compareTo(BigInteger.ZERO) == 1) {
                 Collection<TraceBase> tracesTmp = getTracesSubArray(tracesCount.subtract(numEls), numEls);
                 Collection<TraceBase> tracesTmpFilt = filterParams.filterTraces(btype, tracesTmp);
