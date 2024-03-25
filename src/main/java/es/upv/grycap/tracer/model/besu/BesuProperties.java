@@ -89,4 +89,8 @@ public class BesuProperties extends BlockchainProperties {
 	protected int retryConnect;
 	protected List<ContractInfo> contracts;
 	protected WalletInfo wallet;
+	/**
+	 * How many traces should be retrieved with each call from the blockchain
+	 */
+	protected BigInteger getTracesPageSize;
 }
