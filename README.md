@@ -1,3 +1,5 @@
+[IMPORTANT] The CHAIMELEON project has ended therefore this repository has been archived. Our work on Tracer will continue but in the context of the EUCAIM project, at https://github.com/EUCAIM/tracer.
+
 # Tracer
 
 **Tracer** is a program meant to trace user actions in a microservices deployment.
